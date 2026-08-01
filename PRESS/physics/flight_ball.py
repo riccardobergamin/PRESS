@@ -1,0 +1,379 @@
+"""
+Ball flight physics and arrival matching utilities.
+"""
+
+import jax
+import jax.numpy as jnp
+from jax.experimental.ode import odeint
+
+from .angles import (
+    rotation_time
+)
+
+
+
+def ball_trajectory(
+    v0,
+    theta,
+    t_span,
+    rho=1.2,
+    Cd=0.25,
+    A=0.038,
+    m=0.43,
+    g=9.81,
+):
+    """
+    Integrate single ball trajectory.
+
+    State:
+        y[0] : horizontal distance
+        y[1] : height
+        y[2] : horizontal velocity
+        y[3] : vertical velocity
+    """
+
+    k = 0.5 * rho * Cd * A / m
+
+
+    def ode(y, t):
+
+        v_d = y[2]
+        v_z = y[3]
+
+        v_norm = jnp.sqrt(v_d**2 + v_z**2) + 1e-8
+        
+
+        return jnp.array(
+            [
+                v_d,
+                v_z,
+                -k * v_d * v_norm,
+                -k * v_z * v_norm - g,
+            ]
+        )
+
+
+    y0 = jnp.array(
+        [
+            0.0,
+            0.0,
+            v0 * jnp.cos(theta),
+            v0 * jnp.sin(theta),
+        ]
+    )
+
+
+    return odeint(
+        ode,
+        y0,
+        t_span,
+    )
+
+
+
+def generate_ball_trajectories(
+    v0_candidates,
+    theta_candidates,
+    t_span,
+    rho=1.2,
+    Cd=0.25,
+    A=0.038,
+    m=0.43,
+    g=9.81
+):
+    """
+    Generate candidate ball trajectories.
+    """
+
+    vv, tt = jnp.meshgrid(
+        v0_candidates,
+        theta_candidates,
+    )
+
+
+    def solve(v0, theta):
+
+        return ball_trajectory(
+            v0,
+            theta,
+            t_span,
+            rho=rho,
+            Cd=Cd,
+            A=A,
+            m=m,
+            g=g
+        )
+
+
+    return jax.vmap(
+        solve
+    )(
+        vv.ravel(),
+        tt.ravel(),
+    )
+
+
+
+def build_flight_lookup(
+    r_limit,
+    trajectories,
+    t_span,
+    grid_step,
+    z_max,
+):
+    """
+    Build lookup table:
+    radius -> possible ball arrival times.
+    """
+
+    dist_phys = trajectories[:, :, 0]
+    z_phys = trajectories[:, :, 1]
+
+
+    n_radii = (
+        int(r_limit / grid_step)
+        + 2
+    )
+
+
+    radii = jnp.linspace(
+        0.0,
+        r_limit,
+        n_radii,
+    )
+
+
+    def interpolate(radius):
+
+        def single(
+            distance,
+            height,
+        ):
+
+            t_hit = jnp.interp(
+                radius,
+                distance,
+                t_span,
+            )
+
+            z_hit = jnp.interp(
+                t_hit,
+                t_span,
+                height,
+            )
+
+
+            valid = (
+                (z_hit <= z_max)
+                &
+                (radius <= jnp.max(distance))
+            )
+
+
+            return jnp.where(
+                valid,
+                t_hit,
+                jnp.inf,
+            )
+
+
+        return jax.vmap(
+            single
+        )(
+            dist_phys,
+            z_phys,
+        )
+
+
+    lookup = jax.vmap(
+        interpolate
+    )(
+        radii
+    )
+
+
+    return radii, lookup
+
+
+
+def player_arrival_time(
+    r_target,
+    p_attackers,
+    v_attackers,
+    tau_r,
+    alpha_rot,
+    v_max,
+):
+    """
+    Minimum player arrival time.
+
+    Computes the fastest player arrival
+    for each target position.
+    """
+
+    # position after reaction
+    p_react =  p_attackers[:, None, :] + v_attackers[:, None, :] * tau_r
+
+
+    # player-target vectors
+    delta = r_target[None, :, :] - p_react
+
+    # distances
+    distance = jnp.linalg.norm(delta, axis=-1)
+
+    
+    tau_move = distance / v_max
+
+
+    # rotation time
+    tau_theta = rotation_time(p_attackers, v_attackers, r_target, alpha_rot)
+
+   # running time
+   
+    tau_players =  tau_r + tau_theta + tau_move
+
+
+    # fastest player per target
+    return jnp.min(tau_players,axis=0)
+
+
+
+def match_ball_player_time(
+    distances,
+    player_times,
+    lookup,
+    grid_step,
+):
+    """
+    Select ball trajectory closest
+    to player arrival time.
+    """
+
+    n_radii = lookup.shape[0]
+
+
+    def select(
+        distance,
+        player_time,
+    ):
+
+        idx = jnp.array(
+            jnp.clip(
+                distance / grid_step,
+                0,
+                n_radii - 1,
+            ),
+            dtype=jnp.int32,
+        )
+
+
+        candidate_times = lookup[idx]
+
+
+        return candidate_times[
+            jnp.argmin(
+                jnp.abs(
+                    candidate_times
+                    -
+                    player_time
+                )
+            )
+        ]
+
+
+    return jax.vmap(
+        select
+    )(
+        distances,
+        player_times,
+    )
+
+
+
+def time_flight(
+    r_bc,
+    r_target,
+    p_attackers,
+    v_attackers,
+    v0_candidates=jnp.linspace(
+        10.0,
+        30.0,
+        20,
+    ),
+    theta_candidates=jnp.linspace(
+        0.0,
+        jnp.deg2rad(60),
+        20,
+    ),
+    t_max_flight=10.0,
+    dt_ball=1e-2,
+    grid_step=0.02,
+    tau_r=0.2,
+    alpha_rot=4.0,
+    v_max=5.0,
+    z_max=2.0,
+    rho=1.2,
+    Cd=0.25,
+    A=0.038,
+    m=0.43,
+    g=9.81,
+):
+    """
+    Compute final ball arrival time.
+
+    Steps:
+    1. Generate physical ball trajectories.
+    2. Build distance-time lookup.
+    3. Compute fastest player arrival.
+    4. Match ball trajectory with player arrival.
+    """
+
+    t_span = jnp.arange(
+        0.0,
+        t_max_flight + dt_ball,
+        dt_ball,
+    )
+
+
+    trajectories = generate_ball_trajectories(
+        v0_candidates,
+        theta_candidates,
+        t_span,
+        rho=rho,
+        Cd=Cd,
+        A=A,
+        m=m,
+        g=g,
+    )
+
+
+    distances = jnp.linalg.norm(r_target - r_bc, axis=-1)
+
+
+    _, lookup = build_flight_lookup(
+        r_limit=jnp.max(distances),
+        trajectories=trajectories,
+        t_span=t_span,
+        grid_step=grid_step,
+        z_max=z_max,
+    )
+
+
+    tau_players = player_arrival_time(
+        r_target,
+        p_attackers,
+        v_attackers,
+        tau_r,
+        alpha_rot,
+        v_max,
+    )
+
+
+    return match_ball_player_time(
+        distances,
+        tau_players,
+        lookup,
+        grid_step,
+    )
+
+
