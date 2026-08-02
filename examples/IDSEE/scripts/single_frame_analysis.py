@@ -17,46 +17,6 @@ from PRESS.visualization.plot import (
     plot_ppcf
 )
 
-
-
-# ------------------------------------------------------------------
-# Working directory
-# ------------------------------------------------------------------
-
-os.chdir(
-    "/Users/riccardobergamin/Documents/GitHub/PRESS/examples/IDSEE"
-)
-
-
-
-data_dir = Path("datasets")
-
-match_id = "J03WMX"
-
-
-
-# ------------------------------------------------------------------
-# Dataset
-# ------------------------------------------------------------------
-
-event_data = pd.read_parquet(
-    data_dir / f"{match_id}_events.parquet"
-)
-
-tracking_data = pd.read_parquet(
-    data_dir / f"{match_id}_tracking.parquet"
-)
-
-
-# ------------------------------------------------------------------
-# PRESS object
-# ------------------------------------------------------------------
-
-game = PRESS(
-    event_data=event_data,
-    tracking_data=tracking_data,
-)
-
 bcos_args = {
 
     "MAX_POINTS": 100,
@@ -136,11 +96,50 @@ ppcf_args = {
 
 
 # ------------------------------------------------------------------
+# Working directory
+# ------------------------------------------------------------------
+
+os.chdir(
+    "/Users/riccardobergamin/Documents/GitHub/PRESS/examples/IDSEE"
+)
+
+
+
+data_dir = Path("datasets")
+
+match_id = "J03WMX"
+
+
+
+# ------------------------------------------------------------------
+# Dataset
+# ------------------------------------------------------------------
+
+event_data = pd.read_parquet(
+    data_dir / f"{match_id}_events.parquet"
+)
+
+tracking_data = pd.read_parquet(
+    data_dir / f"{match_id}_tracking.parquet"
+)
+
+
+# ------------------------------------------------------------------
+# PRESS object
+# ------------------------------------------------------------------
+
+game = PRESS(
+    event_data=event_data,
+    tracking_data=tracking_data,
+)
+
+# ------------------------------------------------------------------
 # Frame
 # ------------------------------------------------------------------
 
+game.tracking_data[game.tracking_data.player_possession.notna()].frame[200:300]
 
-frame_id = 2500
+frame_id =  928
 
 plot_frame(
     game,
@@ -152,12 +151,16 @@ plot_frame(
 # BCOS
 # ------------------------------------------------------------------
 
-
 game.bcos(
     frame_id=frame_id,
     r_max=30,
     step=0.5,
     physics_args=bcos_args,
+)
+
+plot_bcos(
+    game,
+    frame_id,
 )
 
 
@@ -177,6 +180,11 @@ game.ppcf(
     physics_kwargs=ppcf_args,
 )
 
+plot_ppcf(
+    game,
+    frame_id,
+)
+
 
 # ------------------------------------------------------------------
 # Pressing Intensity
@@ -190,22 +198,5 @@ game.pressing_intensity(
     v_def_max = 8.54,
     alpha = 1.0,
     v_thr=2.0
-)
-
-
-
-
-# plot potentials
-
-
-plot_bcos(
-    game,
-    frame_id,
-)
-
-
-plot_ppcf(
-    game,
-    frame_id,
 )
 

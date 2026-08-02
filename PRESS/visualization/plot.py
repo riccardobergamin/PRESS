@@ -225,11 +225,10 @@ def plot_frame(
 
     fig.legend(
         handles=legend_elements,
-        loc="center left",
-        bbox_to_anchor=(0.02, 0.5),
+        loc="lower center",
         fontsize=legend_fontsize,
         frameon=True,
-        ncol=1,
+        ncol=3,
     )
 
 
@@ -371,9 +370,9 @@ def plot_bcos(
         yy,
         potential,
         levels=np.linspace(
-            np.nanmin(potential),
-            np.nanmax(potential),
-            21,
+            0,
+            1,
+            10,
         ),
         cmap=magenta_bcos,
         alpha=0.5,
@@ -551,11 +550,10 @@ def plot_bcos(
 
     fig.legend(
         handles=legend_elements,
-        loc="center left",
-        bbox_to_anchor=(0.02, 0.5),
+        loc="lower center",
         fontsize=legend_fontsize,
         frameon=True,
-        ncol=1,
+        ncol=3,
     )
 
 
@@ -698,9 +696,9 @@ def plot_ppcf(
         yy,
         potential,
         levels=np.linspace(
-            np.nanmin(potential),
-            np.nanmax(potential),
-            21,
+            0,
+            1,
+            10,
         ),
         cmap=peach_ppcf,
         alpha=0.6,
@@ -879,11 +877,10 @@ def plot_ppcf(
 
     fig.legend(
         handles=legend_elements,
-        loc="center left",
-        bbox_to_anchor=(0.02, 0.5),
+        loc="lower center",
         fontsize=legend_fontsize,
         frameon=True,
-        ncol=1,
+        ncol=3,
     )
 
 
