@@ -92,13 +92,13 @@ class PRESS:
 
                 "tau_r_bc": 0.2,
 
-                "tau_r_def": 0.7,
-
-                "alpha_rot": 1.0,
+                "delta_r_def": 0.5,
 
                 "v_bc_max": 7.5,
 
                 "v_def_max": 8.5,
+                
+                "alpha": 1.0,
 
                 "dt": 0.04,
 
@@ -179,13 +179,17 @@ class PRESS:
 
 
     # ============================================================
-    # BALLISTIC PHYSICS PITCH CONTROL FIELD
+    # PITCH CONTROL FIELD
     # ============================================================
 
     def ppcf(
         self,
         frame_id,
         r_max=40,
+        sigma = 14.0,
+        k0 = 0.1,
+        kv = 0.8,
+        kd = 0.08,
         step=1,
         physics_kwargs=None,
     ):
@@ -198,6 +202,7 @@ class PRESS:
 
         from PRESS.model.solver_pitch_control import (
             integrate_pitch_control,
+            relevant_ppcf,
         )
 
         from PRESS.physics.flight_ball import (
@@ -217,9 +222,9 @@ class PRESS:
 
                 # shared response model
 
-                "tau_r": 0.7,
+                "tau_r": 0.5,
 
-                "alpha_rot": 1.0,
+                "alpha": 1.0,
 
                 "v_max": 8.5,
 
@@ -276,7 +281,7 @@ class PRESS:
 
             "tau_r",
 
-            "alpha_rot",
+            "alpha",
 
             "v_max",
         ]
@@ -315,7 +320,7 @@ class PRESS:
             "lambda_control",
 
             "s",
-
+          
             "tol",
         ]
 
@@ -392,6 +397,7 @@ class PRESS:
         r_target = grid_world[mask]
 
 
+
         # -------------------------------------
         # Ball flight physics
         # -------------------------------------
@@ -458,10 +464,30 @@ class PRESS:
 
 
 
+        # -------------------------------------
+        # Relevant PPCF
+        # -------------------------------------
+
+        R_PPCF = relevant_ppcf(
+            r_target,
+            x_bc,
+            v_bc,
+            PC,
+            sigma = sigma,
+            k0 = k0,
+            kv = kv,
+            kd = kd,
+        )
+
+
+
         self.results["PPCF"][frame_id] = {
 
 
             "Pitch control field": PC,
+
+
+            "Relevant pitch control field": R_PPCF,
 
 
             "grid": r_target,
@@ -477,12 +503,18 @@ class PRESS:
                 "pc_kwargs": pc_kwargs,
 
                 "r_max": r_max,
+                
+                "sigma" : sigma,
+                
+                "k0" : k0,
+                
+                "kv" : kv,
+                
+                "kd" : kd,
 
                 "step": step,
             },
         }
-
-
 
 
     # ============================================================
@@ -492,12 +524,11 @@ class PRESS:
     def pressing_intensity(
         self,
         frame_id,
-        delta_t=1.5,
+        t=1.5,
         s=0.45,
-        tau_r_bc=0.2,
-        tau_r_def=0.7,
+        tau_r_def=0.5,
         v_def_max=8.5,
-        alpha_rot=1.0,
+        alpha=1.0,
         v_thr=2.0,
     ):
         """
@@ -517,12 +548,11 @@ class PRESS:
             state["v_bc"],
             state["r_defs"],
             state["v_defs"],
+            t,
             s,
-            tau_r_bc,
             tau_r_def,
             v_def_max,
-            alpha_rot,
-            delta_t,
+            alpha,
         )
 
         # Ignore defenders moving slower than v_thr
@@ -548,12 +578,11 @@ class PRESS:
             "Pressing intensity": p_press,
             "Individual interception probabilities": p_def,
             "params": {
-                "delta_t": delta_t,
+                "t": t,
                 "s": s,
-                "tau_r_bc": tau_r_bc,
                 "tau_r_def": tau_r_def,
                 "v_def_max": v_def_max,
-                "alpha_rot": alpha_rot,
+                "alpha": alpha,
                 "v_thr": v_thr,
             },
         }

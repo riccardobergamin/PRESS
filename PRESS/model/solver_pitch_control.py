@@ -5,6 +5,7 @@ Spearman Pitch control dynamics
 import jax
 import jax.numpy as jnp
 from PRESS.physics.arrival_probabilities import F
+from PRESS.physics.angles import compute_angle
 
 
 def ppcf_step(
@@ -18,7 +19,7 @@ def ppcf_step(
     tau_r,
     s,
     v_max,
-    alpha_rot,
+    alpha,
     dt,
 ):
     """
@@ -44,7 +45,7 @@ def ppcf_step(
         s,
         tau_r,
         v_max,
-        alpha_rot,
+        alpha,
     )
 
     # Probability that each grid cell is still uncontrolled
@@ -95,7 +96,7 @@ def integrate_pitch_control(
     tau_r=0.5,
     s=0.45,
     v_max=5.0,
-    alpha_rot=1.0,
+    alpha=1.0,
     tol=1e-6,
 ):
     """
@@ -150,7 +151,7 @@ def integrate_pitch_control(
             tau_r,
             s,
             v_max,
-            alpha_rot,
+            alpha,
             dt_pc,
         )
 
@@ -179,74 +180,71 @@ def integrate_pitch_control(
     )
 
 
-# def relevant_ppcf(
-#     r_target,
-#     r_ball,
-#     P_attackers,
-#     sigma=14.0,
-#     alpha=1.0,
-# ):
-#     """
-#     Compute transition probabilities and
-#     transition-weighted pitch control.
-# 
-#     Parameters
-#     ----------
-#     r_target : array, shape (n_grid, dim)
-#         Candidate receiving positions.
-# 
-#     r_ball : array, shape (dim,)
-#         Current ball position.
-# 
-#     P_attackers : array, shape (n_grid,)
-#         Attacking pitch control map.
-# 
-#     sigma : float
-#         Spatial pass dispersion.
-# 
-#     alpha : float
-#         Pitch control weighting exponent.
-# 
-#     Returns
-#     -------
-#     transition_probabilities : array, shape (n_grid,)
-#         Probability distribution over receiving positions.
-# 
-#     relevant_ppcf : array, shape (n_grid,)
-#         Pitch control weighted by transition probability.
-#         The sum represents the expected pitch control
-#         over the pass distribution.
-#     """
-# 
-#     # Pass spatial likelihood
-#     delta = r_target - r_ball
-# 
-#     gaussian = jnp.exp(
-#         -0.5
-#         * jnp.sum(delta**2, axis=1)
-#         / sigma**2
-#     )
-# 
-#     # Transition model
-#     weighted = (
-#         gaussian
-#         * (P_attackers + 1e-8) ** alpha
-#     )
-# 
-#     transition_probabilities = (
-#         weighted
-#         /
-#         jnp.sum(weighted)
-#     )
-# 
-#     # Relevant PPCF
-#     relevant_ppcf = (
-#         transition_probabilities
-#         *
-#         P_attackers
-#     )
-# 
-#     return (
-#         transition_probabilities,
-#         relevant_ppcf,
-#     )
+def relevant_ppcf(
+    r_target,
+    x_bc,
+    v_bc,
+    P_attackers,
+    sigma=14.0,
+    k0=0.1,
+    kv=0.8,
+    kd=0.08,
+):
+    """
+    Compute transition probabilities and
+    transition-weighted pitch control.
+    """
+
+    # ----------------------------------
+    # Pass spatial likelihood
+    # ----------------------------------
+
+    delta = r_target - x_bc                      # (N_grid, 2)
+
+    dist = jnp.linalg.norm(delta, axis=-1)       # (N_grid,)
+
+    gaussian = jnp.exp(
+        -0.5 * (dist / sigma) ** 2
+    )
+
+    # ----------------------------------
+    # Directional likelihood
+    # ----------------------------------
+
+    theta = compute_angle(
+        x_bc[None, :],       # (1, 2)
+        v_bc[None, :],       # (1, 2)
+        r_target,            # (N_grid, 2)
+    )[0]                     # -> (N_grid,)
+
+    vnorm = jnp.linalg.norm(v_bc)                # scalar
+
+    kappa = k0 + kv * vnorm + kd * dist          # (N_grid,)
+
+    von_mises = jnp.exp(
+        kappa * jnp.cos(theta)
+    )
+
+    # ----------------------------------
+    # Transition model
+    # ----------------------------------
+
+    weights = gaussian * von_mises
+
+    transition_probabilities = (
+        weights /
+        (jnp.sum(weights) + 1e-12)
+    )
+
+    # ----------------------------------
+    # Relevant PPCF
+    # ----------------------------------
+
+    relevant_ppcf = (
+        transition_probabilities
+        * P_attackers
+    )
+
+    return relevant_ppcf
+
+

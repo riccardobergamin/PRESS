@@ -25,10 +25,10 @@ def compute_angle(p, v, r_target):
     return jnp.where(degenerate, 0.0, jnp.arccos(cos_theta))
 
 
-def rotation_time(p, v, r_target, alpha_rot):
+def rotation_time(p, v, r_target, alpha):
     """
     Time required to rotate toward target direction.
     """
     theta = compute_angle(p, v, r_target)
     v_mag = jnp.linalg.norm(v, axis=-1, keepdims=True)
-    return (v_mag * theta) / (jnp.pi * alpha_rot)
+    return (v_mag * theta) / (jnp.pi * alpha)

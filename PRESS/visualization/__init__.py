@@ -1,14 +1,12 @@
 from .plot import (
     plot_frame,
     plot_bcos,
-    plot_ppcf,
-    plot_intensity,
+    plot_ppcf
 )
 
 
 __all__ = [
     "plot_frame",
     "plot_bcos",
-    "plot_ppcf",
-    "plot_intensity",
+    "plot_ppcf"
 ]

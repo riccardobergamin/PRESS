@@ -27,10 +27,10 @@ def solver_step(
     mask,
     s,
     tau_r_bc,
-    tau_r_def,
+    delta_r_def,
     v_bc_max,
     v_def_max,
-    alpha_rot,
+    alpha,
     dt,
     tol=1e-6,
 ):
@@ -64,7 +64,7 @@ def solver_step(
         s,
         tau_r_bc,
         v_bc_max,
-        alpha_rot,
+        alpha,
     )
 
     h_def = defender_hazard(
@@ -76,11 +76,11 @@ def solver_step(
         mask,
         t,
         s,
-        tau_r_def,
         tau_r_bc,
+        delta_r_def,
         v_def_max,
         v_bc_max,
-        alpha_rot,
+        alpha,
     )
 
     U = jnp.clip(
@@ -138,10 +138,10 @@ def integrate_point(
     dx=0.1,
     s=0.45,
     tau_r_bc=0.2,
-    tau_r_def=0.7,
-    alpha_rot=1.0,
+    delta_r_def=0.5,
     v_bc_max=7.5,
     v_def_max=8.5,
+    alpha = 1.0,
     dt=0.05,
     T_max=15.0,
     tol=1e-6,
@@ -154,10 +154,12 @@ def integrate_point(
         trajectory[1]: P_def(t)
         trajectory[2]: t
     """
-
+    
+    x_start = x_bc0 + v_bc0*tau_r_bc
+    
     x_path, mask = build_path(
         x_target,
-        x_bc0,
+        x_start,
         MAX_POINTS=MAX_POINTS,
         dx=dx,
     )
@@ -184,10 +186,10 @@ def integrate_point(
             mask,
             s,
             tau_r_bc,
-            tau_r_def,
+            delta_r_def,
             v_bc_max,
             v_def_max,
-            alpha_rot,
+            alpha,
             dt,
             tol,
         )
@@ -231,10 +233,10 @@ def solve_grid(
     dx=0.1,
     s=0.45,
     tau_r_bc=0.2,
-    tau_r_def=0.7,
-    alpha_rot=1.0,
+    delta_r_def=0.5,
     v_bc_max=7.5,
     v_def_max=8.5,
+    alpha=1.0,
     dt=0.05,
     T_max=15.0,
     tol=1e-6,
@@ -265,10 +267,10 @@ def solve_grid(
             dx,
             s,
             tau_r_bc,
-            tau_r_def,
-            alpha_rot,
+            delta_r_def,
             v_bc_max,
             v_def_max,
+            alpha,
             dt,
             T_max,
             tol,

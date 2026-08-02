@@ -18,7 +18,7 @@ def F(
     s=0.45,
     tau_r=0.2,
     v_max=5.0,
-    alpha_rot=4.0,
+    alpha=4.0,
 ):
     """
     Spearman arrival distribution
@@ -31,7 +31,7 @@ def F(
         p,
         v,
         r_target,
-        alpha_rot,
+        alpha,
     )
     # linear dynamics
     p_react = p[:, None, :] + v[:, None, :] * tau_r
@@ -53,7 +53,7 @@ def p_bc(
     s,
     tau_r_bc,
     v_bc_max,
-    alpha_rot,
+    alpha,
 ):
     """
     Ball carrier space distribution at time t.
@@ -61,7 +61,7 @@ def p_bc(
     F_bc = jnp.ravel(
         F(
             p=x_bc0, v=v_bc0, r_target=x_path, t=t,
-            s=s, tau_r=tau_r_bc, v_max=v_bc_max, alpha_rot=alpha_rot,
+            s=s, tau_r=tau_r_bc, v_max=v_bc_max, alpha=alpha,
         )
     )
     p_x = jnp.clip(F_bc[:-1] - F_bc[1:], 0.0, 1.0)
@@ -78,11 +78,11 @@ def defender_F(
     mask,
     t,
     s,
-    tau_r_def,
     tau_r_bc,
+    delta_r_def,
     v_def_max,
     v_bc_max,
-    alpha_rot,
+    alpha,
 ):
   
     """
@@ -95,9 +95,9 @@ def defender_F(
         x_path,
         t,
         s,
-        tau_r_def,
+        tau_r_bc + delta_r_def,
         v_def_max,
-        alpha_rot,
+        alpha,
     )
 
     p_x = p_bc(
@@ -109,7 +109,7 @@ def defender_F(
         s,
         tau_r_bc,
         v_bc_max,
-        alpha_rot,
+        alpha,
     )
 
     return jnp.sum(

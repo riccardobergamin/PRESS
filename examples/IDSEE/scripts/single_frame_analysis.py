@@ -14,8 +14,7 @@ from PRESS import PRESS
 from PRESS.visualization.plot import (
     plot_frame,
     plot_bcos,
-    plot_ppcf,
-    plot_intensity,
+    plot_ppcf
 )
 
 
@@ -58,15 +57,6 @@ game = PRESS(
     tracking_data=tracking_data,
 )
 
-
-
-frame_id = 1300
-
-
-# ------------------------------------------------------------------
-# BCOS
-# ------------------------------------------------------------------
-
 bcos_args = {
 
     "MAX_POINTS": 100,
@@ -74,13 +64,13 @@ bcos_args = {
 
     "s": 0.45,
 
-    "tau_r_bc": 0.2,
-    "tau_r_def": 0.7,
-
-    "alpha_rot": 1.0,
+    "tau_r_bc": 0,
+    "delta_r_def": 0.5,
 
     "v_bc_max": 7.62,
     "v_def_max": 8.54,
+    
+    "alpha": 1.0,
 
     "dt": 0.04,
 
@@ -89,25 +79,11 @@ bcos_args = {
     "tol": 1e-7,
 }
 
-
-
-game.bcos(
-    frame_id=frame_id,
-    r_max=30,
-    step=0.5,
-    physics_args=bcos_args,
-)
-
-
-# ------------------------------------------------------------------
-# PPCF
-# ------------------------------------------------------------------
-
 ppcf_args = {
 
     "tau_r": 0.5,
 
-    "alpha_rot": 1.0,
+    "alpha": 1.0,
 
     "v_max": 8.54,
 
@@ -158,9 +134,45 @@ ppcf_args = {
 }
 
 
+
+# ------------------------------------------------------------------
+# Frame
+# ------------------------------------------------------------------
+
+
+frame_id = 2500
+
+plot_frame(
+    game,
+    frame_id=frame_id,
+)
+
+
+# ------------------------------------------------------------------
+# BCOS
+# ------------------------------------------------------------------
+
+
+game.bcos(
+    frame_id=frame_id,
+    r_max=30,
+    step=0.5,
+    physics_args=bcos_args,
+)
+
+
+# ------------------------------------------------------------------
+# PPCF
+# ------------------------------------------------------------------
+
+
 game.ppcf(
     frame_id=frame_id,
     r_max=50,
+    sigma = 14.0,
+    k0 = 0.1,
+    kv = 0.8,
+    kd = 0.08,
     step=0.5,
     physics_kwargs=ppcf_args,
 )
@@ -172,25 +184,19 @@ game.ppcf(
 
 game.pressing_intensity(
     frame_id=frame_id,
-    v_thr=2.0,
+    t = 1.5,
     s = 0.45,
-    tau_r_bc= 0.2,
-    tau_r_def = 0.7,
+    tau_r_def = 0.5,
     v_def_max = 8.54,
-    alpha_rot = 1,
-    delta_t = 1.5
+    alpha = 1.0,
+    v_thr=2.0
 )
 
 
 
 
+# plot potentials
 
-# plot 
-
-plot_frame(
-    game,
-    frame_id=frame_id,
-)
 
 plot_bcos(
     game,
@@ -202,10 +208,4 @@ plot_ppcf(
     game,
     frame_id,
 )
-
-plot_interception_probability(
-    game,
-    frame_id,
-)
-
 

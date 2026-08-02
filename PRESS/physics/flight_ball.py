@@ -201,7 +201,7 @@ def player_arrival_time(
     p_attackers,
     v_attackers,
     tau_r,
-    alpha_rot,
+    alpha,
     v_max,
 ):
     """
@@ -226,7 +226,7 @@ def player_arrival_time(
 
 
     # rotation time
-    tau_theta = rotation_time(p_attackers, v_attackers, r_target, alpha_rot)
+    tau_theta = rotation_time(p_attackers, v_attackers, r_target, alpha)
 
    # running time
    
@@ -309,7 +309,7 @@ def time_flight(
     dt_ball=1e-2,
     grid_step=0.02,
     tau_r=0.2,
-    alpha_rot=4.0,
+    alpha=4.0,
     v_max=5.0,
     z_max=2.0,
     rho=1.2,
@@ -364,7 +364,7 @@ def time_flight(
         p_attackers,
         v_attackers,
         tau_r,
-        alpha_rot,
+        alpha,
         v_max,
     )
 

@@ -9,19 +9,19 @@ from .arrival_probabilities import F, defender_F
 
 
 def ballcarrier_hazard(
-    p,          # (dim,)  ball carrier position
-    v,          # (dim,)  ball carrier velocity
+    x_bc0,          # (dim,)  ball carrier position
+    v_bc0,          # (dim,)  ball carrier velocity
     r_target,   # (dim,)  single target point
     t,          # scalar
     s,
-    tau_r,
-    v_max,
-    alpha_rot,
+    tau_r_bc,
+    v_max_bc,
+    alpha,
 ):
     # closed form h = a*F, valid for a single logistic CDF (f = a*F*(1-F),
     # h = f/(1-F) = a*F)
     a = jnp.pi / (jnp.sqrt(3) * s)
-    return a * F(p, v, r_target, t, s, tau_r, v_max, alpha_rot).squeeze()
+    return a * F(x_bc0, v_bc0, r_target, t, s, tau_r_bc, v_max_bc, alpha).squeeze()
 
 
 def defender_hazard(
@@ -33,11 +33,11 @@ def defender_hazard(
     mask,       # (M,)            valid path points
     t,          # scalar
     s,
-    tau_r_def,
     tau_r_bc,
+    delta_r_def,
     v_def_max,
     v_bc_max,
-    alpha_rot,
+    alpha,
 ):
 
     a = jnp.pi / (jnp.sqrt(3) * s)
@@ -51,10 +51,10 @@ def defender_hazard(
         mask,
         t,
         s,
-        tau_r_def,
         tau_r_bc,
+        delta_r_def,
         v_def_max,
         v_bc_max,
-        alpha_rot,
+        alpha,
     )
 
