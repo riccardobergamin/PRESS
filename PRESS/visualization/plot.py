@@ -3,6 +3,7 @@ import numpy as np
 from scipy.interpolate import griddata
 from matplotlib.lines import Line2D
 from mplsoccer import Pitch
+from matplotlib.colors import LinearSegmentedColormap
 
 from PRESS.utils.frame import frame_to_long
 

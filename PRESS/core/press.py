@@ -90,7 +90,7 @@ class PRESS:
 
                 "s": 0.45,
 
-                "tau_r_bc": 0.2,
+                "tau_r_bc": 0,
 
                 "delta_r_def": 0.5,
 
@@ -396,8 +396,6 @@ class PRESS:
 
         r_target = grid_world[mask]
 
-
-
         # -------------------------------------
         # Ball flight physics
         # -------------------------------------
@@ -461,7 +459,6 @@ class PRESS:
 
             **pc_kwargs,
         )
-
 
 
         # -------------------------------------

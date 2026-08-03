@@ -137,9 +137,7 @@ game = PRESS(
 # Frame
 # ------------------------------------------------------------------
 
-game.tracking_data[game.tracking_data.player_possession.notna()].frame[600:700]
-
-frame_id =   1713
+frame_id =  800
 
 plot_frame(
     game,

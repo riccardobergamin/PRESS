@@ -16,9 +16,9 @@ def F(
     r_target,
     t,
     s=0.45,
-    tau_r=0.2,
-    v_max=5.0,
-    alpha=4.0,
+    tau_r=0.5,
+    v_max=6.0,
+    alpha=1.0,
 ):
     """
     Spearman arrival distribution

@@ -16,8 +16,8 @@ def ppcf_step(
     r_grid,
     T_ball,
     lambda_control,
-    tau_r,
     s,
+    tau_r,
     v_max,
     alpha,
     dt,
@@ -87,16 +87,16 @@ def integrate_pitch_control(
     r_grid,
     p_pos,
     p_vel,
-    T_ball,
     attacker_idx,
     ball_carrier_idx,
-    t_max_pc=8.0,
-    dt_pc=0.01,
+    T_ball,
     lambda_control=4.3,
-    tau_r=0.5,
     s=0.45,
+    tau_r=0.5,
     v_max=5.0,
     alpha=1.0,
+    t_max_pc=8.0,
+    dt_pc=0.01,
     tol=1e-6,
 ):
     """
@@ -148,8 +148,8 @@ def integrate_pitch_control(
             r_grid,
             T_ball,
             lambda_control,
-            tau_r,
             s,
+            tau_r,
             v_max,
             alpha,
             dt_pc,
@@ -246,5 +246,4 @@ def relevant_ppcf(
     )
 
     return relevant_ppcf
-
 
