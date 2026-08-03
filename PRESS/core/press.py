@@ -20,19 +20,35 @@ class PRESS:
 
     def __init__(
         self,
-        event_data,
         tracking_data,
+        events_data = None
     ):
-
-        self.event_data = event_data
+      
+        from PRESS.utils.sanitizers import (
+            validate_tracking_data,
+            validate_events_data
+        )
+        
+        validate_tracking_data(tracking_data)
+        
         self.tracking_data = tracking_data
+        
+        if events_data is not None:
+          
+          validate_events_data(events_data)
+          
+          self.events_data = events_data
+          
+        else:
+          
+          self.events_data = None
+        
 
         self.results = {
             "BCOS": {},
             "PPCF": {},
             "PI": {},
         }
-
 
 
     def get_state(

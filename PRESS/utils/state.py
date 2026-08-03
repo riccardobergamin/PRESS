@@ -1,13 +1,26 @@
 import numpy as np
 import pandas as pd
 
+
 def get_pv_players(
     frame,
     tracking_df,
-    event_df,
 ):
     """
     Extract BCOS players from wide tracking format.
+
+    Parameters
+    ----------
+    frame : int
+        Frame identifier.
+
+    tracking_df : pd.DataFrame
+        Canonical wide tracking format.
+
+    Returns
+    -------
+    dict
+        Ball carrier, teammates and defenders state.
     """
 
     def pad_players(
@@ -53,71 +66,29 @@ def get_pv_players(
         tracking_df.frame == frame
     ]
 
-    player = frame_df.player_possession.iloc[0]
-    
     if len(frame_df) != 1:
         raise ValueError(
-            "Missing frame in tracking data"
+            "Missing or duplicated frame in tracking data."
         )
-        
-    if pd.isna(player):
-        raise ValueError(
-            "Missing player possession information"
-        )    
 
-    frame = frame_df.iloc[0]
-
-    player_dict = (
-        event_df[
-            ["player_id", "side", "shirt_num"]
-        ]
-        .dropna()
-        .drop_duplicates()
-    )
-
-    player_dict = dict(
-        zip(
-            player_dict["side"] + "_" + player_dict["shirt_num"].astype(int).astype(str),
-            player_dict["player_id"],
-        )
-    )
-
-    player = player_dict.get(
-        player
-    )
-  
-    # --------------------
-    # Ball carrier metadata
-    # --------------------
-
-    player_info = (
-        event_df[
-            event_df.player_id
-            == player
-        ][
-            [
-                "player_id",
-                "player_name",
-                "side",
-                "shirt_num",
-            ]
-        ]
-        .drop_duplicates()
-        .iloc[0]
-    )
-
-
-    player_id = player_info.player_id
-    player_name = player_info.player_name
-    team_id = player_info.side
-    shirt_num = int(
-        player_info.shirt_num
-    )
+    df = frame_df.iloc[0]
 
 
     # --------------------
     # Ball carrier
     # --------------------
+
+    player = df["player_possession"]
+
+    if pd.isna(player):
+        raise ValueError(
+            "Missing player possession information."
+        )
+
+
+    team_id, shirt_num = player.split("_")
+    shirt_num = int(shirt_num)
+
 
     bc_prefix = (
         f"{team_id}_{shirt_num}_"
@@ -126,16 +97,15 @@ def get_pv_players(
 
     x_bc = np.array(
         [
-            frame[bc_prefix + "x"],
-            frame[bc_prefix + "y"],
+            df[bc_prefix + "x"],
+            df[bc_prefix + "y"],
         ]
     )
 
-
     v_bc = np.array(
         [
-            frame[bc_prefix + "vx"],
-            frame[bc_prefix + "vy"],
+            df[bc_prefix + "vx"],
+            df[bc_prefix + "vy"],
         ]
     )
 
@@ -158,7 +128,7 @@ def get_pv_players(
     )
 
 
-    for side, container_pos, container_vel in [
+    for side, pos_container, vel_container in [
 
         (
             team_id,
@@ -174,27 +144,24 @@ def get_pv_players(
 
     ]:
 
-
-        for col in frame.index:
-
+        for col in df.index:
 
             if (
-                not col.startswith(
-                    side + "_"
-                )
-                or
-                not col.endswith("_x")
+                not col.startswith(side + "_")
+                or not col.endswith("_x")
             ):
                 continue
 
 
-            shirt = col.split("_")[1]
+            shirt = int(
+                col.split("_")[1]
+            )
 
 
+            # exclude ball carrier
             if (
                 side == team_id
-                and
-                int(shirt) == shirt_num
+                and shirt == shirt_num
             ):
                 continue
 
@@ -204,29 +171,26 @@ def get_pv_players(
             )
 
 
-            if np.isnan(
-                frame[prefix + "x"]
-            ):
+            x = df[prefix + "x"]
+            y = df[prefix + "y"]
+
+
+            if pd.isna(x) or pd.isna(y):
                 continue
 
 
-            container_pos.append(
-
+            pos_container.append(
                 [
-                    frame[prefix + "x"],
-                    frame[prefix + "y"],
+                    x,
+                    y,
                 ]
-
             )
 
-
-            container_vel.append(
-
+            vel_container.append(
                 [
-                    frame[prefix + "vx"],
-                    frame[prefix + "vy"],
+                    df[prefix + "vx"],
+                    df[prefix + "vy"],
                 ]
-
             )
 
 
@@ -248,13 +212,11 @@ def get_pv_players(
 
         "frame_df": frame_df,
 
-        "player_name": player_name,
-
-        "player_id": player_id,
-
-        "shirt_num": shirt_num,
+        "player": player,
 
         "team_id": team_id,
+
+        "shirt_num": shirt_num,
 
         "x_bc": x_bc,
 

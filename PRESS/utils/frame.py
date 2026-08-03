@@ -1,6 +1,4 @@
-
 import pandas as pd
-import numpy as np
 
 
 def frame_to_long(
@@ -8,27 +6,71 @@ def frame_to_long(
 ):
     """
     Convert one wide tracking frame
-    into long format while keeping ball information.
+    into long format for visualization.
+
+    Parameters
+    ----------
+    frame_df : pd.DataFrame
+        Single-frame wide tracking dataframe.
+
+    Returns
+    -------
+    pd.DataFrame
+        Long format tracking dataframe.
     """
+
+    if len(frame_df) != 1:
+        raise ValueError(
+            "frame_df must contain exactly one frame."
+        )
 
     frame = frame_df.iloc[0]
 
     rows = []
 
 
-    # colonne globali da mantenere
+    # --------------------
+    # Possession information
+    # --------------------
+
+    if "player_possession" not in frame.index:
+        raise ValueError(
+            "Missing player_possession column."
+        )
+
+
+    player_possession = frame["player_possession"]
+
+
+    if pd.isna(player_possession):
+        raise ValueError(
+            "Missing player_possession information."
+        )
+
+
+    team_possession = (
+        player_possession.split("_")[0]
+    )
+
+
+    # --------------------
+    # Global information
+    # --------------------
+
     global_cols = [
         "frame",
+        "timestamp",
+        "period",
         "ball_x",
         "ball_y",
         "ball_z",
-        "ball_status",
-        "team_possession",
-        "ball_vx",
-        "ball_vy",
-        "ball_velocity",
+        "player_possession",
     ]
 
+
+    # --------------------
+    # Players extraction
+    # --------------------
 
     for col in frame.index:
 
@@ -46,12 +88,19 @@ def frame_to_long(
 
         side, shirt, _ = col.split("_")
 
+        shirt = int(shirt)
 
-        prefix = f"{side}_{shirt}_"
+        prefix = (
+            f"{side}_{shirt}_"
+        )
 
 
-        # giocatore assente
-        if pd.isna(frame[prefix + "x"]) or pd.isna(frame[prefix + "y"]):
+        x = frame[prefix + "x"]
+        y = frame[prefix + "y"]
+
+
+        # player not detected
+        if pd.isna(x) or pd.isna(y):
             continue
 
 
@@ -64,25 +113,34 @@ def frame_to_long(
 
         row.update(
             {
+                "team_possession": team_possession,
 
                 "team_id": side,
 
-                "shirt_num": int(shirt),
+                "shirt_num": shirt,
 
                 "player_id": (
-                    side + "_" + str(int(shirt))
+                    f"{side}_{shirt}"
                 ),
 
-                "x": frame[prefix + "x"],
+                "x": x,
 
-                "y": frame[prefix + "y"],
+                "y": y,
 
-                "vx": frame[prefix + "vx"],
+                "vx": frame.get(
+                    prefix + "vx",
+                    None,
+                ),
 
-                "vy": frame[prefix + "vy"],
+                "vy": frame.get(
+                    prefix + "vy",
+                    None,
+                ),
 
-                "velocity": frame[prefix + "velocity"],
-
+                "velocity": frame.get(
+                    prefix + "velocity",
+                    None,
+                ),
             }
         )
 

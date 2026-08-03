@@ -1,7 +1,6 @@
 import pandas as pd
 
-
-def get_possessions(game):
+def get_possession(game):
     """
     Segment ball possessions from event and tracking data.
     """
@@ -261,40 +260,54 @@ def get_possessions(game):
 
     return pd.DataFrame(possessions)
   
-  
-  
 
-def get_passes(game):
-    """
-    Extract passes with possession-compatible column names.
-    """
+# def get_possessions(game):
+#     """
+#     Extract all frames where a player has possession.
+# 
+#     One row is returned per frame with an assigned possession --
+#     not one row per distinct possession segment. If a player holds
+#     the ball for N consecutive frames, this returns N rows for
+#     that player, one per frame.
+# 
+#     Parameters
+#     ----------
+#     game : object
+#         Game object containing tracking and event data.
+# 
+#     Returns
+#     -------
+#     pd.DataFrame
+#         Contains:
+#         - player
+#         - frame
+#     """
+#     tracking_df = game.tracking_data
+#     event_df = game.event_data
+# 
+#     player_dict = (
+#         event_df[
+#             ["player_id", "side", "shirt_num"]
+#         ]
+#         .dropna()
+#         .drop_duplicates()
+#     )
+#     player_dict = dict(
+#         zip(
+#             player_dict["side"] + "_" + player_dict["shirt_num"].astype(int).astype(str),
+#             player_dict["player_id"],
+#         )
+#     )
+# 
+#     possession = tracking_df[
+#         tracking_df["player_possession"].notna()
+#     ].copy()
+# 
+#     possession["player"] = possession["player_possession"].map(player_dict)
+#     possession = possession[possession["player"].notna()].copy()
+# 
+#     return possession[
+#         ["player", "frame"]
+#     ].reset_index(drop=True)
     
-    events_df = game.event_data
-    
-    passes = events_df[
-        events_df["original_event"] == "Pass"
-    ].copy()
 
-
-    passes = passes.rename(
-        columns={
-            "player_id": "player",
-            "receiver_player_id": "receiver",
-            "tracking_frame": "start_frame",
-            "result": "pass_result",
-        }
-    )
-
-
-    return passes[
-        [
-            "player",
-            "receiver",
-            "start_frame",
-            "pass_result",
-            "is_successful",
-            "team_id",
-        ]
-    ].reset_index(drop=True)  
-  
-  
