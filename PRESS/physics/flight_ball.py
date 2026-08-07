@@ -12,6 +12,64 @@ from .angles import (
 
 
 
+# def ball_trajectory(
+#     v0,
+#     theta,
+#     t_span,
+#     rho=1.2,
+#     Cd=0.25,
+#     A=0.038,
+#     m=0.43,
+#     g=9.81,
+# ):
+#     """
+#     Integrate single ball trajectory.
+# 
+#     State:
+#         y[0] : horizontal distance
+#         y[1] : height
+#         y[2] : horizontal velocity
+#         y[3] : vertical velocity
+#     """
+# 
+#     k = 0.5 * rho * Cd * A / m
+# 
+# 
+#     def ode(y, t):
+# 
+#         v_d = y[2]
+#         v_z = y[3]
+# 
+#         v_norm = jnp.sqrt(v_d**2 + v_z**2) + 1e-8
+#         
+# 
+#         return jnp.array(
+#             [
+#                 v_d,
+#                 v_z,
+#                 -k * v_d * v_norm,
+#                 -k * v_z * v_norm - g,
+#             ]
+#         )
+# 
+# 
+#     y0 = jnp.array(
+#         [
+#             0.0,
+#             0.0,
+#             v0 * jnp.cos(theta),
+#             v0 * jnp.sin(theta),
+#         ]
+#     )
+# 
+# 
+#     return odeint(
+#         ode,
+#         y0,
+#         t_span,
+#     )
+
+
 def ball_trajectory(
     v0,
     theta,
@@ -23,42 +81,101 @@ def ball_trajectory(
     g=9.81,
 ):
     """
-    Integrate single ball trajectory.
+    Integrate a single ball trajectory.
 
-    State:
-        y[0] : horizontal distance
-        y[1] : height
+    State vector:
+        y[0] : horizontal position
+        y[1] : vertical position
         y[2] : horizontal velocity
         y[3] : vertical velocity
+
+    Dynamics:
+        - aerodynamic drag during flight
+        - ground constraint:
+            if z <= 0 and vz < 0,
+            vertical velocity is stopped
     """
 
+    # Aerodynamic drag coefficient
     k = 0.5 * rho * Cd * A / m
 
 
     def ode(y, t):
 
+        z = y[1]
         v_d = y[2]
         v_z = y[3]
 
-        v_norm = jnp.sqrt(v_d**2 + v_z**2) + 1e-8
-        
-
-        return jnp.array(
-            [
-                v_d,
-                v_z,
-                -k * v_d * v_norm,
-                -k * v_z * v_norm - g,
-            ]
+        # Ball speed magnitude
+        v_norm = jnp.sqrt(
+            v_d**2 + v_z**2
         )
 
 
+        def airborne(_):
+            """
+            Ball flight dynamics.
+
+            Horizontal and vertical motion
+            are affected by aerodynamic drag.
+            """
+
+            return jnp.array(
+                [
+                    v_d,
+                    v_z,
+                    -k * v_d * v_norm,
+                    -k * v_z * v_norm - g,
+                ]
+            )
+
+
+        def ground_contact(_):
+            """
+            Ground contact dynamics.
+
+            Vertical motion is constrained:
+                z = 0
+                vz = 0
+
+            Horizontal motion continues
+            with aerodynamic drag.
+            """
+
+            return jnp.array(
+                [
+                    v_d,
+                    0.0,
+                    -k * v_d * jnp.abs(v_d),
+                    0.0,
+                ]
+            )
+
+
+        # Ground contact occurs when the ball
+        # reaches the ground while moving downward.
+        on_ground = (
+            (z <= 0.0)
+            &
+            (v_z <= 0.0)
+        )
+
+
+        return jax.lax.cond(
+            on_ground,
+            ground_contact,
+            airborne,
+            operand=None,
+        )
+
+
+    # Initial state
     y0 = jnp.array(
         [
-            0.0,
-            0.0,
-            v0 * jnp.cos(theta),
-            v0 * jnp.sin(theta),
+            0.0,                        # initial horizontal position
+            0.0,                        # initial height
+            v0 * jnp.cos(theta),         # horizontal velocity
+            v0 * jnp.sin(theta),         # vertical velocity
         ]
     )
 
@@ -68,7 +185,6 @@ def ball_trajectory(
         y0,
         t_span,
     )
-
 
 
 def generate_ball_trajectories(
@@ -237,7 +353,6 @@ def player_arrival_time(
     return jnp.min(tau_players,axis=0)
 
 
-
 def match_ball_player_time(
     distances,
     player_times,
@@ -245,7 +360,7 @@ def match_ball_player_time(
     grid_step,
 ):
     """
-    Select ball trajectory closest
+    Select ball trajectory time closest
     to player arrival time.
     """
 
@@ -257,28 +372,30 @@ def match_ball_player_time(
         player_time,
     ):
 
-        idx = jnp.array(
+        idx = jnp.int32(
             jnp.clip(
-                distance / grid_step,
+                jnp.rint(
+                    distance / grid_step
+                ),
                 0,
                 n_radii - 1,
-            ),
-            dtype=jnp.int32,
+            )
         )
 
 
         candidate_times = lookup[idx]
 
 
-        return candidate_times[
-            jnp.argmin(
-                jnp.abs(
-                    candidate_times
-                    -
-                    player_time
-                )
+        best_idx = jnp.argmin(
+            jnp.abs(
+                candidate_times
+                -
+                player_time
             )
-        ]
+        )
+
+
+        return candidate_times[best_idx]
 
 
     return jax.vmap(
@@ -287,8 +404,8 @@ def match_ball_player_time(
         distances,
         player_times,
     )
-
-
+    
+    
 
 def time_flight(
     r_bc,
@@ -306,7 +423,7 @@ def time_flight(
         20,
     ),
     t_max_flight=10.0,
-    dt_ball=1e-2,
+    dt_ball=0.04,
     grid_step=0.02,
     tau_r=0.2,
     alpha=4.0,
@@ -375,5 +492,4 @@ def time_flight(
         lookup,
         grid_step,
     )
-
 

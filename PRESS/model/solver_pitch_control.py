@@ -4,6 +4,7 @@ Spearman Pitch control dynamics
 
 import jax
 import jax.numpy as jnp
+import jax.scipy as jsp
 from PRESS.physics.arrival_probabilities import F
 from PRESS.physics.angles import compute_angle
 
@@ -154,6 +155,8 @@ def integrate_pitch_control(
             alpha,
             dt_pc,
         )
+        
+        P_next = P_next.at[ball_carrier_idx].set(0.0)
 
         P = jnp.where(
             active,
@@ -162,6 +165,7 @@ def integrate_pitch_control(
         )
 
         return P, None
+      
 
     P_final, _ = jax.lax.scan(
         scan_body,
@@ -185,65 +189,104 @@ def relevant_ppcf(
     x_bc,
     v_bc,
     P_attackers,
-    sigma=14.0,
-    k0=0.1,
-    kv=0.8,
-    kd=0.08,
+    kappa_surface,
+    mu=2.3,
+    sigma=0.6,
 ):
     """
     Compute transition probabilities and
     transition-weighted pitch control.
+
+    kappa is obtained from a data-derived
+    kappa(v, distance) surface.
     """
 
-    # ----------------------------------
-    # Pass spatial likelihood
-    # ----------------------------------
+    from PRESS.utils.grid import lookup_kappa
 
-    delta = r_target - x_bc                      # (N_grid, 2)
+    # ---------------------------------------------------------
+    # Geometry
+    # ---------------------------------------------------------
 
-    dist = jnp.linalg.norm(delta, axis=-1)       # (N_grid,)
+    delta = r_target - x_bc
 
-    gaussian = jnp.exp(
-        -0.5 * (dist / sigma) ** 2
+    distance = (
+        jnp.linalg.norm(
+            delta,
+            axis=-1,
+        )
+        + 1e-6
     )
 
-    # ----------------------------------
-    # Directional likelihood
-    # ----------------------------------
+    speed = jnp.linalg.norm(
+        v_bc,
+    )
 
     theta = compute_angle(
-        x_bc[None, :],       # (1, 2)
-        v_bc[None, :],       # (1, 2)
-        r_target,            # (N_grid, 2)
-    )[0]                     # -> (N_grid,)
+        x_bc[None, :],
+        v_bc[None, :],
+        r_target,
+    )[0]
 
-    vnorm = jnp.linalg.norm(v_bc)                # scalar
+    # ---------------------------------------------------------
+    # Data-derived Von Mises concentration
+    # ---------------------------------------------------------
 
-    kappa = k0 + kv * vnorm + kd * dist          # (N_grid,)
+    kappa = lookup_kappa(
+        speed=speed,
+        distance=distance,
+        kappa_surface=kappa_surface,
+    )
 
-    von_mises = jnp.exp(
+    # ---------------------------------------------------------
+    # Log LogNormal distance term
+    # ---------------------------------------------------------
+
+    log_spatial = (
+        -jnp.log(distance)
+        -jnp.log(sigma)
+        -0.5 * jnp.log(2.0 * jnp.pi)
+        -0.5
+        * (
+            (jnp.log(distance) - mu)
+            / sigma
+        ) ** 2
+    )
+
+    # ---------------------------------------------------------
+    # Log Von Mises angular term
+    # ---------------------------------------------------------
+
+    log_i0 = (
+        jnp.log(
+            jsp.special.i0e(kappa)
+        )
+        + kappa
+    )
+
+    log_angular = (
         kappa * jnp.cos(theta)
+        - log_i0
     )
 
-    # ----------------------------------
-    # Transition model
-    # ----------------------------------
+    # ---------------------------------------------------------
+    # Transition probabilities
+    # ---------------------------------------------------------
 
-    weights = gaussian * von_mises
-
-    transition_probabilities = (
-        weights /
-        (jnp.sum(weights) + 1e-12)
+    log_weights = (
+        log_spatial
+        + log_angular
     )
 
-    # ----------------------------------
-    # Relevant PPCF
-    # ----------------------------------
+    transition_probabilities = jnp.exp(
+        log_weights
+        - jsp.special.logsumexp(log_weights)
+    )
 
-    relevant_ppcf = (
+    # ---------------------------------------------------------
+    # Relevant pitch control
+    # ---------------------------------------------------------
+
+    return (
         transition_probabilities
         * P_attackers
     )
-
-    return relevant_ppcf
-

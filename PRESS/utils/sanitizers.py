@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+import jax.numpy as jnp
 
 
 def validate_tracking_data(
@@ -272,4 +273,131 @@ def validate_events_data(
 
 
     return True
+  
+
+
+def validate_kappa_surface(
+    kappa_surface,
+):
+    """
+    Validate empirical kappa(v,d) surface.
+
+    Expected structure:
+
+    {
+        "speed_edges": np.ndarray,
+        "distance_edges": np.ndarray,
+        "kappa": np.ndarray,
+        "counts": np.ndarray (optional)
+    }
+
+    kappa shape:
+        (len(speed_edges)-1,
+         len(distance_edges)-1)
+    """
+
+    if not isinstance(
+        kappa_surface,
+        dict,
+    ):
+        raise TypeError(
+            "kappa_surface must be a dictionary"
+        )
+
+
+    required_keys = [
+        "speed_edges",
+        "distance_edges",
+        "kappa",
+    ]
+
+
+    for key in required_keys:
+
+        if key not in kappa_surface:
+            raise ValueError(
+                f"Missing key '{key}' in kappa_surface"
+            )
+
+
+    speed_edges = jnp.asarray(
+        kappa_surface["speed_edges"]
+    )
+
+    distance_edges = jnp.asarray(
+        kappa_surface["distance_edges"]
+    )
+
+    K = jnp.asarray(
+        kappa_surface["kappa"]
+    )
+
+
+    # ---------------------------------------------------------
+    # Edge validation
+    # ---------------------------------------------------------
+
+    if speed_edges.ndim != 1:
+        raise ValueError(
+            "speed_edges must be a 1D array"
+        )
+
+
+    if distance_edges.ndim != 1:
+        raise ValueError(
+            "distance_edges must be a 1D array"
+        )
+
+
+    if jnp.any(
+        jnp.diff(speed_edges) <= 0
+    ):
+        raise ValueError(
+            "speed_edges must be strictly increasing"
+        )
+
+
+    if jnp.any(
+        jnp.diff(distance_edges) <= 0
+    ):
+        raise ValueError(
+            "distance_edges must be strictly increasing"
+        )
+
+
+    # ---------------------------------------------------------
+    # Kappa surface validation
+    # ---------------------------------------------------------
+
+    expected_shape = (
+        len(speed_edges) - 1,
+        len(distance_edges) - 1,
+    )
+
+
+    if K.shape != expected_shape:
+        raise ValueError(
+            f"kappa shape {K.shape} does not match "
+            f"expected {expected_shape}"
+        )
+
+
+    if jnp.any(
+        ~jnp.isfinite(K)
+    ):
+        raise ValueError(
+            "kappa contains NaN or infinite values"
+        )
+
+
+    if jnp.any(
+        K < 0
+    ):
+        raise ValueError(
+            "kappa values must be non-negative"
+        )
+
+
+    return True
+  
   

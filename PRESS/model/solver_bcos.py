@@ -126,7 +126,7 @@ def solver_step(
 
 @partial(
     jax.jit,
-    static_argnums=(5, 13, 14),
+    static_argnums=(6, 14, 15),
 )
 def integrate_point(
     x_target,
@@ -134,6 +134,7 @@ def integrate_point(
     v_bc0,
     r_def,
     v_def,
+    x_line,
     MAX_POINTS=500,
     dx=0.1,
     s=0.45,
@@ -155,7 +156,14 @@ def integrate_point(
         trajectory[2]: t
     """
     
-    x_start = x_bc0 + v_bc0*tau_r_bc
+    d = jnp.linalg.norm(x_line - x_bc0)
+    v = jnp.linalg.norm(v_bc0)
+
+    t_line = d / v
+
+    t_eff = jnp.minimum(tau_r_bc, t_line)
+
+    x_start = x_bc0 + v_bc0*t_eff
     
     x_path, mask = build_path(
         x_target,
@@ -185,7 +193,7 @@ def integrate_point(
             x_path,
             mask,
             s,
-            tau_r_bc,
+            t_eff,
             delta_r_def,
             v_bc_max,
             v_def_max,
@@ -229,6 +237,7 @@ def solve_grid(
     v_bc0,
     r_def,
     v_def,
+    x_line,
     MAX_POINTS=500,
     dx=0.1,
     s=0.45,
@@ -263,6 +272,7 @@ def solve_grid(
             v_bc0,
             r_def,
             v_def,
+            x_line,
             MAX_POINTS,
             dx,
             s,

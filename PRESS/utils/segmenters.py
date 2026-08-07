@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-
 def segment_passes(
     press,
 ):
@@ -29,63 +28,78 @@ def segment_passes(
     receiver_x = []
     receiver_y = []
 
+    passer_x = []
+    passer_y = []
+    passer_v = []
+
 
     for _, row in passes.iterrows():
 
-        if (
-            not row.get(
-                "is_successful",
-                False,
-            )
-        ):
-            receiver_x.append(np.nan)
-            receiver_y.append(np.nan)
-            continue
-
-
-        receiver = row.get(
-            "receiver_player_id",
-            np.nan,
-        )
-
-        if pd.isna(receiver):
-            receiver_x.append(np.nan)
-            receiver_y.append(np.nan)
-            continue
-
-
         frame_df = tracking_df[
-            tracking_df.frame
-            == row.frame
+            tracking_df.frame == row.frame
         ]
 
 
         if frame_df.empty:
             receiver_x.append(np.nan)
             receiver_y.append(np.nan)
+
+            passer_x.append(np.nan)
+            passer_y.append(np.nan)
+            passer_v.append(np.nan)
+
             continue
 
 
         frame = frame_df.iloc[0]
 
 
+        passer = row["player_id"]
+        receiver = row["receiver_player_id"]
+
+
         if (
-            f"{receiver}_x"
-            not in frame.index
+            f"{passer}_x" in frame.index
+            and f"{passer}_y" in frame.index
         ):
+            passer_x.append(
+                frame[f"{passer}_x"]
+            )
+            passer_y.append(
+                frame[f"{passer}_y"]
+            )
+            passer_v.append(
+                frame.get(
+                    f"{passer}_v",
+                    np.nan,
+                )
+            )
+
+        else:
+            passer_x.append(np.nan)
+            passer_y.append(np.nan)
+            passer_v.append(np.nan)
+
+
+        if (
+            f"{receiver}_x" in frame.index
+            and f"{receiver}_y" in frame.index
+        ):
+            receiver_x.append(
+                frame[f"{receiver}_x"]
+            )
+            receiver_y.append(
+                frame[f"{receiver}_y"]
+            )
+
+        else:
             receiver_x.append(np.nan)
             receiver_y.append(np.nan)
-            continue
 
 
-        receiver_x.append(
-            frame[f"{receiver}_x"]
-        )
-
-        receiver_y.append(
-            frame[f"{receiver}_y"]
-        )
-
+    passes["passer_x"] = passer_x
+    passes["passer_y"] = passer_y
+    passes["passer_v"] = passer_v
 
     passes["receiver_x"] = receiver_x
     passes["receiver_y"] = receiver_y
@@ -94,7 +108,6 @@ def segment_passes(
     press.passes = passes.reset_index(
         drop=True
     )
-    
     
     
 def segment_possessions(
@@ -353,3 +366,38 @@ def segment_possessions(
             drop=True
         )
     )
+
+def get_possession_frames(press):
+  
+    """
+    Extract all frames where a player has possession.
+
+    One row is returned per frame with an assigned possession --
+    not one row per distinct possession segment. If a player holds
+    the ball for N consecutive frames, this returns N rows for
+    that player, one per frame.
+
+    Parameters
+    ----------
+    press : object
+        PRESS object containing tracking data.
+
+    Returns
+    -------
+    pd.DataFrame
+        Contains:
+        - player_possession
+        - frame
+    """
+    tracking_df = press.tracking_data
+
+    possession = tracking_df[
+        tracking_df["player_possession"].notna()
+    ].copy()
+
+
+    return possession[
+        ["player_possession", "frame"]
+    ].reset_index(drop=True)
+    
+    

@@ -137,8 +137,8 @@ def frame_to_long(
                     None,
                 ),
 
-                "velocity": frame.get(
-                    prefix + "velocity",
+                "v": frame.get(
+                    prefix + "v",
                     None,
                 ),
             }

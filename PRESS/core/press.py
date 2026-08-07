@@ -21,12 +21,14 @@ class PRESS:
     def __init__(
         self,
         tracking_data,
-        events_data = None
+        events_data = None,
+        kappa_surface = None
     ):
       
         from PRESS.utils.sanitizers import (
             validate_tracking_data,
-            validate_events_data
+            validate_events_data,
+            validate_kappa_surface
         )
         
         validate_tracking_data(tracking_data)
@@ -37,11 +39,16 @@ class PRESS:
           
           validate_events_data(events_data)
           
-          self.events_data = events_data
           
-        else:
+        self.events_data = events_data
+        
+        
+        if kappa_surface is not None:
           
-          self.events_data = None
+          validate_kappa_surface(kappa_surface)
+          
+          
+        self.kappa_surface = kappa_surface
         
 
         self.results = {
@@ -66,8 +73,7 @@ class PRESS:
 
         return get_pv_players(
             frame_id,
-            self.tracking_data,
-            self.event_data,
+            self.tracking_data
         )
 
 
@@ -76,7 +82,7 @@ class PRESS:
     # BALL CARRIER OPEN SPACE
     # ============================================================
 
-    def bcos(
+    def compute_bcos(
         self,
         frame_id,
         r_max=30,
@@ -93,6 +99,7 @@ class PRESS:
 
         from PRESS.utils.grid import (
             generate_circular_grid,
+            compute_exit_point,
         )
 
 
@@ -162,6 +169,8 @@ class PRESS:
 
 
         r_target = grid_world[mask]
+        
+        x_line = compute_exit_point(x_bc, v_bc, bounds)
 
 
         S, P = solve_grid(
@@ -170,6 +179,7 @@ class PRESS:
             v_bc,
             r_defs,
             v_defs,
+            x_line,
             **physics_args,
         )
 
@@ -198,15 +208,12 @@ class PRESS:
     # PITCH CONTROL FIELD
     # ============================================================
 
-    def ppcf(
+    def compute_ppcf(
         self,
         frame_id,
-        r_max=40,
-        sigma = 14.0,
-        k0 = 0.1,
-        kv = 0.8,
-        kd = 0.08,
-        step=1,
+        r_max = 60,
+        step=0.5,
+        mu =2.3,
         physics_kwargs=None,
     ):
         """
@@ -218,7 +225,6 @@ class PRESS:
 
         from PRESS.model.solver_pitch_control import (
             integrate_pitch_control,
-            relevant_ppcf,
         )
 
         from PRESS.physics.flight_ball import (
@@ -226,7 +232,7 @@ class PRESS:
         )
 
         from PRESS.utils.grid import (
-            generate_circular_grid,
+            generate_circular_grid
         )
 
 
@@ -250,19 +256,19 @@ class PRESS:
                 "v0_candidates": jnp.linspace(
                     10.0,
                     30.0,
-                    20,
+                    25,
                 ),
 
                 "theta_candidates": jnp.linspace(
                     0.0,
-                    jnp.deg2rad(60),
-                    20,
+                    jnp.deg2rad(45),
+                    25,
                 ),
 
 
                 "t_max_flight": 10.0,
 
-                "dt_ball": 0.04,
+                "dt_ball": 0.01,
 
                 "z_max": 2.0,
 
@@ -353,7 +359,6 @@ class PRESS:
         ball_kwargs["grid_step"] = step
 
 
-
         pc_kwargs = {
 
             key: physics_kwargs[key]
@@ -371,17 +376,16 @@ class PRESS:
         x_bc = state["x_bc"]
 
         v_bc = state["v_bc"]
-
+        
 
         r_atts = state["r_atts"]
 
         v_atts = state["v_atts"]
-
+        
 
         r_defs = state["r_defs"]
 
         v_defs = state["v_defs"]
-
 
 
         grid = generate_circular_grid(
@@ -391,7 +395,6 @@ class PRESS:
 
 
         grid_world = x_bc + grid
-
 
 
         bounds = jnp.array(
@@ -411,7 +414,7 @@ class PRESS:
 
 
         r_target = grid_world[mask]
-
+       
         # -------------------------------------
         # Ball flight physics
         # -------------------------------------
@@ -459,7 +462,6 @@ class PRESS:
         ball_carrier_idx = n_atts
 
 
-
         PC = integrate_pitch_control(
             r_grid=r_target,
 
@@ -477,30 +479,10 @@ class PRESS:
         )
 
 
-        # -------------------------------------
-        # Relevant PPCF
-        # -------------------------------------
-
-        R_PPCF = relevant_ppcf(
-            r_target,
-            x_bc,
-            v_bc,
-            PC,
-            sigma = sigma,
-            k0 = k0,
-            kv = kv,
-            kd = kd,
-        )
-
-
-
         self.results["PPCF"][frame_id] = {
 
 
             "Pitch control field": PC,
-
-
-            "Relevant pitch control field": R_PPCF,
 
 
             "grid": r_target,
@@ -514,30 +496,88 @@ class PRESS:
                 "ball_kwargs": ball_kwargs,
 
                 "pc_kwargs": pc_kwargs,
-
+                
                 "r_max": r_max,
-                
-                "sigma" : sigma,
-                
-                "k0" : k0,
-                
-                "kv" : kv,
-                
-                "kd" : kd,
 
                 "step": step,
             },
         }
 
 
+
+    def compute_relevant_ppcf(
+        self,
+        frame_id,
+        mu=2.3,
+        sigma=0.6,
+    ):
+        """
+        Compute Relevant PPCF using a data-derived
+        kappa(v,d) surface and store it inside PPCF results.
+        """
+        
+        if frame_id not in self.results["PPCF"]:
+            raise ValueError(
+                "Compute PPCF before computing relevant PPCF"
+        )
+        
+        if self.kappa_surface is None:
+            raise ValueError(
+                "Provide k(v,d) before computing relevant PPCF"
+        )
+        
+        from PRESS.model.solver_pitch_control import (
+            relevant_ppcf,
+        )
+
+        # existing PPCF data
+        ppcf = self.results["PPCF"][frame_id]
+
+        # state
+        state = self.get_state(
+            frame_id
+        )
+
+        x_bc = state["x_bc"]
+
+        v_bc = state["v_bc"]
+
+
+        # compute relevant PPCF
+        R_PPCF = relevant_ppcf(
+            r_target=ppcf["grid"],
+
+            x_bc=x_bc,
+
+            v_bc=v_bc,
+
+            P_attackers=ppcf["Pitch control field"],
+
+            kappa_surface=self.kappa_surface,
+
+            mu=mu,
+
+            sigma=sigma,
+        )
+
+
+        # store result
+        
+        self.results["PPCF"][frame_id]["Relevant Pitch control field"] = R_PPCF 
+        
+        self.results["PPCF"][frame_id]["params"]["mu"] = mu
+        
+        self.results["PPCF"][frame_id]["params"]["sigma"] = sigma
+        
+        
     # ============================================================
     # PRESSING INTENSITY
     # ============================================================
 
-    def pressing_intensity(
+    def compute_pressing_intensity(
         self,
         frame_id,
-        t=1.5,
+        t_press=1.5,
         s=0.45,
         tau_r_def=0.5,
         v_def_max=8.5,
@@ -551,17 +591,31 @@ class PRESS:
         from PRESS.model.solver_intensity import (
             interception_probability,
         )
+        
+        from PRESS.utils.grid import (
+            compute_exit_point
+        )
 
         state = self.get_state(
             frame_id
         )
+        
+        bounds = jnp.array(
+            [
+                [-52.5, 52.5],
+                [-34.0, 34.0],
+            ]
+        )
+        
+        x_line = compute_exit_point(state["x_bc"], state["v_bc"], bounds)
 
         p_def = interception_probability(
             state["x_bc"],
             state["v_bc"],
             state["r_defs"],
             state["v_defs"],
-            t,
+            x_line,
+            t_press,
             s,
             tau_r_def,
             v_def_max,
@@ -591,7 +645,7 @@ class PRESS:
             "Pressing intensity": p_press,
             "Individual interception probabilities": p_def,
             "params": {
-                "t": t,
+                "t_press": t_press,
                 "s": s,
                 "tau_r_def": tau_r_def,
                 "v_def_max": v_def_max,

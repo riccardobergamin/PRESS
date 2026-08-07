@@ -5,7 +5,6 @@ Defines event-time PDFs from physical motion models.
 import jax
 import jax.numpy as jnp
 from .angles import (
-    compute_angle,
     rotation_time,
 )
 
