@@ -107,13 +107,13 @@ class PRESS:
 
             physics_args = {
 
-                "MAX_POINTS": int(r_max / 0.5) + 10,
+                "MAX_POINTS": int(r_max / 0.5) + 30,
 
                 "dx": 0.5,
 
                 "s": 0.45,
 
-                "tau_r_bc": 0,
+                "tau_r_bc": 0.1,
 
                 "delta_r_def": 0.5,
 

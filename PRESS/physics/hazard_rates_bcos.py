@@ -8,6 +8,9 @@ import jax.numpy as jnp
 from .arrival_probabilities import F, defender_F
 
 
+# closed form h = a*F, valid for a single logistic CDF (f = a*F*(1-F), h = f/(1-F) = a*F)
+
+
 def ballcarrier_hazard(
     x_bc0,          # (dim,)  ball carrier position
     v_bc0,          # (dim,)  ball carrier velocity
@@ -18,8 +21,7 @@ def ballcarrier_hazard(
     v_max_bc,
     alpha,
 ):
-    # closed form h = a*F, valid for a single logistic CDF (f = a*F*(1-F),
-    # h = f/(1-F) = a*F)
+  
     a = jnp.pi / (jnp.sqrt(3) * s)
     return a * F(x_bc0, v_bc0, r_target, t, s, tau_r_bc, v_max_bc, alpha).squeeze()
 

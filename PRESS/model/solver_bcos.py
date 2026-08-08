@@ -136,14 +136,14 @@ def integrate_point(
     v_def,
     x_line,
     MAX_POINTS=500,
-    dx=0.1,
+    dx=0.5,
     s=0.45,
     tau_r_bc=0.2,
     delta_r_def=0.5,
     v_bc_max=7.5,
     v_def_max=8.5,
     alpha = 1.0,
-    dt=0.05,
+    dt=0.04,
     T_max=15.0,
     tol=1e-6,
 ):
@@ -158,8 +158,12 @@ def integrate_point(
     
     d = jnp.linalg.norm(x_line - x_bc0)
     v = jnp.linalg.norm(v_bc0)
-
-    t_line = d / v
+    
+    t_line = jnp.where(
+        v > 0.0,
+        d / v,
+        jnp.inf,
+    )
 
     t_eff = jnp.minimum(tau_r_bc, t_line)
 
