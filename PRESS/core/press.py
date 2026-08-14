@@ -21,14 +21,12 @@ class PRESS:
     def __init__(
         self,
         tracking_data,
-        events_data = None,
-        kappa_surface = None
+        events_data = None
     ):
       
         from PRESS.utils.sanitizers import (
             validate_tracking_data,
-            validate_events_data,
-            validate_kappa_surface
+            validate_events_data
         )
         
         validate_tracking_data(tracking_data)
@@ -41,14 +39,6 @@ class PRESS:
           
           
         self.events_data = events_data
-        
-        
-        if kappa_surface is not None:
-          
-          validate_kappa_surface(kappa_surface)
-          
-          
-        self.kappa_surface = kappa_surface
         
 
         self.results = {
@@ -213,7 +203,6 @@ class PRESS:
         frame_id,
         r_max = 60,
         step=0.5,
-        mu =2.3,
         physics_kwargs=None,
     ):
         """
@@ -471,69 +460,94 @@ class PRESS:
 
             T_ball=T_ball,
 
-            attacker_idx=attacker_idx,
-
             ball_carrier_idx=ball_carrier_idx,
 
             **pc_kwargs,
         )
+        
+        
+        # Sum attacking player control
+
+        attacker_mask = jnp.zeros(
+            PC.shape[0],
+            dtype=bool,
+        ).at[attacker_idx].set(
+            True,
+        )
+
+
+        PC_att = jnp.sum(
+            jnp.where(
+                attacker_mask[:, None],
+                PC,
+                0.0,
+            ),
+            axis=0,
+        )        
 
 
         self.results["PPCF"][frame_id] = {
 
+                "Pitch control field": PC,
 
-            "Pitch control field": PC,
-
-
-            "grid": r_target,
-
-
-            "ball flight time": T_ball,
-
-
-            "params": {
-
-                "ball_kwargs": ball_kwargs,
-
-                "pc_kwargs": pc_kwargs,
+                "Attacking pitch control field": PC_att,
                 
-                "r_max": r_max,
+                "attacker_idx": attacker_idx,
+                
+                "ball_carrier_idx": ball_carrier_idx,
 
-                "step": step,
-            },
-        }
+                "grid": r_target,
 
+                "ball flight time": T_ball,
+
+                "params": {
+
+                    "ball_kwargs": ball_kwargs,
+
+                    "pc_kwargs": pc_kwargs,
+
+                    "r_max": r_max,
+
+                    "step": step,
+                },
+        }     
 
 
     def compute_relevant_ppcf(
         self,
         frame_id,
-        mu=2.3,
-        sigma=0.6,
+        kappa_surface,
+        sigma=14,
     ):
         """
         Compute Relevant PPCF using a data-derived
         kappa(v,d) surface and store it inside PPCF results.
         """
-        
+
         if frame_id not in self.results["PPCF"]:
             raise ValueError(
                 "Compute PPCF before computing relevant PPCF"
+            )
+
+
+        from PRESS.utils.sanitizers import (
+            validate_kappa_surface,
         )
         
-        if self.kappa_surface is None:
-            raise ValueError(
-                "Provide k(v,d) before computing relevant PPCF"
-        )
-        
+        validate_kappa_surface(kappa_surface)
+
         from PRESS.model.solver_pitch_control import (
             relevant_ppcf,
         )
 
+
         # existing PPCF data
+
         ppcf = self.results["PPCF"][frame_id]
 
+
         # state
+
         state = self.get_state(
             frame_id
         )
@@ -544,6 +558,7 @@ class PRESS:
 
 
         # compute relevant PPCF
+
         R_PPCF = relevant_ppcf(
             r_target=ppcf["grid"],
 
@@ -551,25 +566,53 @@ class PRESS:
 
             v_bc=v_bc,
 
-            P_attackers=ppcf["Pitch control field"],
+            P_attackers=ppcf[
+                "Pitch control field"
+            ],
 
-            kappa_surface=self.kappa_surface,
-
-            mu=mu,
+            kappa_surface=kappa_surface,
 
             sigma=sigma,
         )
 
 
-        # store result
+        # Sum relevant pitch control of attackers
+
+        attacker_idx = ppcf[
+            "attacker_idx"
+        ]
+
+
+        R_PPCF_total = jnp.sum(
+            R_PPCF[
+                attacker_idx
+            ],
+            axis=0,
+        )
+
+
+        # store results
+
+        self.results["PPCF"][frame_id][
+            "Relevant Pitch control field"
+        ] = R_PPCF
+
+
+        self.results["PPCF"][frame_id][
+            "Relevant Attacking pitch control field"
+        ] = R_PPCF_total
         
-        self.results["PPCF"][frame_id]["Relevant Pitch control field"] = R_PPCF 
+
+        self.results["PPCF"][frame_id][
+            "params"
+        ]["kappa surface"] = kappa_surface
         
-        self.results["PPCF"][frame_id]["params"]["mu"] = mu
         
-        self.results["PPCF"][frame_id]["params"]["sigma"] = sigma
-        
-        
+        self.results["PPCF"][frame_id][
+            "params"
+        ]["sigma"] = sigma  
+
+  
     # ============================================================
     # PRESSING INTENSITY
     # ============================================================

@@ -476,7 +476,7 @@ def plot_ppcf(
 
     result = press.results["PPCF"][frame_id]
     grid = result["grid"]
-    values = result["Pitch control field"]
+    values = result['Attacking pitch control field']
 
     xi = np.linspace(grid[:, 0].min(), grid[:, 0].max(), 120)
     yi = np.linspace(grid[:, 1].min(), grid[:, 1].max(), 120)

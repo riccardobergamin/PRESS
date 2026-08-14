@@ -12,6 +12,14 @@ def validate_tracking_data(
     The function does not modify data.
     It raises ValueError if the format is invalid.
     """
+    
+    if not isinstance(
+        tracking_data,
+        pd.DataFrame,
+    ):
+        raise ValueError(
+            "tracking_data must be a pandas DataFrame."
+        )    
 
     required = [
         "frame",
@@ -38,7 +46,7 @@ def validate_tracking_data(
 
     # Player columns
     pattern = re.compile(
-        r"^(home|away)_(\d+)_(x|y|vx|vy)$"
+        r"^(home|away)_(\d+)_(x|y|vx|vy|v)$"
     )
 
     players = {}
@@ -65,6 +73,7 @@ def validate_tracking_data(
         "y",
         "vx",
         "vy",
+        "v",
     }
 
     for player, variables in players.items():
@@ -107,6 +116,7 @@ def validate_tracking_data(
             or c.endswith("_y")
             or c.endswith("_vx")
             or c.endswith("_vy")
+            or c.endswith("_v")
         )
     ]
 
@@ -123,17 +133,17 @@ def validate_tracking_data(
         )
         
 
-
 def validate_events_data(
     events_data,
 ):
     """
-    Validate events data format.
-
-    Raises ValueError only if event data
-    is incompatible with PRESS conventions.
+    Validate events data according to
+    PRESS conventions.
     """
 
+    # ----------------------------------
+    # DataFrame
+    # ----------------------------------
 
     if not isinstance(
         events_data,
@@ -142,135 +152,125 @@ def validate_events_data(
         raise ValueError(
             "events_data must be a pandas DataFrame."
         )
-
-
+    
     # ----------------------------------
     # Required columns
     # ----------------------------------
-
-    required_columns = [
-        "frame",
-        "event_type",
-        "player_id",
-        "team_id",
-        "outcome",
-    ]
-
-
-    missing_columns = [
-        col
-        for col in required_columns
-        if col not in events_data.columns
-    ]
-
-
-    if missing_columns:
+        
+    if "frame" not in events_data.columns:
 
         raise ValueError(
-            f"Missing event columns: {missing_columns}"
+            "Missing required column: frame."
         )
 
-
     # ----------------------------------
-    # Required events
-    # ----------------------------------
-
-    required_events = {
-        "pass",
-        "shot",
-        "ball_recovery",
-        "foul",
-        "tackle",
-    }
-
-
-    available_events = set(
-        events_data["event_type"]
-        .dropna()
-        .unique()
-    )
-
-
-    missing_events = (
-        required_events
-        -
-        available_events
-    )
-
-
-    if missing_events:
-
-        raise ValueError(
-            f"Missing required events: {missing_events}"
-        )
-
-
-    # ----------------------------------
-    # Player id convention
+    # Player / team convention
     # ----------------------------------
 
-    invalid_player_ids = events_data[
-        ~events_data["player_id"]
+    player_ids = (
+        events_data["player_id"]
         .astype(str)
-        .str.match(
-            r"^(home|away)_\d+$"
-        )
-    ]
+    )
 
-
-    if not invalid_player_ids.empty:
+    if not player_ids.str.match(
+        r"^(home|away)_\d+$"
+    ).all():
 
         raise ValueError(
             "Invalid player_id convention. "
-            "Expected home_<shirt_number> or away_<shirt_number>."
+            "Expected home_<shirt_number> "
+            "or away_<shirt_number>."
         )
 
+    if not events_data["team_id"].isin(
+        ["home", "away"]
+    ).all():
+
+        raise ValueError(
+            "Invalid team_id convention. "
+            "Expected 'home' or 'away'."
+        )
+
+    player_teams = (
+        player_ids
+        .str.split("_")
+        .str[0]
+    )
+
+    if not player_teams.eq(
+        events_data["team_id"]
+    ).all():
+
+        raise ValueError(
+            "player_id and team_id are inconsistent."
+        )
 
     # ----------------------------------
-    # Pass validation
+    # Pass
     # ----------------------------------
 
     passes = events_data[
         events_data["event_type"] == "pass"
     ]
 
+    if not passes.empty:
 
-    if "receiver_player_id" not in events_data.columns:
+        if passes["is_successful"].isna().any():
 
-        raise ValueError(
-            "Pass events require receiver_player_id."
-        )
+            raise ValueError(
+                "Pass events require "
+                "is_successful."
+            )
 
+        if not passes["is_successful"].map(
+            lambda x:
+                isinstance(
+                    x,
+                    (bool, jnp.bool_),
+                )
+        ).all():
 
-    if passes["receiver_player_id"].isna().any():
+            raise ValueError(
+                "Pass events require boolean "
+                "is_successful."
+            )
 
-        raise ValueError(
-            "Pass events require receiver_player_id."
-        )
+        successful_passes = passes[
+            passes["is_successful"]
+        ]
 
+        if not successful_passes.empty:
 
-    if passes["outcome"].isna().any():
+            if (
+                "receiver_player_id"
+                not in events_data.columns
+            ):
+                raise ValueError(
+                    "Successful pass events require "
+                    "receiver_player_id."
+                )
 
-        raise ValueError(
-            "Pass events require outcome."
-        )
+            receivers = (
+                successful_passes[
+                    "receiver_player_id"
+                ]
+            )
 
+            if receivers.isna().any():
 
-    # ----------------------------------
-    # Tackle validation
-    # ----------------------------------
+                raise ValueError(
+                    "Successful pass events require "
+                    "receiver_player_id."
+                )
 
-    tackles = events_data[
-        events_data["event_type"] == "tackle"
-    ]
+            if not receivers.astype(str).str.match(
+                r"^(home|away)_\d+$"
+            ).all():
 
-
-    if tackles["outcome"].isna().any():
-
-        raise ValueError(
-            "Tackle events require outcome."
-        )
-
+                raise ValueError(
+                    "Invalid receiver_player_id "
+                    "convention."
+                )
 
     return True
   
@@ -285,10 +285,10 @@ def validate_kappa_surface(
     Expected structure:
 
     {
-        "speed_edges": np.ndarray,
-        "distance_edges": np.ndarray,
-        "kappa": np.ndarray,
-        "counts": np.ndarray (optional)
+        "speed_edges": jnp.ndarray,
+        "distance_edges": jnp.ndarray,
+        "kappa": jnp.ndarray,
+        "counts": jnp.ndarray (optional)
     }
 
     kappa shape:
@@ -300,10 +300,9 @@ def validate_kappa_surface(
         kappa_surface,
         dict,
     ):
-        raise TypeError(
-            "kappa_surface must be a dictionary"
+        raise ValueError(
+            "kappa_surface must be a dictionary."
         )
-
 
     required_keys = [
         "speed_edges",
@@ -311,14 +310,13 @@ def validate_kappa_surface(
         "kappa",
     ]
 
-
     for key in required_keys:
 
         if key not in kappa_surface:
-            raise ValueError(
-                f"Missing key '{key}' in kappa_surface"
-            )
 
+            raise ValueError(
+                f"Missing key '{key}' in kappa_surface."
+            )
 
     speed_edges = jnp.asarray(
         kappa_surface["speed_edges"]
@@ -332,71 +330,86 @@ def validate_kappa_surface(
         kappa_surface["kappa"]
     )
 
-
-    # ---------------------------------------------------------
+    # ----------------------------------
     # Edge validation
-    # ---------------------------------------------------------
+    # ----------------------------------
 
-    if speed_edges.ndim != 1:
-        raise ValueError(
-            "speed_edges must be a 1D array"
-        )
+    for name, edges in [
+        ("speed_edges", speed_edges),
+        ("distance_edges", distance_edges),
+    ]:
 
+        if edges.ndim != 1:
 
-    if distance_edges.ndim != 1:
-        raise ValueError(
-            "distance_edges must be a 1D array"
-        )
+            raise ValueError(
+                f"{name} must be a 1D array."
+            )
 
+        if not jnp.issubdtype(
+            edges.dtype,
+            jnp.number,
+        ):
 
-    if jnp.any(
-        jnp.diff(speed_edges) <= 0
-    ):
-        raise ValueError(
-            "speed_edges must be strictly increasing"
-        )
+            raise ValueError(
+                f"{name} must be numeric."
+            )
 
+        if not jnp.isfinite(
+            edges
+        ).all():
 
-    if jnp.any(
-        jnp.diff(distance_edges) <= 0
-    ):
-        raise ValueError(
-            "distance_edges must be strictly increasing"
-        )
+            raise ValueError(
+                f"{name} contains NaN or infinite values."
+            )
 
+        if not jnp.diff(
+            edges
+        ).__gt__(0).all():
 
-    # ---------------------------------------------------------
-    # Kappa surface validation
-    # ---------------------------------------------------------
+            raise ValueError(
+                f"{name} must be strictly increasing."
+            )
+
+    # ----------------------------------
+    # Kappa validation
+    # ----------------------------------
 
     expected_shape = (
         len(speed_edges) - 1,
         len(distance_edges) - 1,
     )
 
-
     if K.shape != expected_shape:
+
         raise ValueError(
             f"kappa shape {K.shape} does not match "
-            f"expected {expected_shape}"
+            f"expected {expected_shape}."
         )
 
-
-    if jnp.any(
-        ~jnp.isfinite(K)
+    if not jnp.issubdtype(
+        K.dtype,
+        jnp.number,
     ):
+
         raise ValueError(
-            "kappa contains NaN or infinite values"
+            "kappa must be numeric."
         )
 
+    if not jnp.isfinite(
+        K
+    ).all():
+
+        raise ValueError(
+            "kappa contains NaN or infinite values."
+        )
 
     if jnp.any(
         K < 0
     ):
-        raise ValueError(
-            "kappa values must be non-negative"
-        )
 
+        raise ValueError(
+            "kappa values must be non-negative."
+        )
 
     return True
   

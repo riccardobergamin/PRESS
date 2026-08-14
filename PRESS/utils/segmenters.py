@@ -36,7 +36,7 @@ def segment_passes(
     for _, row in passes.iterrows():
 
         frame_df = tracking_df[
-            tracking_df.frame == row.frame
+            tracking_df.frame == row["frame"]
         ]
 
 
@@ -105,7 +105,7 @@ def segment_passes(
     passes["receiver_y"] = receiver_y
 
 
-    press.passes = passes.reset_index(
+    return passes.reset_index(
         drop=True
     )
     
@@ -129,12 +129,10 @@ def segment_possessions(
     tracking_df = press.tracking_data
     events_df = press.events_data
 
-
     tracking_indexed = (
         tracking_df
         .set_index("frame")
     )
-
 
     # ----------------------------------
     # Possession triggers
@@ -155,9 +153,7 @@ def segment_possessions(
         "frame"
     )
 
-
     possessions = []
-
 
     # ----------------------------------
     # Loop over possessions
@@ -166,54 +162,51 @@ def segment_possessions(
     for _, start_event in triggers.iterrows():
 
         t_event = int(
-            start_event.frame
+            start_event["frame"]
         )
 
         current_player = (
-            start_event.player_id
+            start_event["player_id"]
         )
 
         used_fallback = False
-
 
         # --------------------
         # Possession start
         # --------------------
 
         if (
-            start_event.event_type
+            start_event["event_type"]
             == "pass"
         ):
 
             receiver = (
-                start_event.receiver_player_id
+                start_event["receiver_player_id"]
             )
 
             receiver_events = events_df[
-                (events_df.frame > t_event)
+                (
+                    events_df["frame"]
+                    > t_event
+                )
                 &
                 (
-                    events_df.player_id
+                    events_df["player_id"]
                     == receiver
                 )
             ].sort_values(
                 "frame"
             )
 
-
             if receiver_events.empty:
                 continue
 
-
             limit_frame = int(
                 receiver_events
-                .iloc[0]
-                .frame
+                .iloc[0]["frame"]
             )
 
-
             t_start = None
-
 
             for frame in range(
                 t_event + 1,
@@ -226,7 +219,6 @@ def segment_possessions(
                 ):
                     continue
 
-
                 possession = (
                     tracking_indexed.loc[
                         frame,
@@ -234,24 +226,19 @@ def segment_possessions(
                     ]
                 )
 
-
-                if (
-                    isinstance(
-                        possession,
-                        pd.Series,
-                    )
+                if isinstance(
+                    possession,
+                    pd.Series,
                 ):
                     possession = (
                         possession.iloc[0]
                     )
-
 
                 if possession == receiver:
 
                     t_start = frame
 
                     break
-
 
             if t_start is None:
 
@@ -261,66 +248,67 @@ def segment_possessions(
 
                 used_fallback = True
 
-
             current_player = receiver
-
 
         else:
 
             t_start = t_event
-
 
         # --------------------
         # Possession end
         # --------------------
 
         terminal_events = events_df[
-            (events_df.frame >= t_start)
+            (
+                events_df["frame"]
+                >= t_start
+            )
             &
             (
-                (
-                    (events_df.event_type == "pass")
-                )
-                |
-                (
-                    events_df.event_type
-                    == "shot"
-                )
-                |
-                (
-                    events_df.event_type
-                    == "foul"
-                )
-                |
-                (
-                    (
-                        events_df.event_type
-                        == "tackle"
-                    )
-                    &
-                    (
-                        events_df.is_successful
-                    )
-                )
-                |
-                (
-                    events_df.event_type
-                    == "clearance"
+                events_df["event_type"].isin(
+                    [
+                        "pass",
+                        "shot",
+                        "foul",
+                        "tackle",
+                        "clearance",
+                    ]
                 )
             )
         ].sort_values(
             "frame"
         )
 
-
         if terminal_events.empty:
             continue
-
 
         outcome_event = (
             terminal_events.iloc[0]
         )
 
+        event_type = (
+            outcome_event["event_type"]
+        )
+
+        # --------------------
+        # Possession outcome
+        # --------------------
+
+        if event_type == "pass":
+
+            loss = not outcome_event["is_successful"]
+
+        elif event_type in [
+            "tackle",
+            "clearance",
+        ]:
+
+            loss = True
+
+        else:
+
+            loss = False
+            
 
         possessions.append(
             {
@@ -328,7 +316,7 @@ def segment_possessions(
                     current_player,
 
                 "team_id":
-                    outcome_event.team_id,
+                    start_event["team_id"],
 
                 "receiver_player_id":
                     outcome_event.get(
@@ -336,29 +324,28 @@ def segment_possessions(
                         pd.NA,
                     ),
 
-                "start_frame":
+                "frame_start":
                     t_start,
 
-                "end_frame":
+                "frame_end":
                     int(
-                        outcome_event.frame
+                        outcome_event[
+                            "frame"
+                        ]
                     ),
 
                 "terminal_event":
-                    outcome_event.event_type,
+                    event_type,
 
-                "outcome":
-                    outcome_event["outcome"]
-                    if outcome_event.event_type == "pass"
-                    else pd.NA,
+                "loss":
+                    loss,
 
                 "used_fallback":
                     used_fallback,
             }
         )
 
-
-    press.possessions = (
+    return (
         pd.DataFrame(
             possessions
         )
@@ -366,6 +353,7 @@ def segment_possessions(
             drop=True
         )
     )
+    
 
 def get_possession_frames(press):
   
@@ -397,7 +385,7 @@ def get_possession_frames(press):
 
 
     return possession[
-        ["player_possession", "frame"]
+        ["frame","player_possession"]
     ].reset_index(drop=True)
     
     

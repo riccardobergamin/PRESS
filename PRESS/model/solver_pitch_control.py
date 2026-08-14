@@ -88,7 +88,6 @@ def integrate_pitch_control(
     r_grid,
     p_pos,
     p_vel,
-    attacker_idx,
     ball_carrier_idx,
     T_ball,
     lambda_control=4.3,
@@ -121,13 +120,6 @@ def integrate_pitch_control(
         t_max_pc,
         dt_pc,
     )
-
-    # Attacking players (excluding the ball carrier)
-    attacker_mask = (
-        jnp.zeros(n_players, dtype=bool)
-        .at[attacker_idx].set(True)
-        .at[ball_carrier_idx].set(False)
-    )[:, None]
 
     def scan_body(P, t):
 
@@ -172,16 +164,8 @@ def integrate_pitch_control(
         P0,
         time_steps,
     )
-
-    # Sum attacking player control
-    return jnp.sum(
-        jnp.where(
-            attacker_mask,
-            P_final,
-            0.0,
-        ),
-        axis=0,
-    )
+    
+    return P_final
 
 
 def relevant_ppcf(
@@ -190,8 +174,7 @@ def relevant_ppcf(
     v_bc,
     P_attackers,
     kappa_surface,
-    mu=2.3,
-    sigma=0.6,
+    sigma=14.0,
 ):
     """
     Compute transition probabilities and
@@ -236,19 +219,18 @@ def relevant_ppcf(
         distance=distance,
         kappa_surface=kappa_surface,
     )
-
+    
+    
     # ---------------------------------------------------------
-    # Log LogNormal distance term
+    # Gaussian spatial term
     # ---------------------------------------------------------
 
     log_spatial = (
-        -jnp.log(distance)
         -jnp.log(sigma)
         -0.5 * jnp.log(2.0 * jnp.pi)
         -0.5
         * (
-            (jnp.log(distance) - mu)
-            / sigma
+            distance / sigma
         ) ** 2
     )
 

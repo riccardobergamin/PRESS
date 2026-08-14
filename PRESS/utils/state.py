@@ -20,7 +20,8 @@ def get_pv_players(
     Returns
     -------
     dict
-        Ball carrier, teammates and defenders state.
+        Ball carrier, teammates and defenders state,
+        including player IDs.
     """
 
     def pad_players(
@@ -87,7 +88,10 @@ def get_pv_players(
 
 
     team_id, shirt_num = player.split("_")
-    shirt_num = int(shirt_num)
+
+    shirt_num = int(
+        shirt_num
+    )
 
 
     bc_prefix = (
@@ -115,9 +119,11 @@ def get_pv_players(
     # --------------------
 
     teammates = []
+    attacker_ids = []
     v_atts = []
 
     defenders = []
+    defender_ids = []
     v_defs = []
 
 
@@ -128,18 +134,20 @@ def get_pv_players(
     )
 
 
-    for side, pos_container, vel_container in [
+    for side, pos_container, vel_container, id_container in [
 
         (
             team_id,
             teammates,
             v_atts,
+            attacker_ids,
         ),
 
         (
             other_team,
             defenders,
             v_defs,
+            defender_ids,
         ),
 
     ]:
@@ -158,7 +166,8 @@ def get_pv_players(
             )
 
 
-            # exclude ball carrier
+            # Exclude ball carrier
+
             if (
                 side == team_id
                 and shirt == shirt_num
@@ -166,8 +175,13 @@ def get_pv_players(
                 continue
 
 
+            player_id = (
+                f"{side}_{shirt}"
+            )
+
+
             prefix = (
-                f"{side}_{shirt}_"
+                f"{player_id}_"
             )
 
 
@@ -193,6 +207,14 @@ def get_pv_players(
                 ]
             )
 
+            id_container.append(
+                player_id
+            )
+
+
+    # --------------------
+    # Padding
+    # --------------------
 
     r_defs, v_defs = pad_players(
         np.asarray(defenders),
@@ -207,6 +229,26 @@ def get_pv_players(
         10,
     )
 
+
+    defender_ids = (
+        defender_ids[:11]
+        + [None] * (
+            11 - len(defender_ids)
+        )
+    )
+
+
+    attacker_ids = (
+        attacker_ids[:10]
+        + [None] * (
+            10 - len(attacker_ids)
+        )
+    )
+
+
+    # --------------------
+    # Return
+    # --------------------
 
     return {
 
@@ -226,7 +268,11 @@ def get_pv_players(
 
         "v_defs": v_defs,
 
+        "defender_ids": defender_ids,
+
         "r_atts": r_atts,
 
         "v_atts": v_atts,
+
+        "attacker_ids": attacker_ids,
     }
