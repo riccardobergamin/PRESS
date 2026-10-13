@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this software, cite the repository release used in your work."
+type: software
+title: "PRESS: Possession Risk Estimate from Spatio-temporal State"
+authors:
+  - family-names: Bergamin
+    given-names: Riccardo
+version: 0.1.0
