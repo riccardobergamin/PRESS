@@ -67,6 +67,51 @@ class PRESS:
         )
 
 
+    def get_result(self, component, frame_id):
+        """Return a stored component result for one tracking frame.
+
+        ``component`` accepts the result keys ``BCOS``, ``PPCF``, ``PI``,
+        ``ACTION_SELECTION``, and ``HAZARD``. The returned value is the
+        stored result mapping; callers can inspect it without reaching
+        into the internal ``results`` structure directly.
+        """
+        component = str(component).upper()
+        if component not in self.results:
+            raise ValueError(
+                f"Unknown component {component!r}; expected one of "
+                f"{', '.join(self.results)}."
+            )
+        if frame_id not in self.results[component]:
+            raise KeyError(
+                f"No {component} result stored for frame {frame_id!r}."
+            )
+        return self.results[component][frame_id]
+
+
+    def get_bcos_result(self, frame_id):
+        """Return BCOS output stored for ``frame_id``."""
+        return self.get_result("BCOS", frame_id)
+
+
+    def get_ppcf_result(self, frame_id):
+        """Return pitch-control and pass output stored for ``frame_id``."""
+        return self.get_result("PPCF", frame_id)
+
+
+    def get_ball_drive_result(self, frame_id):
+        """Return ball-drive risk output stored for ``frame_id``."""
+        return self.get_result("PI", frame_id)
+
+
+    def get_action_selection_result(self, frame_id):
+        """Return action-selection output stored for ``frame_id``."""
+        return self.get_result("ACTION_SELECTION", frame_id)
+
+
+    def get_hazard_result(self, frame_id):
+        """Return composed hazard output stored for ``frame_id``."""
+        return self.get_result("HAZARD", frame_id)
+
 
     # ============================================================
     # BALL CARRIER OPEN SPACE
