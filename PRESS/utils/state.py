@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.cluster import AgglomerativeClustering
 
 
 def get_pv_players(
@@ -80,6 +81,8 @@ def get_pv_players(
     # --------------------
 
     player = df["player_possession"]
+    
+    attacking_side = df["attacking_side"]
 
     if pd.isna(player):
         raise ValueError(
@@ -259,6 +262,8 @@ def get_pv_players(
         "team_id": team_id,
 
         "shirt_num": shirt_num,
+        
+        "attacking_side": attacking_side,
 
         "x_bc": x_bc,
 
@@ -276,3 +281,268 @@ def get_pv_players(
 
         "attacker_ids": attacker_ids,
     }
+
+# ============================================================
+# xT
+# ============================================================
+
+def get_xt_values(
+    targets,
+    attacking_side,
+    xt_grid,
+):
+    """
+    Get attacking-team and opponent xT
+    for arbitrary target positions.
+
+    Parameters
+    ----------
+    targets : ndarray, shape (N, 2)
+    """
+
+    targets = np.asarray(
+        targets,
+        dtype=float,
+    )
+
+    xt_grid = np.asarray(
+        xt_grid,
+        dtype=float,
+    )
+
+    n_x, n_y = xt_grid.shape
+
+    x = targets[:, 0]
+    y = targets[:, 1]
+
+    if attacking_side == "left_to_right":
+
+        x_att = x
+        y_att = y
+
+    elif attacking_side == "right_to_left":
+
+        x_att = -x
+        y_att = -y
+
+    else:
+
+        raise ValueError(
+            f"Invalid attacking_side: "
+            f"{attacking_side}"
+        )
+
+    x_opp = -x_att
+    y_opp = -y_att
+    
+    PITCH_LENGTH = 105.0
+    PITCH_WIDTH = 68.0
+
+    x_cell_att = np.clip(
+        (
+            (x_att + PITCH_LENGTH / 2)
+            / PITCH_LENGTH
+            * n_x
+        ).astype(int),
+        0,
+        n_x - 1,
+    )
+
+    y_cell_att = np.clip(
+        (
+            (y_att + PITCH_WIDTH / 2)
+            / PITCH_WIDTH
+            * n_y
+        ).astype(int),
+        0,
+        n_y - 1,
+    )
+
+    x_cell_opp = np.clip(
+        (
+            (x_opp + PITCH_LENGTH / 2)
+            / PITCH_LENGTH
+            * n_x
+        ).astype(int),
+        0,
+        n_x - 1,
+    )
+
+    y_cell_opp = np.clip(
+        (
+            (y_opp + PITCH_WIDTH / 2)
+            / PITCH_WIDTH
+            * n_y
+        ).astype(int),
+        0,
+        n_y - 1,
+    )
+
+    xt_team = xt_grid[
+        x_cell_att,
+        y_cell_att,
+    ]
+
+    xt_opp = xt_grid[
+        x_cell_opp,
+        y_cell_opp,
+    ]
+
+    return xt_team, xt_opp
+
+
+# ============================================================
+# DYNAMIC PRESSURE LINES
+# ============================================================
+
+def compute_dynamic_pressure_lines(
+    r_defs,
+    attacking_side,
+    n_lines=3,
+):
+    """
+    Compute defensive pressure lines once per pass.
+    """
+
+    r_defs = np.asarray(
+        r_defs,
+        dtype=float,
+    )
+
+    if r_defs.ndim != 2:
+        return np.full(
+            n_lines,
+            np.nan,
+        )
+
+    if r_defs.shape[1] < 2:
+        return np.full(
+            n_lines,
+            np.nan,
+        )
+
+    valid = np.all(
+        np.isfinite(
+            r_defs[:, :2]
+        ),
+        axis=1,
+    )
+
+    r_defs = r_defs[valid]
+
+    if len(r_defs) < n_lines + 1:
+        return np.full(
+            n_lines,
+            np.nan,
+        )
+
+    if attacking_side == "left_to_right":
+
+        goalkeeper_idx = np.argmax(
+            r_defs[:, 0]
+        )
+
+    elif attacking_side == "right_to_left":
+
+        goalkeeper_idx = np.argmin(
+            r_defs[:, 0]
+        )
+
+    else:
+
+        raise ValueError(
+            f"Unknown attacking_side: "
+            f"{attacking_side}"
+        )
+
+    r_defs = np.delete(
+        r_defs,
+        goalkeeper_idx,
+        axis=0,
+    )
+
+    X = r_defs[:, [0]]
+
+    clustering = AgglomerativeClustering(
+        n_clusters=n_lines,
+        linkage="complete",
+    )
+
+    labels = clustering.fit_predict(X)
+
+    lines = np.array([
+        X[
+            labels == cluster_id,
+            0,
+        ].mean()
+        for cluster_id in range(n_lines)
+    ])
+
+    return np.sort(lines)
+
+
+def get_target_pressure_line_index(
+    targets,
+    pressure_lines,
+    attacking_side,
+):
+    """
+    Return the number of pressure lines crossed
+    by every candidate destination.
+
+    Returns
+    -------
+    ndarray, shape (N,)
+        0, 1, 2 or 3.
+    """
+
+    targets = np.asarray(
+        targets,
+        dtype=float,
+    )
+
+    pressure_lines = np.asarray(
+        pressure_lines,
+        dtype=float,
+    )
+
+    if (
+        len(pressure_lines) != 3
+        or not np.all(
+            np.isfinite(
+                pressure_lines
+            )
+        )
+    ):
+
+        return np.full(
+            len(targets),
+            np.nan,
+        )
+
+    if attacking_side == "left_to_right":
+
+        target_x_att = targets[:, 0]
+        lines_att = pressure_lines
+
+    elif attacking_side == "right_to_left":
+
+        target_x_att = -targets[:, 0]
+        lines_att = -pressure_lines
+
+    else:
+
+        raise ValueError(
+            f"Invalid attacking_side: "
+            f"{attacking_side}"
+        )
+
+    lines_att = np.sort(
+        lines_att
+    )
+
+    return np.sum(
+        target_x_att[:, None]
+        >= lines_att[None, :],
+        axis=1,
+    ).astype(float)

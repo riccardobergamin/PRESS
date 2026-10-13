@@ -632,7 +632,7 @@ def plot_pi(
     # ----------------------------------
 
     pressing_intensity = press.results["PI"][frame_id][
-        "Individual interception probabilities"
+        "Individual tackle probabilities"
     ]
 
 

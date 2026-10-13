@@ -17,13 +17,12 @@ def ballcarrier_hazard(
     r_target,   # (dim,)  single target point
     t,          # scalar
     s,
-    tau_r_bc,
     v_max_bc,
-    alpha,
+    a_max_bc,
 ):
   
     a = jnp.pi / (jnp.sqrt(3) * s)
-    return a * F(x_bc0, v_bc0, r_target, t, s, tau_r_bc, v_max_bc, alpha).squeeze()
+    return a * F(x_bc0, v_bc0, r_target, t, s, v_max_bc, a_max_bc).squeeze()
 
 
 def defender_hazard(
@@ -35,11 +34,10 @@ def defender_hazard(
     mask,       # (M,)            valid path points
     t,          # scalar
     s,
-    tau_r_bc,
-    delta_r_def,
     v_def_max,
     v_bc_max,
-    alpha,
+    a_def_max,
+    a_bc_max,
 ):
 
     a = jnp.pi / (jnp.sqrt(3) * s)
@@ -53,10 +51,9 @@ def defender_hazard(
         mask,
         t,
         s,
-        tau_r_bc,
-        delta_r_def,
         v_def_max,
         v_bc_max,
-        alpha,
+        a_def_max,
+        a_bc_max,
     )
 

@@ -47,60 +47,60 @@ def generate_circular_grid(
     )
 
 
-def lookup_kappa(
-    speed,
-    distance,
-    kappa_surface,
-):
-    """
-    Return the data-derived kappa(v,d).
-
-    Parameters
-    ----------
-    speed : float
-        Ball-carrier speed.
-
-    distance : jnp.ndarray (N,)
-        Distance to each target.
-
-    kappa_surface : dict
-        {
-            "speed_edges": ...,
-            "distance_edges": ...,
-            "kappa": ...
-        }
-    """
-
-    speed_edges = kappa_surface["speed_edges"]
-    distance_edges = kappa_surface["distance_edges"]
-
-    K = kappa_surface["kappa"]
-
-    i = jnp.digitize(
-        speed,
-        speed_edges,
-    ) - 1
-
-    j = jnp.digitize(
-        jnp.asarray(distance),
-        distance_edges,
-    ) - 1
-
-    i = jnp.clip(
-        i,
-        0,
-        K.shape[0] - 1,
-    )
-
-    j = jnp.clip(
-        j,
-        0,
-        K.shape[1] - 1,
-    )
-
-    return jnp.asarray(
-        K[i, j]
-    )
+# def lookup_kappa(
+#     speed,
+#     distance,
+#     kappa_surface,
+# ):
+#     """
+#     Return the data-derived kappa(v,d).
+# 
+#     Parameters
+#     ----------
+#     speed : float
+#         Ball-carrier speed.
+# 
+#     distance : jnp.ndarray (N,)
+#         Distance to each target.
+# 
+#     kappa_surface : dict
+#         {
+#             "speed_edges": ...,
+#             "distance_edges": ...,
+#             "kappa": ...
+#         }
+#     """
+# 
+#     speed_edges = kappa_surface["speed_edges"]
+#     distance_edges = kappa_surface["distance_edges"]
+# 
+#     K = kappa_surface["kappa"]
+# 
+#     i = jnp.digitize(
+#         speed,
+#         speed_edges,
+#     ) - 1
+# 
+#     j = jnp.digitize(
+#         jnp.asarray(distance),
+#         distance_edges,
+#     ) - 1
+# 
+#     i = jnp.clip(
+#         i,
+#         0,
+#         K.shape[0] - 1,
+#     )
+# 
+#     j = jnp.clip(
+#         j,
+#         0,
+#         K.shape[1] - 1,
+#     )
+# 
+#     return jnp.asarray(
+#         K[i, j]
+#     )
     
     
 def compute_exit_point(x, v, bounds):

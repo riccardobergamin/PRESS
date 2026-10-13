@@ -5,75 +5,14 @@ Ball flight physics and arrival matching utilities.
 import jax
 import jax.numpy as jnp
 from jax.experimental.ode import odeint
-
-from .angles import (
-    rotation_time
-)
-
-
-
-# def ball_trajectory(
-#     v0,
-#     theta,
-#     t_span,
-#     rho=1.2,
-#     Cd=0.25,
-#     A=0.038,
-#     m=0.43,
-#     g=9.81,
-# ):
-#     """
-#     Integrate single ball trajectory.
-# 
-#     State:
-#         y[0] : horizontal distance
-#         y[1] : height
-#         y[2] : horizontal velocity
-#         y[3] : vertical velocity
-#     """
-# 
-#     k = 0.5 * rho * Cd * A / m
-# 
-# 
-#     def ode(y, t):
-# 
-#         v_d = y[2]
-#         v_z = y[3]
-# 
-#         v_norm = jnp.sqrt(v_d**2 + v_z**2) + 1e-8
-#         
-# 
-#         return jnp.array(
-#             [
-#                 v_d,
-#                 v_z,
-#                 -k * v_d * v_norm,
-#                 -k * v_z * v_norm - g,
-#             ]
-#         )
-# 
-# 
-#     y0 = jnp.array(
-#         [
-#             0.0,
-#             0.0,
-#             v0 * jnp.cos(theta),
-#             v0 * jnp.sin(theta),
-#         ]
-#     )
-# 
-# 
-#     return odeint(
-#         ode,
-#         y0,
-#         t_span,
-#     )
+from .times import time_to_intercept
 
 
 def ball_trajectory(
     v0,
     theta,
     t_span,
+    z0 = 0.0,
     rho=1.2,
     Cd=0.25,
     A=0.038,
@@ -155,7 +94,7 @@ def ball_trajectory(
         # Ground contact occurs when the ball
         # reaches the ground while moving downward.
         on_ground = (
-            (z <= 0.0)
+            (z <= 0.05)
             &
             (v_z <= 0.0)
         )
@@ -173,7 +112,7 @@ def ball_trajectory(
     y0 = jnp.array(
         [
             0.0,                        # initial horizontal position
-            0.0,                        # initial height
+            z0,                         # initial height
             v0 * jnp.cos(theta),         # horizontal velocity
             v0 * jnp.sin(theta),         # vertical velocity
         ]
@@ -213,6 +152,7 @@ def generate_ball_trajectories(
             v0,
             theta,
             t_span,
+            z0 = 0,
             rho=rho,
             Cd=Cd,
             A=A,
@@ -312,45 +252,115 @@ def build_flight_lookup(
 
 
 
+# def player_arrival_time(
+#     r_target,
+#     p_attackers,
+#     v_attackers,
+#     tau_r,
+#     alpha,
+#     v_max,
+# ):
+#     """
+#     Minimum player arrival time.
+# 
+#     Computes the fastest player arrival
+#     for each target position.
+#     """
+# 
+#     # position after reaction
+#     p_react =  p_attackers[:, None, :] + v_attackers[:, None, :] * tau_r
+# 
+# 
+#     # player-target vectors
+#     delta = r_target[None, :, :] - p_react
+# 
+#     # distances
+#     distance = jnp.linalg.norm(delta, axis=-1)
+# 
+#     
+#     tau_move = distance / v_max
+# 
+# 
+#     # rotation time
+#     tau_theta = rotation_time(p_attackers, v_attackers, r_target, alpha)
+# 
+#    # running time
+#    
+#     tau_players =  tau_r + tau_theta + tau_move
+# 
+# 
+#     # fastest player per target
+#     return jnp.min(tau_players,axis=0)
+
+
 def player_arrival_time(
     r_target,
     p_attackers,
     v_attackers,
-    tau_r,
-    alpha,
     v_max,
+    a_max,
 ):
     """
-    Minimum player arrival time.
+    Arrival time of the player closest to each target position.
 
-    Computes the fastest player arrival
-    for each target position.
+    The receiving player is selected based on current position
+    (p_attackers), not on who can reach the target fastest.
+
+    After selecting the closest player, its arrival time is
+    computed using the same time-to-intercept model used by F().
     """
 
-    # position after reaction
-    p_react =  p_attackers[:, None, :] + v_attackers[:, None, :] * tau_r
+    # --------------------------------------------------------
+    # Player-target vectors
+    # --------------------------------------------------------
 
+    delta = (
+        r_target[None, :, :]
+        - p_attackers[:, None, :]
+    )
 
-    # player-target vectors
-    delta = r_target[None, :, :] - p_react
+    # --------------------------------------------------------
+    # Current distance from each player to each target
+    # --------------------------------------------------------
 
-    # distances
-    distance = jnp.linalg.norm(delta, axis=-1)
+    distance = jnp.linalg.norm(
+        delta,
+        axis=-1,
+    )
 
-    
-    tau_move = distance / v_max
+    # --------------------------------------------------------
+    # Player closest to each target
+    # --------------------------------------------------------
 
+    player_idx = jnp.argmin(
+        distance,
+        axis=0,
+    )
 
-    # rotation time
-    tau_theta = rotation_time(p_attackers, v_attackers, r_target, alpha)
+    # --------------------------------------------------------
+    # Time to intercept for every player-target pair
+    # --------------------------------------------------------
 
-   # running time
-   
-    tau_players =  tau_r + tau_theta + tau_move
+    tau_players = time_to_intercept(
+        p_attackers,
+        v_attackers,
+        r_target,
+        v_max=v_max,
+        a_max=a_max,
+    )
 
+    # --------------------------------------------------------
+    # Keep only the arrival time of the
+    # player closest to each target
+    # --------------------------------------------------------
 
-    # fastest player per target
-    return jnp.min(tau_players,axis=0)
+    tau_selected = jnp.take_along_axis(
+        tau_players,
+        player_idx[None, :],
+        axis=0,
+    )[0]
+
+    return tau_selected
 
 
 def match_ball_player_time(
@@ -424,10 +434,9 @@ def time_flight(
     ),
     t_max_flight=10.0,
     dt_ball=0.04,
-    grid_step=0.02,
-    tau_r=0.2,
-    alpha=4.0,
+    grid_step=0.5,
     v_max=5.0,
+    a_max=5.0,
     z_max=2.0,
     rho=1.2,
     Cd=0.25,
@@ -480,9 +489,8 @@ def time_flight(
         r_target,
         p_attackers,
         v_attackers,
-        tau_r,
-        alpha,
         v_max,
+        a_max,
     )
 
 

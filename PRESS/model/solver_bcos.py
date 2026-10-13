@@ -26,11 +26,10 @@ def solver_step(
     x_path,
     mask,
     s,
-    tau_r_bc,
-    delta_r_def,
-    v_bc_max,
     v_def_max,
-    alpha,
+    v_bc_max,
+    a_def_max,
+    a_bc_max,
     dt,
     tol=1e-6,
 ):
@@ -62,9 +61,8 @@ def solver_step(
         x_target,
         t,
         s,
-        tau_r_bc,
         v_bc_max,
-        alpha,
+        a_bc_max,
     )
 
     h_def = defender_hazard(
@@ -76,11 +74,10 @@ def solver_step(
         mask,
         t,
         s,
-        tau_r_bc,
-        delta_r_def,
         v_def_max,
         v_bc_max,
-        alpha,
+        a_def_max,
+        a_bc_max,
     )
 
     U = jnp.clip(
@@ -126,7 +123,7 @@ def solver_step(
 
 @partial(
     jax.jit,
-    static_argnums=(6, 14, 15),
+    static_argnums=(5, 12, 13),
 )
 def integrate_point(
     x_target,
@@ -134,15 +131,13 @@ def integrate_point(
     v_bc0,
     r_def,
     v_def,
-    x_line,
     MAX_POINTS=500,
     dx=0.5,
     s=0.45,
-    tau_r_bc=0.2,
-    delta_r_def=0.5,
-    v_bc_max=7.5,
-    v_def_max=8.5,
-    alpha = 1.0,
+    v_def_max = 5.0,
+    v_bc_max = 4.0,
+    a_def_max = 7.0,
+    a_bc_max = 6.0,
     dt=0.04,
     T_max=15.0,
     tol=1e-6,
@@ -156,22 +151,9 @@ def integrate_point(
         trajectory[2]: t
     """
     
-    d = jnp.linalg.norm(x_line - x_bc0)
-    v = jnp.linalg.norm(v_bc0)
-    
-    t_line = jnp.where(
-        v > 0.0,
-        d / v,
-        jnp.inf,
-    )
-
-    t_eff = jnp.minimum(tau_r_bc, t_line)
-
-    x_start = x_bc0 + v_bc0*t_eff
-    
     x_path, mask = build_path(
         x_target,
-        x_start,
+        x_bc0,
         MAX_POINTS=MAX_POINTS,
         dx=dx,
     )
@@ -197,11 +179,10 @@ def integrate_point(
             x_path,
             mask,
             s,
-            t_eff,
-            delta_r_def,
-            v_bc_max,
             v_def_max,
-            alpha,
+            v_bc_max,
+            a_def_max,
+            a_bc_max,
             dt,
             tol,
         )
@@ -241,15 +222,13 @@ def solve_grid(
     v_bc0,
     r_def,
     v_def,
-    x_line,
     MAX_POINTS=500,
     dx=0.1,
     s=0.45,
-    tau_r_bc=0.2,
-    delta_r_def=0.5,
-    v_bc_max=7.5,
-    v_def_max=8.5,
-    alpha=1.0,
+    v_def_max = 5.0,
+    v_bc_max = 4.0,
+    a_def_max = 7.0,
+    a_bc_max = 6.0,
     dt=0.05,
     T_max=15.0,
     tol=1e-6,
@@ -276,15 +255,13 @@ def solve_grid(
             v_bc0,
             r_def,
             v_def,
-            x_line,
             MAX_POINTS,
             dx,
             s,
-            tau_r_bc,
-            delta_r_def,
-            v_bc_max,
             v_def_max,
-            alpha,
+            v_bc_max,
+            a_def_max,
+            a_bc_max,
             dt,
             T_max,
             tol,

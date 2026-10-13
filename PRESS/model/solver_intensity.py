@@ -1,89 +1,189 @@
 import jax
 import jax.numpy as jnp
 from PRESS.physics.arrival_probabilities import F
+from PRESS.physics.times import rotation_time
 
 
-def interception_probability(
-    x_bc0,
-    v_bc0,
-    r_def,
-    v_def,
-    x_line,
+def loss_prob_step(
+    P,
     t,
-    s,
-    tau_r_def,
-    v_def_max,
-    alpha,
+    p_pos,
+    p_vel,
+    x_bc0,
+    v_bc,
+    lambda_0,
+    beta_v,
+    beta_B,
+    s=0.45,
+    dt=0.04,
+    v_max=5.0,
+    a_max=7.0,
 ):
-    """
-    Compute individual defender interception probabilities.
 
-    The target is the position reached by the ball carrier
-    after time t, or at the pitch exit point if the ball
-    carrier reaches the boundary before t.
-    """
-
-    # ---------------------------------------------------------
-    # Ball carrier speed
-    # ---------------------------------------------------------
-
-    v = jnp.linalg.norm(
-        v_bc0,
+    bounds = jnp.array(
+        [
+            [-52.5, 52.5],
+            [-34.0, 34.0],
+        ]
     )
 
-    # ---------------------------------------------------------
-    # Time for the ball carrier to reach the pitch boundary
-    #
-    # If the ball carrier is stationary, the boundary is
-    # never reached.
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    # Ball carrier position
+    # --------------------------------------------------------
 
-    d = jnp.linalg.norm(
-        x_line - x_bc0,
-    )
-
-    t_line = jnp.where(
-        v > 0.0,
-        d / v,
-        jnp.inf,
-    )
-
-    # ---------------------------------------------------------
-    # Effective target time
-    # ---------------------------------------------------------
-
-    t_eff = jnp.minimum(
-        t,
-        t_line,
-    )
-
-    # ---------------------------------------------------------
-    # Ball carrier target position
-    # ---------------------------------------------------------
-
-    x_target = (
+    x_bc = (
         x_bc0
-        + v_bc0 * t_eff
-    )[None, :]
+        + v_bc * t
+    )
 
-    # ---------------------------------------------------------
-    # Defender interception probabilities
-    #
-    # Pressure is evaluated over the full time horizon t.
-    # ---------------------------------------------------------
+    v_bc_norm = jnp.linalg.norm(
+        v_bc
+    )
 
-    p_int = F(
-        r_def,
-        v_def,
-        x_target,
+    # --------------------------------------------------------
+    # Survival probability
+    # --------------------------------------------------------
+
+    U = jnp.clip(
+        1.0 - jnp.sum(P),
+        0.0,
+        1.0,
+    )
+
+    # ========================================================
+    # REAL DEFENDERS
+    # ========================================================
+
+    F_def = F(
+        p_pos,
+        p_vel,
+        x_bc[None, :],
         t,
         s,
-        tau_r_def,
-        v_def_max,
-        alpha,
+        v_max,
+        a_max,
+    ).squeeze(-1)
+
+
+    # --------------------------------------------------------
+    # Boundary distance
+    #
+    # Minimum distance from BC to any pitch boundary.
+    # --------------------------------------------------------
+
+    x_B = jnp.min(
+        jnp.abs(
+            jnp.array(
+                [
+                    x_bc[0] - bounds[0, 0],
+                    bounds[0, 1] - x_bc[0],
+                    x_bc[1] - bounds[1, 0],
+                    bounds[1, 1] - x_bc[1],
+                ]
+            )
+        )
+    )
+    
+
+    # --------------------------------------------------------
+    # Proportional hazard
+    # --------------------------------------------------------
+
+    lambda_def = (
+        lambda_0
+        * jnp.exp(
+            beta_v * v_bc_norm
+            + beta_B * x_B,
+        )
     )
 
-    return jnp.squeeze(
-        p_int,
-        axis=1,
+    # --------------------------------------------------------
+    # Defensive loss probability increment
+    # --------------------------------------------------------
+
+    dP = (
+        U
+        * F_def
+        * lambda_def
     )
+
+    # --------------------------------------------------------
+    # Update
+    # --------------------------------------------------------
+
+    return jnp.clip(
+        P + dt * dP,
+        0.0,
+        1.0,
+    )
+
+
+def integrate_loss_prob(
+    p_pos,
+    p_vel,
+    x_bc0,
+    v_bc0,
+    delta_t,
+    lambda_0,
+    beta_v,
+    beta_B,
+    s=0.45,
+    v_max=5.0,
+    a_max=7.0,
+    dt=0.04,
+    tol=1e-6,
+):
+
+    n_steps = int(
+        jnp.ceil(
+            delta_t / dt
+        )
+    )
+
+    time_steps = (
+        jnp.arange(n_steps)
+        * dt
+    )
+
+    P0 = jnp.zeros(
+        p_pos.shape[0],
+    )
+
+    def scan_body(P, t):
+
+        P_next = loss_prob_step(
+            P=P,
+            t=t,
+            p_pos=p_pos,
+            p_vel=p_vel,
+            x_bc0=x_bc0,
+            v_bc=v_bc0,
+            lambda_0=lambda_0,
+            beta_v=beta_v,
+            beta_B=beta_B,
+            s=s,
+            dt=dt,
+            v_max=v_max,
+            a_max=a_max,
+        )
+
+        active = (
+            jnp.sum(P)
+            < 1.0 - tol
+        )
+
+        P = jnp.where(
+            active,
+            P_next,
+            P,
+        )
+
+        return P, None
+
+    P_final, _ = jax.lax.scan(
+        scan_body,
+        P0,
+        time_steps,
+    )
+
+    return P_final

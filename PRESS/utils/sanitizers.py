@@ -24,6 +24,7 @@ def validate_tracking_data(
     required = [
         "frame",
         "player_possession",
+        "attacking_side",
         "ball_x",
         "ball_y",
     ]
