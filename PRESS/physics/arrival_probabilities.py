@@ -50,6 +50,8 @@ def F(
     v_max=5.0,
     a_max=5.0,
     threshold=0.1,
+    a_turn=None,
+    preserve_initial_overspeed=False,
 ):
     """
     Spearman arrival probability.
@@ -62,6 +64,8 @@ def F(
         v_max=v_max,
         a_max=a_max,
         threshold=threshold,
+        a_turn=a_turn,
+        preserve_initial_overspeed=preserve_initial_overspeed,
     )
 
     a = (

@@ -30,9 +30,11 @@ def ball_trajectory(
 
     Dynamics:
         - aerodynamic drag during flight
-        - ground constraint:
-            if z <= 0 and vz < 0,
-            vertical velocity is stopped
+    - ground approximation: below 5 cm while descending, height is frozen
+      and horizontal drag continues. The latent vz STATE is not reset by
+      this ODE; it must not be interpreted as physical post-impact velocity.
+      Only position/height are used by the pass benchmark. Bounce and rolling
+      friction are not modelled. This preserves the historical forward model.
     """
 
     # Aerodynamic drag coefficient
@@ -109,14 +111,18 @@ def ball_trajectory(
 
 
     # Initial state
+    # odeint requires matching state/time dtypes. Mixed Python scalars and
+    # float32 sample times otherwise crash when global x64 is enabled.
+    dtype = jnp.result_type(v0, theta, z0, t_span)
     y0 = jnp.array(
         [
             0.0,                        # initial horizontal position
             z0,                         # initial height
             v0 * jnp.cos(theta),         # horizontal velocity
             v0 * jnp.sin(theta),         # vertical velocity
-        ]
+        ], dtype=dtype,
     )
+    t_span = jnp.asarray(t_span, dtype=dtype)
 
 
     return odeint(
@@ -192,11 +198,8 @@ def build_flight_lookup(
     )
 
 
-    radii = jnp.linspace(
-        0.0,
-        r_limit,
-        n_radii,
-    )
+    # Indexing uses round(distance/grid_step), requiring that exact spacing.
+    radii = jnp.arange(n_radii) * grid_step
 
 
     def interpolate(radius):
@@ -299,6 +302,9 @@ def player_arrival_time(
     v_attackers,
     v_max,
     a_max,
+    *,
+    a_turn=None,
+    preserve_initial_overspeed=False,
 ):
     """
     Arrival time of the player closest to each target position.
@@ -314,6 +320,9 @@ def player_arrival_time(
     # Player-target vectors
     # --------------------------------------------------------
 
+    if p_attackers.shape[0] == 0:
+        return jnp.full(r_target.shape[0], jnp.inf)
+
     delta = (
         r_target[None, :, :]
         - p_attackers[:, None, :]
@@ -327,6 +336,8 @@ def player_arrival_time(
         delta,
         axis=-1,
     )
+    valid = jnp.isfinite(p_attackers).all(axis=-1) & (jnp.linalg.norm(p_attackers,axis=-1)<500.)
+    distance = jnp.where(valid[:,None],distance,jnp.inf)
 
     # --------------------------------------------------------
     # Player closest to each target
@@ -347,6 +358,8 @@ def player_arrival_time(
         r_target,
         v_max=v_max,
         a_max=a_max,
+        a_turn=a_turn,
+        preserve_initial_overspeed=preserve_initial_overspeed,
     )
 
     # --------------------------------------------------------
@@ -360,7 +373,23 @@ def player_arrival_time(
         axis=0,
     )[0]
 
-    return tau_selected
+    return jnp.where(jnp.any(valid),tau_selected,jnp.inf)
+
+
+def exact_ball_arrival_times(distances, player_times, trajectories, t_span, z_max=2.):
+    """Select candidate times at the exact radius, without a radial lookup.
+
+    Candidates are interpolated in monotone horizontal distance. Unreachable
+    or too-high candidates have infinite time. The flight closest to the
+    nearest receiver's arrival is selected, as in the final benchmark.
+    """
+    def select(radius, wanted):
+        times=jax.vmap(lambda tr:jnp.interp(radius,tr[:,0],t_span))(trajectories)
+        heights=jax.vmap(lambda tr,t:jnp.interp(t,t_span,tr[:,1]))(trajectories,times)
+        available=(heights<=z_max) & (radius<=trajectories[:,:,0].max(axis=1))
+        times=jnp.where(available,times,jnp.inf)
+        return jnp.where(jnp.isfinite(wanted),times[jnp.argmin(jnp.abs(times-wanted))],jnp.inf)
+    return jax.vmap(select)(distances,player_times)
 
 
 def match_ball_player_time(
@@ -443,16 +472,25 @@ def time_flight(
     A=0.038,
     m=0.43,
     g=9.81,
+    distance_mode="exact",
+    a_turn=None,
+    preserve_initial_overspeed=False,
 ):
     """
     Compute final ball arrival time.
 
     Steps:
     1. Generate physical ball trajectories.
-    2. Build distance-time lookup.
-    3. Compute fastest player arrival.
+    2. Compute arrival of the player currently nearest each target.
+    3. Evaluate candidate times at the exact target distance.
     4. Match ball trajectory with player arrival.
+
+    distance_mode='lookup' is an explicitly approximate, correctly spaced
+    table for sensitivities. The final benchmark uses 'exact'.
     """
+
+    if r_target.shape[0] == 0:
+        return jnp.empty((0,))
 
     t_span = jnp.arange(
         0.0,
@@ -476,21 +514,23 @@ def time_flight(
     distances = jnp.linalg.norm(r_target - r_bc, axis=-1)
 
 
-    _, lookup = build_flight_lookup(
-        r_limit=jnp.max(distances),
-        trajectories=trajectories,
-        t_span=t_span,
-        grid_step=grid_step,
-        z_max=z_max,
-    )
-
-
     tau_players = player_arrival_time(
         r_target,
         p_attackers,
         v_attackers,
         v_max,
         a_max,
+        a_turn=a_turn,
+        preserve_initial_overspeed=preserve_initial_overspeed,
+    )
+
+    if distance_mode == "exact":
+        return exact_ball_arrival_times(distances,tau_players,trajectories,t_span,z_max)
+    if distance_mode != "lookup":
+        raise ValueError("distance_mode must be 'exact' or 'lookup'.")
+    _, lookup = build_flight_lookup(
+        r_limit=jnp.max(distances),trajectories=trajectories,
+        t_span=t_span,grid_step=grid_step,z_max=z_max,
     )
 
 

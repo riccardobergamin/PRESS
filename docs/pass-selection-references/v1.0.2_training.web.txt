@@ -1,0 +1,552 @@
+Internal Error ()
+citeturn250view0 [wordlim: 200] Source: open({"ref_id":"https://raw.githubusercontent.com/big-ucl/rumboost/v1.0.2/rumboost/utils.py","lineno":null}); Total lines: 1
+L0: Failed to fetch https://raw.githubusercontent.com/big-ucl/rumboost/v1.0.2/rumboost/utils.py: Cache miss
+--------------------------------------------------------------------------------
+ (https://raw.githubusercontent.com/big-ucl/rumboost/v1.0.2/rumboost/rumboost.py)
+citeturn250view1 [wordlim: 200] Crawled: last month; Content type: text/plain; Source: open({"ref_id":"turn249view0","lineno":980}); Total lines: 1399
+L795:     and grad and hess should be returned in the same format.
+L796: 
+L797:     Returns
+L798:     -------
+L799:     rum_booster : RUMBoost
+L800:         The trained RUMBoost model.
+L801:     """
+L802:     for alias in _ConfigAliases.get("verbosity"):
+L803:         if alias in params:
+L804:             verbosity = params[alias]
+L805:     #create predictor first
+L806:     params = copy.deepcopy(params)
+L807:     params = _choose_param_value(
+L808:         main_param_name='objective',
+L809:         params=params,
+L810:         default_value=None
+L811:     )
+L812:     fobj: Optional[_LGBM_CustomObjectiveFunction] = None
+L813:     if callable(params["objective"]):
+L814:         fobj = params["objective"]
+L815:         params["objective"] = 'none'
+L816:     for alias in _ConfigAliases.get("num_iterations"):
+L817:         if alias in params:
+L818:             num_boost_round = params.pop(alias)
+L819:             _log_warning(f"Found `{alias}` in params. Will use it instead of argument")
+L820:     params["num_iterations"] = num_boost_round
+L821:     #setting early stopping via global params should be possible
+L822:     params = _choose_param_value(
+L823:         main_param_name="early_stopping_round",
+L824:         params=params,
+L825:         default_value=None
+L826:     )
+L827:     if params["early_stopping_round"] is None:
+L828:         params["early_stopping_round"] = 10000
+L829:     first_metric_only = params.get('first_metric_only', False)
+L830: 
+L831:     if num_boost_round <= 0:
+L832:         raise ValueError("num_boost_round should be greater than zero.")
+L833:     predictor: Optional[_InnerPredictor] = None
+L834:     if isinstance(init_model, (str, Path)):
+L835:         predictor = _InnerPredictor(model_file=init_model, pred_parameter=params)
+L836:     elif isinstance(init_model, Booster):
+L837:         predictor = init_model._to_predictor(dict(init_model.params, **params))
+L838:     init_iteration = predictor.num_total_iteration if predictor is not None else 0
+L839:     #check dataset
+L840:     if not isinstance(train_set, Dataset):
+L841:         raise TypeError("Training only accepts Dataset object")
+L842: 
+L843:     train_set._update_params(params) \
+L844:              ._set_predictor(predictor) \
+L845:              .set_feature_name(feature_name) \
+L846:              .set_categorical_feature(categorical_feature)
+L847: 
+L848:     #process callbacks
+L849:     if callbacks is None:
+L850:         callbacks_set = set()
+L851:     else:
+L852:         for i, cb in enumerate(callbacks):
+L853:             cb.__dict__.setdefault('order', i - len(callbacks))
+L854:         callbacks_set = set(callbacks)
+L855: 
+L856:     # if "early_stopping_round" in params:
+L857:     #    callbacks_set.add(
+L858:     #        callback.early_stopping(
+L859:     #            stopping_rounds=params["early_stopping_round"],
+L860:     #            first_metric_only=first_metric_only,
+L861:     #            verbose=_choose_param_value(
+L862:     #                main_param_name="verbosity",
+L863:     #                params=params,
+L864:     #                default_value=1
+L865:     #            ).pop("verbosity") > 0
+L866:     #        )
+L867:     #    )
+L868: 
+L869:     callbacks_before_iter_set = {cb for cb in callbacks_set if getattr(cb, 'before_iteration', False)}
+L870:     callbacks_after_iter_set = callbacks_set - callbacks_before_iter_set
+L871:     callbacks_before_iter = sorted(callbacks_before_iter_set, key=attrgetter('order'))
+L872:     callbacks_after_iter = sorted(callbacks_after_iter_set, key=attrgetter('order'))
+L873: 
+L874:     #construct boosters
+L875:     rumb = RUMBoost()
+L876: 
+L877:     #initialise RUMBoost for functional effects if 2*num_classes rum structure are passed
+L878:     if 'num_classes' not in params:
+L879:         raise ValueError('Specify the number of classes in the dictionary of parameters with the key num_classes')
+L880:     if len(rum_structure) == 2 * params['num_classes']:
+L881:         rumb.functional_effects = True
+L882:     elif len(rum_structure) == params['num_classes']:
+L883:         rumb.functional_effects = False
+L884:     else:
+L885:         raise ValueError('The length of rum_structure must be equal to the number of classes or twice the number of class (for functional effects)')
+L886: 
+L887:     reduced_valid_sets, \
+L888:     name_valid_sets, \
+L889:     is_valid_contain_train, \
+L890:     train_data_name = rumb._preprocess_valids(train_set, params, valid_sets) #prepare validation sets
+L891:     rumb.rum_structure = rum_structure #saving utility structure
+L892:     rumb.num_classes = params.pop('num_classes') #saving number of classes
+L893:     rumb._preprocess_params(params, params_fe = params_fe) #prepare J set of parameters
+L894:     rumb._preprocess_data(train_set, reduced_valid_sets, return_data=True) #prepare J datasets with relevant features
+L895:     rumb._construct_boosters(train_data_name, is_valid_contain_train, name_valid_sets) #build boosters with corresponding params and dataset
+L896: 
+L897:     #initialise nested probabilities if they are specified
+L898:     if nests is not None:
+L899:         rumb.mu = mu
+L900:         rumb.nests = nests
+L901:         f_obj = rumb.f_obj_nest
+L902:         rumb.labels_nest = np.array([nests[l] for l in rumb.labels])
+L903:         rumb._preds, rumb.preds_i_m, rumb.preds_m = rumb._inner_predict(nests=True)
+L904:     elif alphas is not None:
+L905:         rumb.mu = mu
+L906:         f_obj = rumb.f_obj_cross_nested
+L907:         rumb._preds, rumb.preds_i_m, rumb.preds_m = rumb._inner_predict(alphas=alphas)
+L908:     else:
+L909:         f_obj = rumb.f_obj
+L910:         rumb._preds = rumb._inner_predict()
+L911: 
+L912:     #start training
+L913:     for i in range(init_iteration, init_iteration + num_boost_round):
+L914:         #update all binary boosters of the rumb
+L915:         for j, booster in enumerate(rumb.boosters):
+L916:             for cb in callbacks_before_iter:
+L917:                 cb(callback.CallbackEnv(model=booster,
+L918:                                         params=rumb.params[j],
+L919:                                         iteration=i,
+L920:                                         begin_iteration=init_iteration,
+L921:                                         end_iteration=init_iteration + num_boost_round,
+L922:                                         evaluation_result_list=None))
+L923: 
+L924:             #update booster with custom binary objective function, and relevant features
+L925:             if rumb.functional_effects:
+L926:                 rumb._current_j = int(j/2) #if functional effect keep same j for the two ensembles of each alternative
+L927:             else:
+L928:                 rumb._current_j = j
+L929:             booster.update(train_set=rumb.train_set[j], fobj=f_obj)
+L930: 
+L931:             #check evaluation result. (from lightGBM initial code, check on all J binary boosters)
+L932:             evaluation_result_list = []
+L933:             if valid_sets is not None:
+L934:                 if is_valid_contain_train:
+L935:                     evaluation_result_list.extend(booster.eval_train(feval))
+L936:                 evaluation_result_list.extend(booster.eval_valid(feval))
+L937:             try:
+L938:                 for cb in callbacks_after_iter:
+L939:                     cb(callback.CallbackEnv(model=booster,
+L940:                                             params=rumb.params[j],
+L941:                                             iteration=i,
+L942:                                             begin_iteration=init_iteration,
+L943:                                             end_iteration=init_iteration + num_boost_round,
+L944:                                             evaluation_result_list=evaluation_result_list))
+L945:             except callback.EarlyStopException as earlyStopException:
+L946:                 booster.best_iteration = earlyStopException.best_iteration + 1
+L947:                 evaluation_result_list = earlyStopException.best_score
+L948:         #make predictions after boosting round to compute new cross entropy and for next iteration grad and hess
+L949:         if nests is not None:
+L950:             rumb._preds, rumb.preds_i_m, rumb.preds_m = rumb._inner_predict(nests=True)
+L951:         elif alphas is not None:
+L952:             rumb._preds, rumb.preds_i_m, rumb.preds_m = rumb._inner_predict(alphas=alphas)
+L953:         else:
+L954:             rumb._preds = rumb._inner_predict()
+L955: 
+L956:         #compute cross validation on training or validation test
+L957:         if valid_sets is not None:
+L958:             if is_valid_contain_train:
+L959:                 cross_entropy_test = cross_entropy(rumb._preds, train_set.get_label().astype(int))
+L960:             else:
+L961:                 for k, _ in enumerate(valid_sets):
+L962:                     if nests is not None:
+L963:                         preds_valid, _, _ = rumb._inner_predict(k+1, nests=True)
+L964:                     elif alphas is not None:
+L965:                         preds_valid,  _, _ = rumb._inner_predict(k+1, alphas=alphas)
+L966:                     else:
+L967:                         preds_valid = rumb._inner_predict(k+1)
+L968:                     cross_entropy_train = cross_entropy(rumb._preds, train_set.get_label().astype(int))
+L969:                     cross_entropy_test = cross_entropy(preds_valid, valid_sets[0].get_label().astype(int))
+L970: 
+L971:             #update best score and best iteration
+L972:             if cross_entropy_test < rumb.best_score:
+L973:                 rumb.best_score = cross_entropy_test
+L974:                 if is_valid_contain_train:
+L975:                     rumb.best_score_train = cross_entropy_test
+L976:                 else:
+L977:                     rumb.best_score_train = cross_entropy_train
+L978:                 rumb.best_iteration = i+1
+L979: 
+L980:             #verbosity
+L981:             if (verbosity >= 1) and (i % 10 == 0):
+L982:                 if is_valid_contain_train:
+L983:                     print('[{}] -- NCE value on train set: {}'.format(i + 1, cross_entropy_test))
+L984:                 else:
+L985:                     print('[{}] -- NCE value on train set: {} \n     --  NCE value on test set: {}'.format(i + 1, cross_entropy_train, cross_entropy_test))
+L986: 
+L987:         #early stopping
+L988:         if (params["early_stopping_round"] != 0) and (rumb.best_iteration + params["early_stopping_round"] < i + 1):
+L989:             if is_valid_contain_train:
+L990:                 print('Early stopping at iteration {}, with a best score of {}'.format(rumb.best_iteration, rumb.best_score))
+L991:             else:
+L992:                 print('Early stopping at iteration {}, with a best score on test set of {}, and on train set of {}'.format(rumb.best_iteration, rumb.best_score, rumb.best_score_train))
+L993:             break
+L994: 
+L995:     for booster in rumb.boosters:
+L996:         booster.best_score_lgb = collections.defaultdict(collections.OrderedDict)
+L997:         for dataset_name, eval_name, score, _ in evaluation_result_list:
+L998:             booster.best_score_lgb[dataset_name][eval_name] = score
+L999:         if not keep_training_booster:
+L1000:             booster.model_from_string(booster.model_to_string()).free_dataset()
+L1001:     return rumb
+L1002: 
+L1003: class CVRUMBoost:
+L1004:     """CVRUMBoost in LightGBM.
+L1005: 
+L1006:     Auxiliary data structure to hold and redirect all boosters of ``cv`` function.
+L1007:     This class has the same methods as Booster class.
+L1008:     All method calls are actually performed for underlying Boosters and then all returned results are returned in a list.
+L1009: 
+L1010:     Attributes
+L1011:     ----------
+L1012:     rum_boosters : list of RUMBoost
+L1013:         The list of underlying fitted models.
+L1014:     best_iteration : int
+L1015:         The best iteration of fitted model.
+L1016:     """
+L1017: 
+L1018:     def __init__(self):
+L1019:         """Initialize the CVBooster.
+L1020: 
+L1021:         Generally, no need to instantiate manually.
+L1022:         """
+L1023:         self.RUMBoosts = []
+L1024:         self.best_iteration = -1
+L1025:         self.best_score = 100000
+L1026: 
+L1027:     def _append(self, rum_booster):
+L1028:         """Add a booster to CVBooster."""
+L1029:         self.RUMBoosts.append(rum_booster)
+L1030:     def __getattr__(self, name):
+L1031:         """Redirect methods call of CVBooster."""
+L1032:         def handler_function(*args, **kwargs):
+L1033:             """Call methods with each booster, and concatenate their results."""
+L1034:             ret = []
+L1035:             for rum_booster in self.RUMBoosts:
+L1036:                 for booster in rum_booster:
+L1037:                     ret.append(getattr(booster, name)(*args, **kwargs))
+L1038:                 return ret
+L1039:         return handler_function
+L1040: def _make_n_folds(full_data, folds, nfold, params, seed, fpreproc=None, stratified=True,
+L1041:                   shuffle=True, eval_train_metric=False, rum_structure=None, biogeme_model=None):
+L1042:     """Make a n-fold list of Booster from random indices."""
+L1043:     full_data = full_data.construct()
+L1044:     num_data = full_data.num_data()
+L1045:     if folds is not None:
+L1046:         if not hasattr(folds, '__iter__') and not hasattr(folds, 'split'):
+L1047:             raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
+L1048:                                  "or scikit-learn splitter object with split method")
+L1049:         if hasattr(folds, 'split'):
+L1050:             group_info = full_data.get_group()
+L1051:             if group_info is not None:
+L1052:                 group_info = np.array(group_info, dtype=np.int32, copy=False)
+L1053:                 flatted_group = np.repeat(range(len(group_info)), repeats=group_info)
+L1054:             else:
+L1055:                 flatted_group = np.zeros(num_data, dtype=np.int32)
+L1056:             folds = folds.split(X=np.empty(num_data), y=full_data.get_label(), groups=flatted_group)
+L1057:     else:
+L1058:         if any(params.get(obj_alias, "") in {"lambdarank", "rank_xendcg", "xendcg",
+L1059:                                              "xe_ndcg", "xe_ndcg_mart", "xendcg_mart"}
+L1060:                for obj_alias in _ConfigAliases.get("objective")):
+L1061:             if not SKLEARN_INSTALLED:
+L1062:                 raise LightGBMError('scikit-learn is required for ranking cv')
+L1063:             # ranking task, split according to groups
+L1064:             group_info = np.array(full_data.get_group(), dtype=np.int32, copy=False)
+L1065:             flatted_group = np.repeat(range(len(group_info)), repeats=group_info)
+L1066:             group_kfold = _LGBMGroupKFold(n_splits=nfold)
+L1067:             folds = group_kfold.split(X=np.empty(num_data), groups=flatted_group)
+L1068:         elif stratified:
+L1069:             if not SKLEARN_INSTALLED:
+L1070:                 raise LightGBMError('scikit-learn is required for stratified cv')
+L1071:             skf = _LGBMStratifiedKFold(n_splits=nfold, shuffle=shuffle, random_state=seed)
+L1072:             folds = skf.split(X=np.empty(num_data), y=full_data.get_label())
+L1073:         else:
+L1074:             if shuffle:
+L1075:                 randidx = np.random.RandomState(seed).permutation(num_data)
+L1076:             else:
+L1077:                 randidx = np.arange(num_data)
+L1078:             kstep = int(num_data / nfold)
+L1079:             test_id = [randidx[i: i + kstep] for i in range(0, num_data, kstep)]
+L1080:             train_id = [np.concatenate([test_id[i] for i in range(nfold) if k != i]) for k in range(nfold)]
+L1081:             folds = zip(train_id, test_id)
+L1082: 
+L1083:     ret = CVRUMBoost()
+L1084: 
+L1085:     for train_idx, test_idx in folds:
+L1086:         train_set = full_data.subset(sorted(train_idx))
+L1087:         valid_set = full_data.subset(sorted(test_idx))
+L1088:         # run preprocessing on the data set if needed
+L1089:         if fpreproc is not None:
+L1090:             train_set, valid_set, tparam = fpreproc(train_set, valid_set, params.copy())
+L1091:         else:
+L1092:             tparam = params
+L1093:         #create RUMBoosts with corresponding training, validation, and parameters sets
+L1094:         cvbooster = RUMBoost()
+L1095:         if rum_structure is not None:
+L1096:             cvbooster.rum_structure = rum_structure #save utility structure
+L1097:         elif biogeme_model is not None:
+L1098:             cvbooster.rum_structure = bio_to_rumboost(biogeme_model, max_depth=params['max_depth'])
+L1099:         else:
+L1100:             raise ValueError("Either one of rum_structure or biogeme_model arguments must be passed")
+L1101:         reduced_valid_sets, name_valid_sets, is_valid_contain_train, train_data_name = cvbooster._preprocess_valids(train_set, params, valid_set)
+L1102:         cvbooster._preprocess_data(train_set, reduced_valid_sets)
+L1103:         cvbooster._preprocess_params(tparam)
+L1104:         cvbooster._construct_boosters(train_data_name, is_valid_contain_train,
+L1105:                                       name_valid_sets=name_valid_sets)
+L1106: 
+L1107:         ret._append(cvbooster)
+L1108: 
+L1109:         ret.best_iteration = 0
+L1110:         ret.best_score = 100000
+L1111: 
+L1112:     return ret
+L1113: 
+L1114: def _agg_cv_result(raw_results, eval_train_metric=False):
+L1115:     """Aggregate cross-validation results."""
+L1116:     cvmap = collections.OrderedDict()
+L1117:     metric_type = {}
+L1118:     for one_result in raw_results:
+L1119:         for one_line in one_result:
+L1120:             if eval_train_metric:
+L1121:                 key = f"{one_line[0]} {one_line[1]}"
+L1122:             else:
+L1123:                 key = one_line[1]
+L1124:             metric_type[key] = one_line[3]
+L1125:             cvmap.setdefault(key, [])
+L1126:             cvmap[key].append(one_line[2])
+L1127:     return [('cv_agg', k, np.mean(v), metric_type[k], np.std(v)) for k, v in cvmap.items()]
+L1128: 
+L1129: 
+L1130: def rum_cv(params, train_set, num_boost_round=100,
+L1131:         folds=None, nfold=5, stratified=True, shuffle=True,
+L1132:         metrics=None, fobj=None, feval=None, init_model=None,
+L1133:         feature_name='auto', categorical_feature='auto',
+L1134:         early_stopping_rounds=None, fpreproc=None,
+L1135:         verbose_eval=None, show_stdv=True, seed=0,
+L1136:         callbacks=None, eval_train_metric=False,
+L1137:         return_cvbooster=False, rum_structure=None,
+L1138:         biogeme_model=None):
+L1139:     """Perform the cross-validation with given parameters.
+L1140: 
+L1141:     Parameters
+L1142:     ----------
+L1143:     params : dict
+L1144:         Parameters for Booster.
+L1145:     train_set : Dataset
+L1146:         Data to be trained on.
+L1147:     num_boost_round : int, optional (default=100)
+L1148:         Number of boosting iterations.
+L1149:     folds : generator or iterator of (train_idx, test_idx) tuples, scikit-learn splitter object or None, optional (default=None)
+L1150:         If generator or iterator, it should yield the train and test indices for each fold.
+L1151:         If object, it should be one of the scikit-learn splitter classes
+L1152:         (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)
+L1153:         and have ``split`` method.
+L1154:         This argument has highest priority over other data split arguments.
+L1155:     nfold : int, optional (default=5)
+L1156:         Number of folds in CV.
+L1157:     stratified : bool, optional (default=True)
+L1158:         Whether to perform stratified sampling.
+L1159:     shuffle : bool, optional (default=True)
+L1160:         Whether to shuffle before splitting data.
+L1161:     metrics : str, list of str, or None, optional (default=None)
+L1162:         Evaluation metrics to be monitored while CV.
+L1163:         If not None, the metric in ``params`` will be overridden.
+L1164:     fobj : callable or None, optional (default=None)
+L1165:         Customized objective function.
+L1166:         Should accept two parameters: preds, train_data,
+L1167:         and return (grad, hess).
+L1168: 
+L1169:             preds : list or numpy 1-D array
+L1170:                 The predicted values.
+L1171:                 Predicted values are returned before any transformation,
+L1172:                 e.g. they are raw margin instead of probability of positive class for binary task.
+L1173:             train_data : Dataset
+L1174:                 The training dataset.
+L1175:             grad : list or numpy 1-D array
+L1176:                 The value of the first order derivative (gradient) of the loss
+L1177:                 with respect to the elements of preds for each sample point.
+L1178:             hess : list or numpy 1-D array
+L1179:                 The value of the second order derivative (Hessian) of the loss
+L1180:                 with respect to the elements of preds for each sample point.
+L1181: 
+L1182:         For multi-class task, the preds is group by class_id first, then group by row_id.
+L1183:         If you want to get i-th row preds in j-th class, the access way is score[j * num_data + i]
+L1184:         and you should group grad and hess in this way as well.
+L1185: 
+L1186:     feval : callable, list of callable, or None, optional (default=None)
+L1187:         Customized evaluation function.
+L1188:         Each evaluation function should accept two parameters: preds, train_data,
+L1189:         and return (eval_name, eval_result, is_higher_better) or list of such tuples.
+L1190: 
+L1191:             preds : list or numpy 1-D array
+L1192:                 The predicted values.
+L1193:                 If ``fobj`` is specified, predicted values are returned before any transformation,
+L1194:                 e.g. they are raw margin instead of probability of positive class for binary task in this case.
+L1195:             train_data : Dataset
+L1196:                 The training dataset.
+L1197:             eval_name : str
+L1198:                 The name of evaluation function (without whitespace).
+L1199:             eval_result : float
+L1200:                 The eval result.
+L1201:             is_higher_better : bool
+L1202:                 Is eval result higher better, e.g. AUC is ``is_higher_better``.
+L1203: 
+L1204:         For multi-class task, the preds is group by class_id first, then group by row_id.
+L1205:         If you want to get i-th row preds in j-th class, the access way is preds[j * num_data + i].
+L1206:         To ignore the default metric corresponding to the used objective,
+L1207:         set ``metrics`` to the string ``"None"``.
+L1208:     init_model : str, pathlib.Path, Booster or None, optional (default=None)
+L1209:         Filename of LightGBM model or Booster instance used for continue training.
+L1210:     feature_name : list of str, or 'auto', optional (default="auto")
+L1211:         Feature names.
+L1212:         If 'auto' and data is pandas DataFrame, data columns names are used.
+L1213:     categorical_feature : list of str or int, or 'auto', optional (default="auto")
+L1214:         Categorical features.
+L1215:         If list of int, interpreted as indices.
+L1216:         If list of str, interpreted as feature names (need to specify ``feature_name`` as well).
+L1217:         If 'auto' and data is pandas DataFrame, pandas unordered categorical columns are used.
+L1218:         All values in categorical features should be less than int32 max value (2147483647).
+L1219:         Large values could be memory consuming. Consider using consecutive integers starting from zero.
+L1220:         All negative values in categorical features will be treated as missing values.
+L1221:         The output cannot be monotonically constrained with respect to a categorical feature.
+L1222:     early_stopping_rounds : int or None, optional (default=None)
+L1223:         Activates early stopping.
+L1224:         CV score needs to improve at least every ``early_stopping_rounds`` round(s)
+L1225:         to continue.
+L1226:         Requires at least one metric. If there's more than one, will check all of them.
+L1227:         To check only the first metric, set the ``first_metric_only`` parameter to ``True`` in ``params``.
+L1228:         Last entry in evaluation history is the one from the best iteration.
+L1229:     fpreproc : callable or None, optional (default=None)
+L1230:         Preprocessing function that takes (dtrain, dtest, params)
+L1231:         and returns transformed versions of those.
+L1232:     verbose_eval : bool, int, or None, optional (default=None)
+L1233:         Whether to display the progress.
+L1234:         If True, progress will be displayed at every boosting stage.
+L1235:         If int, progress will be displayed at every given ``verbose_eval`` boosting stage.
+L1236:     show_stdv : bool, optional (default=True)
+L1237:         Whether to display the standard deviation in progress.
+L1238:         Results are not affected by this parameter, and always contain std.
+L1239:     seed : int, optional (default=0)
+L1240:         Seed used to generate the folds (passed to numpy.random.seed).
+L1241:     callbacks : list of callable, or None, optional (default=None)
+L1242:         List of callback functions that are applied at each iteration.
+L1243:         See Callbacks in Python API for more information.
+L1244:     eval_train_metric : bool, optional (default=False)
+L1245:         Whether to display the train metric in progress.
+L1246:         The score of the metric is calculated again after each training step, so there is some impact on performance.
+L1247:     return_cvbooster : bool, optional (default=False)
+L1248:         Whether to return Booster models trained on each fold through ``CVBooster``.
+L1249:     rum_structure : dict, optional (default=None)
+L1250:         List of dictionaries specifying the RUM structure.
+L1251:         The list must contain one dictionary for each class, which describes the
+L1252:         utility structure for that class.
+L1253:         Each dictionary has three allowed keys.
+L1254: 
+L1255:             cols : list of columns included in that class
+L1256:             monotone_constraints : list of monotonic constraints on parameters
+L1257:             interaction_constraints : list of interaction constraints on features
+L1258: 
+L1259:         if None, a biogeme_model must be specified
+L1260:     biogeme_model: biogeme.biogeme.BIOGEME, optional (default=None)
+L1261:         A biogeme.biogeme.BIOGEME object representing a biogeme model, used to create the rum_structure.
+L1262:         A biogeme model is required if rum_structure is None, otherwise should be None.
+L1263: 
+L1264:     Returns
+L1265:     -------
+L1266:     eval_hist : dict
+L1267:         Evaluation history.
+L1268:         The dictionary has the following format:
+L1269:         {'metric1-mean': [values], 'metric1-stdv': [values],
+L1270:         'metric2-mean': [values], 'metric2-stdv': [values],
+L1271:         ...}.
+L1272:         If ``return_cvbooster=True``, also returns trained boosters via ``cvbooster`` key.
+L1273:     """
+L1274:     if not isinstance(train_set, Dataset):
+L1275:         raise TypeError("Training only accepts Dataset object")
+L1276: 
+L1277:     params = copy.deepcopy(params)
+L1278:     if fobj is not None:
+L1279:         for obj_alias in _ConfigAliases.get("objective"):
+L1280:             params.pop(obj_alias, None)
+L1281:         params['objective'] = 'none'
+L1282:     for alias in _ConfigAliases.get("num_iterations"):
+L1283:         if alias in params:
+L1284:             _log_warning(f"Found `{alias}` in params. Will use it instead of argument")
+L1285:             num_boost_round = params.pop(alias)
+L1286:     params["num_iterations"] = num_boost_round
+L1287:     if early_stopping_rounds is not None and early_stopping_rounds > 0:
+L1288:         _log_warning("'early_stopping_rounds' argument is deprecated and will be removed in a future release of LightGBM. "
+L1289:                      "Pass 'early_stopping()' callback via 'callbacks' argument instead.")
+L1290:     for alias in _ConfigAliases.get("early_stopping_round"):
+L1291:         if alias in params:
+L1292:             early_stopping_rounds = params.pop(alias)
+L1293:     params["early_stopping_round"] = early_stopping_rounds
+L1294:     first_metric_only = params.get('first_metric_only', False)
+L1295: 
+L1296:     if num_boost_round <= 0:
+L1297:         raise ValueError("num_boost_round should be greater than zero.")
+L1298:     if isinstance(init_model, (str, Path)):
+L1299:         predictor = _InnerPredictor(model_file=init_model, pred_parameter=params)
+L1300:     elif isinstance(init_model, Booster):
+L1301:         predictor = init_model._to_predictor(dict(init_model.params, **params))
+L1302:     else:
+L1303:         predictor = None
+L1304: 
+L1305:     if metrics is not None:
+L1306:         for metric_alias in _ConfigAliases.get("metric"):
+L1307:             params.pop(metric_alias, None)
+L1308:         params['metric'] = metrics
+L1309: 
+L1310:     train_set._update_params(params) \
+L1311:              ._set_predictor(predictor) \
+L1312:              .set_feature_name(feature_name) \
+L1313:              .set_categorical_feature(categorical_feature)
+L1314: 
+L1315:     results = collections.defaultdict(list)
+L1316:     cvfolds = _make_n_folds(train_set, folds=folds, nfold=nfold,
+L1317:                             params=params, seed=seed, fpreproc=fpreproc,
+L1318:                             stratified=stratified, shuffle=shuffle,
+L1319:                             eval_train_metric=eval_train_metric, rum_structure=rum_structure,
+L1320:                             biogeme_model=biogeme_model)
+L1321: 
+L1322:     # setup callbacks
+L1323:     if callbacks is None:
+L1324:         callbacks = set()
+L1325:     else:
+L1326:         for i, cb in enumerate(callbacks):
+L1327:             cb.__dict__.setdefault('order', i - len(callbacks))
+L1328:         callbacks = set(callbacks)
+L1329:     if early_stopping_rounds is not None and early_stopping_rounds > 0:
+L1330:         callbacks.add(callback.early_stopping(early_stopping_rounds, first_metric_only, verbose=False))
+L1331:     if verbose_eval is not None:
+--------------------------------------------------------------------------------
+Internal Error ()
+citeturn250view2 [wordlim: 200] Source: open({"ref_id":"https://raw.githubusercontent.com/big-ucl/rumboost/v1.0.2/LICENSE.txt","lineno":null}); Total lines: 1
+L0: Failed to fetch https://raw.githubusercontent.com/big-ucl/rumboost/v1.0.2/LICENSE.txt: Cache miss
+--------------------------------------------------------------------------------
+Internal Error ()
+citeturn250view3 [wordlim: 200] Source: open({"ref_id":"https://raw.githubusercontent.com/big-ucl/rumboost/main/examples/6_cross-nested.ipynb","lineno":null}); Total lines: 1
+L0: Failed to fetch https://raw.githubusercontent.com/big-ucl/rumboost/main/examples/6_cross-nested.ipynb: Cache miss
+

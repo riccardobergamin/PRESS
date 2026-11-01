@@ -1,0 +1,14 @@
+{
+  "status": "cohort_review_open_refit_verified",
+  "corrected_n": 6706,
+  "corrected_losses": 964,
+  "job": "22_pass_risk_duration_final_20261018",
+  "duration_seconds": [
+    0.5,
+    10.0
+  ],
+  "duration_inclusive": true,
+  "reason": "Review short-pass boundary estimation and association exclusions before final cohort freeze",
+  "selected_calibration": "isotonic",
+  "refit_verified": true
+}

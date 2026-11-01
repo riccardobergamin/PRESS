@@ -112,6 +112,7 @@ def build_transition_features(
     target_pitch_control,
     ball_drive_prob,
     xT_grid,
+    *, pitch_length=105.0, pitch_width=68.0,
 ):
     """
     x_bc, v_bc, r_defs, r_atts, attacking_side : from PRESS.get_state()
@@ -140,11 +141,11 @@ def build_transition_features(
     # --------------------------------------------------------
 
     xt_team_target, xt_opp_target = get_xt_values(
-        targets, attacking_side, xT_grid,
+        targets, attacking_side, xT_grid, pitch_length=pitch_length, pitch_width=pitch_width,
     )
 
     xt_team_bc, xt_opp_bc = get_xt_values(
-        x_bc[None, :], attacking_side, xT_grid,
+        x_bc[None, :], attacking_side, xT_grid, pitch_length=pitch_length, pitch_width=pitch_width,
     )
 
     # --------------------------------------------------------

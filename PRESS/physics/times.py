@@ -22,9 +22,18 @@ def time_to_intercept(
     v_max=5.0,
     a_max=5.0,
     threshold=0.1,
+    a_turn=None,
+    preserve_initial_overspeed=False,
 ):
     """
-    Spearman time-to-intercept.
+    Sequential turn-then-accelerate time to a fixed target.
+
+    a_max caps the modelled forward acceleration, not an observed a0.
+    a_turn is the effective centripetal/reorientation scale in v*theta/a;
+    None uses a_max and exactly retains the historical convention.
+    If preserve_initial_overspeed is true, v0 above v_max is maintained
+    without further acceleration, instead of instantaneously using v_max.
+    The turn remains a fixed-position delay, not an explicit circular arc.
     """
 
     p = jnp.atleast_2d(p)
@@ -90,9 +99,10 @@ def time_to_intercept(
     # Time to reach target after v_max
     # --------------------------------------------------------
 
+    terminal_speed = jnp.maximum(v0, v_max) if preserve_initial_overspeed else v_max
     t_constant = (
         t_acc
-        + (d - d_acc) / v_max
+        + (d - d_acc) / terminal_speed
     )
 
     # --------------------------------------------------------
@@ -113,7 +123,7 @@ def time_to_intercept(
         p,
         v,
         r_target,
-        a_max,
+        a_max if a_turn is None else a_turn,
     )
 
     tau_int = tau_int + tau_theta

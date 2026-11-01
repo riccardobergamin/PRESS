@@ -1,0 +1,27 @@
+{
+  "status": "installed_verified_documented",
+  "benchmark": "RR74",
+  "full_refit_status": "installed_verified",
+  "package_weights_installed": true,
+  "package_tests": 113,
+  "executed_notebooks": 13,
+  "quarto_pages": 22,
+  "local_site_links_checked": 2300,
+  "main_residual_vignette": "vignettes/05a_residual_risk/05a_residual_risk.ipynb",
+  "calibration_plot": "figures/residual_risk_pooled_calibration.png",
+  "smoke_full_cohort": 8672,
+  "smoke_as_fits": 5,
+  "smoke_public_fixtures": 200,
+  "real_scheduler_called": false,
+  "readback_verified": true,
+  "plot_sha256": "3ec0f8b0461e8b32d14aa78b00056aadcd69378c3b683df88ae0f97a1dba660f",
+  "example_executes_installed_weights": true,
+  "model_rounds": 129,
+  "example_values": {
+    "h": 0.012514264786956204,
+    "continuation": 0.04742897684966011,
+    "xloss": 0.059943241636616316
+  },
+  "example_values_are_benchmark": false,
+  "benchmark_unchanged": true
+}

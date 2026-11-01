@@ -1,0 +1,46 @@
+{
+  "model_id": "skillcorner_outfield_ball_drive_obe_v2",
+  "model_sha256": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+  "source_run": "47_ball_drive_filtered_full_refit_20261023",
+  "benchmark": {
+    "role": "pooled_out_of_fold",
+    "model": "refitted_filtered_model",
+    "n": 9114,
+    "losses": 456,
+    "loss_share": 0.050032916392363395,
+    "cross_entropy": 0.14348251851222715,
+    "null_cross_entropy": 0.1987224858511752,
+    "gain_ce": 0.2779754243831153,
+    "ECE_quantile": 0.0047499045111117815,
+    "brier_score": 0.04006830657308241,
+    "ROC_AUC": 0.8854659315185632,
+    "PR_AUC_loss": 0.3083655794540082,
+    "mean_predicted_loss": 0.050593672234582394,
+    "source_run": "44_ball_drive_obe_filtered_20261022_231807"
+  },
+  "export_verification": {
+    "status": "ready_to_import",
+    "model_id": "skillcorner_outfield_ball_drive_obe_v2",
+    "model_sha256": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+    "observations": 9114,
+    "losses": 456,
+    "lambda0": 0.34456260008941997,
+    "s": 0.2996318904783872,
+    "gradient_max": 0.0037839191655972843,
+    "laplace_valid": true,
+    "maximum_prediction_difference": 3.059064690447144e-08,
+    "maximum_mass_error": 2.220446049250313e-16,
+    "short_horizons_monotone": true,
+    "max_dt_sum_h": 0.39792673843267956,
+    "elapsed_seconds": 6.070671666995622,
+    "benchmark_role": "No new accuracy claim: retain run44nested OOF metrics.",
+    "package_updated": false
+  },
+  "independent_audit": {
+    "lambda_0": 0.34456260008941997,
+    "s": 0.2996318904783872,
+    "gradient_max": 0.0037839191655972843,
+    "laplace_valid": true
+  },
+  "activation": "BallDriveModel.pretrained(); explicit fitted model, no initialization fit."
+}

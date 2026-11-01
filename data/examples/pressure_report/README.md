@@ -1,0 +1,3 @@
+# Pressure report aggregates
+
+Frozen five-pair development OOF h, fixed absolute bands, and verified canonical outfield/no-shot cohort. Main completion score is per individual possession, counted once if at least one canonical state reaches Medium/High. Action-level observed-minus-expected is a separately named secondary measure. All player rows are exported; plots require at least 20 distinct pressure-exposed possessions, a descriptive display rule. Wilson intervals assume independent binomial possessions and do not quantify stable ability across matches. Endpoint patterns use true observed endpoints only, with unknowns retained. Overall retention uses all 7343 represented parents and is not filtered to the 5601 complete-endpoint subset. No new fitting or calibration.

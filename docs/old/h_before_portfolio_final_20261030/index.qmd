@@ -1,0 +1,50 @@
+---
+title: "PRESS"
+subtitle: "Possession Risk Estimate from Spatio-temporal State"
+---
+
+PRESS is a work-in-progress, physics-informed framework for estimating the discrete-time risk that a football team loses possession at its next action. It combines physics-based pass and carry components with learned action and destination choices. [@spearman2017; @spearman2018beyond; @fernandez2019] **own derivation**
+
+## Motivation
+
+This portfolio project explores expected possession value ideas, football tracking data, and a physics-based formulation of ball-drive likelihood. The goal is to package the research code into reusable components with reproducible examples.
+
+The central question is: given the current game state and the player in possession, how difficult is it for the team to retain the ball? Pressure can constrain the carrier's options, raise interception risk, and affect action choice. PRESS adapts building blocks from pitch control and EPV research to express this question as a team-possession hazard. [@spearman2017; @fernandez2019; @bekkers2025; @skillcorner-pressure] **own derivation**
+
+## Team-possession hazard
+
+The unit is a team possession made of sequential player possessions. A completed pass is a nonterminal transition; only a loss terminates the team possession. The next-action hazard is evaluable at any usable frame of the current carrier. Possession trajectories use a separately chosen discretization, with action starts as the current default. [@fernandez2019] **design choice** [@singer2003] **own derivation**
+
+At frame \(t\), the branch risks are combined as
+
+$$
+h_t = P(\mathrm{drive}\mid s_t)r_{d,t} + P(\mathrm{pass}\mid s_t)r_{p,t}.
+$$
+
+The drive branch accumulates defender-specific loss probabilities under shared remaining survival mass. The pass branch averages pass-failure probability over candidate destinations. Action selection supplies the pass/drive mixture weight; the transition model supplies destination probabilities. [@cao2007listnet] **own derivation**
+
+The [interpretation guide](interpretation.qmd) separates the frame of evaluation, the canonical action step and the retrospective possession summary. The [residual-risk vignette](vignettes/05a_residual_risk/05a_residual_risk.ipynb) optionally extends the local branches to the final individual-possession outcome. **design choice**
+
+## Model flow
+
+![PRESS model flow](figures/model_overview.svg)
+
+Use the component vignettes in the sidebar for the mathematical formulation, input definitions, runnable example, and generated visual for each model piece.
+
+BCOS is listed separately under **Extras**. It is not part of the core `PRESS` class; the current action-selection booster still uses its scalar open-space summary as an input feature. **design choice**
+
+## Data and reproducibility
+
+The analysis is built around the SkillCorner open-data A-League sample. Raw tracking files are not included. The vignettes use deterministic synthetic examples and can be rebuilt with the pinned Python environment. See [data setup](data.qmd) and the [repository README](README.md).
+
+## Scope
+
+The survival view is retrospective possession difficulty, \(D_t=-\log(1-h_t)\), \(H_t=\sum_{j\le t}D_j\), and \(S_t=\exp(-H_t)\). It is not comparable to SkillCorner's forward-looking xloss. **own derivation**
+
+The eight possession typology names are inspired by SkillCorner Game Intelligence vocabulary; the criteria are project-defined. **design choice**
+
+See the separate [benchmark page](benchmark.qmd) for the reserved evaluation section.
+
+## Start using the package
+
+Follow the [match → possession → frame guide](usage.qmd) or execute the [workflow vignette](vignettes/00_match_workflow/00_match_workflow.ipynb) without match downloads. Browse the [Python function reference](api.qmd), [scientific solver reference](solvers.qmd), and [package/portfolio action plan](roadmap.qmd). Initialization validates one match; getters select its team possessions, frames and action checkpoints; compute calls produce and store the requested quantities.

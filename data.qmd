@@ -1,0 +1,24 @@
+---
+title: "Data and setup"
+---
+
+Raw tracking/event files and match-level derived tables are not stored in this repository. Obtain the SkillCorner open data from the [official repository](https://github.com/SkillCorner/opendata) and follow its attribution terms [@skillcorner-opendata]. Its MIT license file covers software; it does not specify separate data redistribution terms. This repository includes the package's learned XGBoost parameter files, not tracking rows or match-level outputs.
+
+Set `SKILLCORNER_OPENDATA` and `SKILLCORNER_ANALYSIS` to the local roots used by the [match guide](usage.qmd). The existing preprocessing and possession-segmentation scripts are in the sibling analysis repository at `scripts/analysis/preprocess_matches.py` and `scripts/analysis/ball_drive_segmentation.py`. They currently contain machine-specific paths; update those paths to your clones before executing them. They do not read a `PRESS_DATA_DIR` environment variable.
+
+The expected local outputs are:
+
+- `opendata/data/matches/<id>/<id>_tracking.parquet`: canonical wide tracking, including carrier and attack direction.
+- `opendata/data/matches/<id>/<id>_possession.parquet`: player intervals with successful-pass receiver/receipt context and observed loss.
+- `opendata/data/actions.csv`: action intervals across matches; the adapter filters this file to the selected match.
+- `skillcorner-analysis/results/xt/xt_grid.npy`: event-derived value surface, stored in `(n_x, n_y)` order.
+
+The existing xT pipeline computes the surface from event probabilities and smoothed transitions; the [xT extra](vignettes/extras/expected_threat/11_expected_threat.ipynb) explains the iteration and its reference. PRESS loads that surface as an input to the learned choice models. The sibling preprocessing/training scripts are source references and are not shipped as a portable raw-data pipeline in this package. If you use another tracking provider, construct the canonical tables documented in the [API reference](api.qmd), then initialize `PRESS` directly.
+
+The website vignettes use deterministic synthetic examples. They rebuild without the raw match files.
+
+The [pipeline guide](pipeline.qmd) documents the active research commands and the regenerated versioned output.
+
+The reviewed source preprocessing now requires start/end matched individual intervals. The pass dataset separately requires a matched release and the immediate next matched possession start; it does not require both entire individual intervals to be eligible. The source retains carrier provenance and valid release-frame states for this broader pass cohort. The ten-match tables were regenerated from raw input into `opendata/data/processed/2026-10-15_training_v4`; older processed files remain separate. See [the pipeline policy](pipeline.qmd#accepted-boundary-policy).
+
+The new root contains per-match tracking, individual/team intervals, player maps and event audits, plus global `actions.parquet`, drive/pass tables and component base cohorts. Supply `actions_path=root / "actions.parquet"` to the adapter. Native dimensions and detection/provenance fields are retained. Final learned-model feature matrices are a separate downstream stage.

@@ -1,0 +1,379 @@
+{
+  "status": "flat_full_refit_installed_cnl_research_history_only",
+  "source_result": "50_pass_selection_final_20261025_003557",
+  "preferred_family": "flat",
+  "screening": "49_pass_selection_full_physics_screen_20261024_183156",
+  "refit": "51_pass_selection_full_refit_20261025",
+  "verification": {
+    "status": "passed",
+    "files_collected": 134,
+    "selected_model_bytes": 17152716,
+    "cohort_choices": 6810,
+    "passes_failed": 1009,
+    "folds": 5,
+    "fits": 10,
+    "all_selected_prefix_rho_pairs_consistent": true,
+    "all_stopped_before_cap": true,
+    "temperature_validation_only": true,
+    "physical_inputs_complete": true,
+    "no_error_markers": true,
+    "pooled_scores_recomputed": true,
+    "test_cohort_exactly_matches_frozen_rows": true,
+    "large_physics_arrays_hashes_verified_by_cluster_preflight": true
+  },
+  "public_reader_replay": {
+    "status": "passed",
+    "models": 10,
+    "matches": 10,
+    "actual_held_out_choices": 10,
+    "raw_and_calibrated": true,
+    "max_nll_error": 1.7763568394002505e-15,
+    "checks": [
+      {
+        "fold": 0,
+        "match_id": "1925299",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 0,
+        "match_id": "1925299",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 0,
+        "match_id": "1925299",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 0,
+        "match_id": "1925299",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 0,
+        "match_id": "2015213",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 0,
+        "match_id": "2015213",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 0,
+        "match_id": "2015213",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 1.7763568394002505e-15
+      },
+      {
+        "fold": 0,
+        "match_id": "2015213",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 8.881784197001252e-16
+      },
+      {
+        "fold": 1,
+        "match_id": "2006229",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 1,
+        "match_id": "2006229",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 1,
+        "match_id": "2006229",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 1,
+        "match_id": "2006229",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 1.7763568394002505e-15
+      },
+      {
+        "fold": 1,
+        "match_id": "2011166",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 8.881784197001252e-16
+      },
+      {
+        "fold": 1,
+        "match_id": "2011166",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 1,
+        "match_id": "2011166",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 1,
+        "match_id": "2011166",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 2,
+        "match_id": "1899585",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 8.881784197001252e-16
+      },
+      {
+        "fold": 2,
+        "match_id": "1899585",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 2,
+        "match_id": "1899585",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 8.881784197001252e-16
+      },
+      {
+        "fold": 2,
+        "match_id": "1899585",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 2,
+        "match_id": "1953632",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 2,
+        "match_id": "1953632",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 2,
+        "match_id": "1953632",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 2,
+        "match_id": "1953632",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 3,
+        "match_id": "1886347",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 3,
+        "match_id": "1886347",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 3,
+        "match_id": "1886347",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 3,
+        "match_id": "1886347",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 3,
+        "match_id": "2013725",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 3,
+        "match_id": "2013725",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 3,
+        "match_id": "2013725",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 1.7763568394002505e-15
+      },
+      {
+        "fold": 3,
+        "match_id": "2013725",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 1.7763568394002505e-15
+      },
+      {
+        "fold": 4,
+        "match_id": "1996435",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 4,
+        "match_id": "1996435",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 4,
+        "match_id": "1996435",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 4,
+        "match_id": "1996435",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 4,
+        "match_id": "2017461",
+        "mode": "flat",
+        "calibrated": false,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 4,
+        "match_id": "2017461",
+        "mode": "flat",
+        "calibrated": true,
+        "nll_error": 0.0
+      },
+      {
+        "fold": 4,
+        "match_id": "2017461",
+        "mode": "cnl",
+        "calibrated": false,
+        "nll_error": 8.881784197001252e-16
+      },
+      {
+        "fold": 4,
+        "match_id": "2017461",
+        "mode": "cnl",
+        "calibrated": true,
+        "nll_error": 1.7763568394002505e-15
+      }
+    ]
+  },
+  "refit_counts": {
+    "flat": 1420,
+    "cnl": 356
+  },
+  "benchmark_uses_full_refit": false,
+  "reference_identity": {
+    "status": "reference_equations_archived",
+    "fetched_date": "2026-10-20",
+    "released_reference": "https://github.com/big-ucl/rumboost/tree/v1.0.2",
+    "current_reference": "https://github.com/big-ucl/rumboost/blob/main/rumboost/rumboost.py",
+    "current_identity": "Exact excerpt SHA256; mutable upstream branch is not a commit pin.",
+    "paper": "https://doi.org/10.1016/j.trc.2024.104897",
+    "cnl_equations": "https://transp-or.epfl.ch/heart/2024/abstracts/hEART_2024_paper_8384.pdf",
+    "upstream_license": "MIT, as stated by upstream repository; no claim that excerpts are complete source distributions.",
+    "files": {
+      "main_bounds.web.txt": "2a224f9073864d3f0ed0b5bc968f1279dcddb2367c1d3410bd611c347e6f2fda",
+      "main_cross_nested_excerpt.py": "3755e3a79f2c91f2556ce5e5c9482de1eb057f9c9193bfb8047d09cc14ce1b5e",
+      "main_objective_and_training.web.txt": "626a277f5fc7377a2b5b78c662454f0428f3ea17f5dbbd2f913d69f628fc3fcb",
+      "v1.0.2_cross_nested_excerpt.py": "61bf882c62e4e6f961ed678fcf66eaba3b2208c6c9d08ba0dd0e8173793cfc76",
+      "v1.0.2_objective.web.txt": "5f589ce5d78e60d2fb744b1d8cea51625eb8b412fffe69c02a02183b4a4bd3d3",
+      "v1.0.2_training.web.txt": "ed218d055d45a74f4c808e117b90b6b3ca12f659b082297c600f5b86c477835b",
+      "main_damping.web.txt": "4f23b6fbe409b85beb93f202eee1568e622493b9ff0de46f2b93e52d5bb92407"
+    }
+  },
+  "deployment_result": "51_pass_selection_full_refit_recovery2_20261025_133534",
+  "installed_family": "flat",
+  "installed_model_id": "skillcorner_outfield_pass_selection_flat_v2",
+  "installed_files": {
+    "pass_selection_model.json": "a1d3871be2e73080ec35ad224ef911797cfaab874af18f0f094b61864cf6ec39",
+    "pass_selection_model.ubj": "e65b41e1e3e1982ac5fb6c78b21f73eb352f1b9f9d3bbfc7168ee3caa35a2835"
+  },
+  "full_refit_receipt": {
+    "status": "complete",
+    "smoke": false,
+    "preferred_family": "flat",
+    "both_refits_verified": true,
+    "models": {
+      "flat": {
+        "manifest": "/u/cdslab/rbergamin/scratch/other/results/51_pass_selection_full_refit_recovery2_20261025_133534/models/flat/pass_selection_model.json",
+        "rounds": 1420,
+        "mu": 1.0,
+        "temperature": 1.0219972405701139,
+        "public_reader_probability_max_error": 5.551115123125783e-17,
+        "preferred": true
+      },
+      "cnl": {
+        "manifest": "/u/cdslab/rbergamin/scratch/other/results/51_pass_selection_full_refit_recovery2_20261025_133534/models/cnl/pass_selection_cnl_model.json",
+        "rounds": 356,
+        "mu": 0.5867424578733156,
+        "temperature": 1.0562427324439736,
+        "public_reader_probability_max_error": 3.122502256758253e-17,
+        "preferred": false
+      }
+    },
+    "benchmark_source": "50_pass_selection_final_20261025_003557",
+    "benchmark_replaced": false,
+    "n_choices": 6810,
+    "protocol_sha256": "0a4a23cf1d1080beec26d784c6ca177e73544e19e43e7cb62295747d661b084d",
+    "install": "Import flat manifest+UBJ only after receipt verification; preserve legacy files. Archive CNL as the secondary model."
+  },
+  "flat_temperature": 1.0219972405701139,
+  "cnl_installed": false,
+  "cnl_historical_archive": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/51_pass_selection_full_refit_20261025/07_final_refit_review/51_pass_selection_full_refit_recovery2_20261025_133534/models/cnl",
+  "new_full_fit_scores_used_as_benchmark": false,
+  "calibration_recovery": "One concrete adjacent-float32-angle change reproduces the largest source NLL discrepancy. Audit changes no predictions used for deployment temperature and does not change the original benchmark."
+}

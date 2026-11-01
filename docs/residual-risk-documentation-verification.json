@@ -1,0 +1,44 @@
+{
+  "status": "installed_verified_documented",
+  "benchmark": "RR77",
+  "refit": "RR78",
+  "full_refit_status": "installed_verified",
+  "package_weights_installed": true,
+  "package_tests": 113,
+  "executed_notebooks": 13,
+  "residual_notebook_reexecuted": true,
+  "quarto_pages": 22,
+  "local_site_links_checked": 2318,
+  "source_links_checked": 236,
+  "main_residual_vignette": "vignettes/05a_residual_risk/05a_residual_risk.ipynb",
+  "single_residual_xloss_vignette": true,
+  "model_rounds": 118,
+  "refit_actions": 7820,
+  "refit_losses": 1423,
+  "public_export_fixtures": 200,
+  "full_matrix_export_replay": true,
+  "composition_oof_states": 15085,
+  "composition_oof_losses": 2888,
+  "composition_calibration_fitted": false,
+  "vendor_comparison_published": false,
+  "real_scheduler_called": false,
+  "example_executes_installed_weights": true,
+  "example_values": {
+    "h": 0.012514264786956204,
+    "continuation": 0.046451545872814574,
+    "xloss": 0.05896581065977078
+  },
+  "example_values_are_benchmark": false,
+  "calibration_plot_sha256": {
+    "residual_risk_pooled_calibration.png": "b21a60393a382a13a6e31ae6c3d5d9b5cb826efe5bb231b4e6346c71389e1b0e",
+    "composed_risk_pooled_calibration.png": "0f15b747032d377bdc13e33970e98a56b9862f82f5e176f5b72ce52ad7f7d39e"
+  },
+  "documentation_reorganization_20261030": {
+    "experiment": "83_bcos_and_composed_benchmark_docs_20261030",
+    "status": "executed_rendered_verified",
+    "composed_benchmark_vignette": "vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb",
+    "feature_importance_location": "Predictive model vignettes; BCOS page links to them",
+    "definition_source": "Bandara et al. 2025; PRESS arrival/competing-risk formalization distinguished",
+    "model_or_benchmark_changes": false
+  }
+}

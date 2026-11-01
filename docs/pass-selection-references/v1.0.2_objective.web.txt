@@ -1,0 +1,506 @@
+ (https://raw.githubusercontent.com/big-ucl/rumboost/v1.0.2/rumboost/rumboost.py)
+citeturn249view0 [wordlim: 200] Crawled: last month; Content type: text/plain; Source: open({"ref_id":"turn248view0","lineno":0}); Total lines: 1399
+L0: # coding: utf-8
+L1: """Library with training routines of LightGBM."""
+L2: import collections
+L3: import copy
+L4: import json
+L5: import numpy as np
+L6: import pandas as pd
+L7: 
+L8: from scipy.special import softmax
+L9: from operator import attrgetter
+L10: from pathlib import Path
+L11: from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+L12: from biogeme.biogeme import BIOGEME
+L13: 
+L14: from lightgbm import callback
+L15: from lightgbm.basic import Booster, Dataset, LightGBMError, _ConfigAliases, _InnerPredictor, _choose_param_value, _log_warning
+L16: from lightgbm.compat import SKLEARN_INSTALLED, _LGBMGroupKFold, _LGBMStratifiedKFold
+L17: 
+L18: from rumboost.utils import bio_to_rumboost, cross_entropy, nest_probs, cross_nested_probs
+L19: 
+L20: _LGBM_CustomObjectiveFunction = Callable[
+L21:     [Union[List, np.ndarray], Dataset],
+L22:     Tuple[Union[List, np.ndarray], Union[List, np.ndarray]]
+L23: ]
+L24: _LGBM_CustomMetricFunction = Callable[
+L25:     [Union[List, np.ndarray], Dataset],
+L26:     Tuple[str, float, bool]
+L27: ]
+L28: 
+L29: class RUMBoost:
+L30:     """RUMBoost for doing Random Utility Modelling in LightGBM.
+L31: 
+L32:     Auxiliary data structure to implement boosters of ``rum_train()`` function for multiclass classification.
+L33:     This class has the same methods as Booster class.
+L34:     All method calls, except for the following methods, are actually performed for underlying Boosters.
+L35: 
+L36:     - ``model_from_string()``
+L37:     - ``model_to_string()``
+L38:     - ``save_model()``
+L39: 
+L40:     Attributes
+L41:     ----------
+L42:     boosters : list of Booster
+L43:         The list of fitted models.
+L44:     valid_sets : None
+L45:         Validation sets of the RUMBoost. By default None, to avoid computing cross entropy if there are no
+L46:         validation sets.
+L47:     """
+L48:     def __init__(self, model_file = None):
+L49:         """Initialize the RUMBoost.
+L50: 
+L51:         Parameters
+L52:         ----------
+L53:         model_file : str, pathlib.Path or None, optional (default=None)
+L54:             Path to the RUMBoost model file.
+L55:         """
+L56:         self.boosters = []
+L57:         self.valid_sets = None
+L58:         self.num_classes = None #need to be specify by user
+L59: 
+L60:         #for nested and cross-nested rumboost
+L61:         self.mu = None
+L62:         self.nests = None
+L63:         self.alphas = None
+L64: 
+L65:         #for functional effect rumboost
+L66:         self.functional_effects = None
+L67: 
+L68:         if model_file is not None:
+L69:             with open(model_file, "r") as file:
+L70:                 self._from_dict(json.load(file))
+L71: 
+L72:     def f_obj(
+L73:             self,
+L74:             _,
+L75:             train_set: Dataset
+L76:         ):
+L77:             """
+L78:             Objective function of the binary classification boosters, but based on softmax predictions.
+L79: 
+L80:             Parameters
+L81:             ----------
+L82:             train_set : Dataset
+L83:                 Training set used to train the jth booster. It means that it is not the full training set but rather another dataset containing the relevant features for that utility. It is the jth dataset in the RUMBoost object.
+L84: 
+L85:             Returns
+L86:             -------
+L87:             grad : numpy array
+L88:                 The gradient with the cross-entropy loss function. It is the predictions minus the binary labels (if it is used for the jth booster, labels will be 1 if the chosen class is j, 0 if it is any other classes).
+L89:             hess : numpy array
+L90:                 The hessian with the cross-entropy loss function (second derivative approximation rather than the hessian). Calculated as factor * preds * (1 - preds).
+L91:             """
+L92:             j = self._current_j #jth booster
+L93:             preds = self._preds[:,j] #corresponding predictions
+L94:             factor = self.num_classes/(self.num_classes-1) #factor to correct redundancy (see Friedmann, Greedy Function Approximation)
+L95:             eps = 1e-6
+L96:             labels = train_set.get_label()
+L97:             grad = preds - labels
+L98:             hess = np.maximum(factor * preds * (1 - preds), eps) #truncate low values to avoid numerical errors
+L99:             return grad, hess
+L100: 
+L101:     def f_obj_nest(
+L102:             self,
+L103:             _,
+L104:             train_set: Dataset
+L105:         ):
+L106:             """
+L107:             Objective function of the binary classification boosters, for a nested rumboost.
+L108: 
+L109:             Parameters
+L110:             ----------
+L111:             train_set : Dataset
+L112:                 Training set used to train the jth booster. It means that it is not the full training set but rather another dataset containing the relevant features for that utility. It is the jth dataset in the RUMBoost object.
+L113: 
+L114:             Returns
+L115:             -------
+L116:             grad : numpy array
+L117:                 The gradient with the cross-entropy loss function and nested probabilities.
+L118:             hess : numpy array
+L119:                 The hessian with the cross-entropy loss function and nested probabilities (second derivative approximation rather than the hessian).
+L120:             """
+L121:             j = self._current_j
+L122:             pred_i_m = self.preds_i_m[:,j] #prediction of choice i knowing nest m
+L123:             pred_m = self.preds_m[:, self.nests[j]] #prediction of choosing nest m
+L124:             factor = self.num_classes/(self.num_classes-1) #factor to correct redundancy (see Friedmann, Greedy Function Approximation)
+L125: 
+L126:             #three cases: 1. choice i = j, 2. j is in the same nest than choice i, 3. j is in another nest.
+L127:             grad = (self.labels == j) * (-self.mu[self.nests[j]] * (1 - pred_i_m) - pred_i_m * (1 - pred_m)) + \
+L128:                    (self.labels_nest == self.nests[j]) * (1 - (self.labels == j)) * (self.mu[self.nests[j]] * pred_i_m - pred_i_m * (1 - pred_m)) + \
+L129:                    (1 - (self.labels_nest == self.nests[j])) * (pred_i_m * pred_m)
+L130:             hess = (self.labels == j) * (-self.mu[self.nests[j]] * pred_i_m * (1 - pred_i_m) * (1 - self.mu[self.nests[j]] - pred_m) + pred_i_m**2 * pred_m * (1 - pred_m)) + \
+L131:                    (self.labels_nest == self.nests[j]) * (1 - (self.labels == j)) * (-self.mu[self.nests[j]] * pred_i_m * (1 - pred_i_m) * (1 - self.mu[self.nests[j]] - pred_m) + pred_i_m**2 * pred_m * (1 - pred_m)) + \
+L132:                    (1 - (self.labels_nest == self.nests[j])) * (-pred_i_m * pred_m * (-self.mu[self.nests[j]] * (1 - pred_i_m) - pred_i_m * (1 - pred_m)))
+L133: 
+L134:             hess = factor * hess
+L135: 
+L136:             return grad, hess
+L137: 
+L138:     def f_obj_cross_nested(
+L139:             self,
+L140:             _,
+L141:             train_set: Dataset
+L142:         ):
+L143:             """
+L144:             Objective function of the binary classification boosters, for a cross-nested rumboost.
+L145: 
+L146:             Parameters
+L147:             ----------
+L148:             train_set : Dataset
+L149:                 Training set used to train the jth booster. It means that it is not the full training set but rather another dataset containing the relevant features for that utility. It is the jth dataset in the RUMBoost object.
+L150:             Returns
+L151:             -------
+L152:             grad : numpy array
+L153:                 The gradient with the cross-entropy loss function and cross-nested probabilities.
+L154:             hess : numpy array
+L155:                 The hessian with the cross-entropy loss function and cross-nested probabilities (second derivative approximation rather than the hessian).
+L156:             """
+L157:             j = self._current_j
+L158:             labels = self.labels.astype(int)
+L159:             mu = np.array(self.mu).reshape(1, len(self.mu))
+L160:             data_idx = np.arange(self.preds_i_m.shape[0])
+L161:             factor = self.num_classes/(self.num_classes-1) #factor to correct redundancy (see Friedmann, Greedy Function Approximation)
+L162: 
+L163:             pred_j_m = self.preds_i_m[:,j,:] #pred of alternative j knowing nest m
+L164:             pred_i_m = self.preds_i_m[data_idx,labels,:] #prediction of choice i knowing nest m
+L165:             pred_m = self.preds_m[:,j,:] #prediction of choosing nest m
+L166:             pred_i = self._preds[data_idx,labels].reshape(-1, 1) #pred of choice i
+L167:             pred_j = self._preds[:,j].reshape(-1, 1) #pred of alt j
+L168: 
+L169:             d_pred_i_Vi = np.sum((pred_i_m * pred_m * (pred_i_m * (1 - mu) + mu - pred_i)), axis=1, keepdims=True) #first derivative of pred i with resepct to Vi
+L170:             d_pred_i_Vj = np.sum((pred_i_m * pred_m * (pred_j_m * (1 - mu) - pred_j)), axis=1, keepdims=True) #first derivative of pred i with resepct to Vj
+L171:             d_pred_j_Vj = np.sum((pred_j_m * pred_m * (pred_j_m * (1 - mu) + mu - pred_j)), axis=1, keepdims=True) #first derivative of pred j with resepct to Vj
+L172:             d2_pred_i_Vi = np.sum((pred_i_m * pred_m * (mu**2 * (2*pred_i_m**2 - 3*pred_i_m + 1) + mu * (-3*pred_i_m**2 + 3*pred_i_m + 2*pred_i*(pred_i_m-1)) + (pred_i_m**2 - 2*pred_i_m*pred_i + pred_i**2 - d_pred_i_Vi))), axis=1, keepdims=True)
+L173:             d2_pred_i_Vj = np.sum((pred_i_m * pred_m * (mu**2 * (-pred_j_m) + mu * (-pred_j_m**2 + pred_j_m) + (pred_j_m - pred_j)**2 - d_pred_j_Vj)), axis=1, keepdims=True)
+L174: 
+L175:             #two cases: 1. alt j is choice i, 2. alt j is not choice i
+L176:             grad = (labels == j).reshape(-1, 1) * (-1/pred_i) * d_pred_i_Vi + \
+L177:                    (1 - (labels == j)).reshape(-1, 1) * (-1/pred_i) * d_pred_i_Vj
+L178:             hess = (labels == j).reshape(-1, 1) * (-1/pred_i**2) * (d2_pred_i_Vi*pred_i - d_pred_i_Vi**2) + \
+L179:                    (1 - (labels == j)).reshape(-1, 1) * (-1/pred_i**2) * (d2_pred_i_Vj*pred_i - d_pred_i_Vj**2)
+L180: 
+L181:             hess = factor * hess
+L182: 
+L183:             return grad.reshape(-1), hess.reshape(-1)
+L184:     def predict(
+L185:         self,
+L186:         data,
+L187:         start_iteration: int = 0,
+L188:         num_iteration: int = -1,
+L189:         raw_score: bool = True,
+L190:         pred_leaf: bool = False,
+L191:         pred_contrib: bool = False,
+L192:         data_has_header: bool = False,
+L193:         validate_features: bool = False,
+L194:         utilities: bool = False,
+L195:         nests: dict = None,
+L196:         mu: list[float] = None,
+L197:         alphas: np.array = None
+--------------------------------------------------------------------------------
+GitHub - big-ucl/rumboost at v1.0.2 · GitHub (https://github.com/big-ucl/rumboost/tree/v1.0.2)
+citeturn249view1 [wordlim: 200] Crawled: last month; Content type: text/html; Source: open({"ref_id":"turn247view2","lineno":145}); Total lines: 254
+L0: cite0†Skip to content L1: ## Navigation Menu
+L2: 
+L3: cite1†Sign in L4: 
+L5: Appearance settings
+L6: 
+L7:   * Platform
+L8: 
+L9:     * AI CODE CREATION
+L10:       * cite2†GitHub CopilotWrite better code with AI L11:       * cite3†GitHub Copilot appDirect agents from issue to merge L12:       * cite4†MCP RegistryIntegrate external tools L13: 
+L14:     * DEVELOPER WORKFLOWS
+L15:       * cite5†ActionsAutomate any workflow L16:       * cite6†CodespacesInstant dev environments L17:       * cite7†IssuesPlan and track work L18:       * cite8†Code ReviewManage code changes L19:       * cite9†Code QualityEnforce quality at merge L20:     * APPLICATION SECURITY
+L21:       * cite10†GitHub Advanced SecurityFind and fix vulnerabilities L22:       * cite11†Code securitySecure your code as you build L23:       * cite12†Secret protectionStop leaks before they start L24: 
+L25:     * EXPLORE
+L26:       * cite13†Why GitHub L27:       * cite14†Documentation†docs.github.com L28:       * cite15†Blog†github.blog L29:       * cite16†Changelog†github.blog L30:       * cite17†Marketplace L31: 
+L32: cite18†View all features L33: 
+L34:   * Solutions
+L35:     * BY COMPANY SIZE
+L36:       * cite19†Enterprises L37:       * cite20†Small and medium teams L38:       * cite21†Startups L39:       * cite22†Nonprofits L40: 
+L41:     * BY USE CASE
+L42:       * cite23†App Modernization L43:       * cite24†DevSecOps L44:       * cite25†DevOps L45:       * cite26†CI/CD L46:       * cite27†View all use cases L47: 
+L48:     * BY INDUSTRY
+L49:       * cite28†Healthcare L50:       * cite29†Financial services L51:       * cite30†Manufacturing L52:       * cite31†Government L53:       * cite32†View all industries L54: 
+L55: cite33†View all solutions L56: 
+L57:   * Resources
+L58:     * EXPLORE BY TOPIC
+L59:       * cite34†AI L60:       * cite35†Software Development L61:       * cite36†DevOps L62:       * cite37†Security L63:       * cite38†View all topics L64: 
+L65:     * EXPLORE BY TYPE
+L66:       * cite39†Customer stories L67:       * cite40†Events & webinars L68:       * cite41†Ebooks & reports L69:       * cite42†Business insights L70:       * cite43†GitHub Skills†skills.github.com L71:     * SUPPORT & SERVICES
+L72:       * cite14†Documentation†docs.github.com L73:       * cite44†Customer support†support.github.com L74:       * cite45†Community forum L75:       * cite46†Trust center L76:       * cite47†Partners L77: 
+L78: cite48†View all resources L79: 
+L80:   * Open Source
+L81: 
+L82:     * COMMUNITY
+L83:       * cite49†GitHub SponsorsFund open source developers L84:     * PROGRAMS
+L85:       * cite50†Security Lab†securitylab.github.com L86:       * cite51†Maintainer Community†maintainers.github.com L87:       * cite52†Accelerator L88:       * cite53†GitHub Stars†stars.github.com L89:       * cite54†Archive Program†archiveprogram.github.com L90: 
+L91:     * REPOSITORIES
+L92:       * cite55†Topics L93:       * cite56†Trending L94:       * cite57†Collections L95: 
+L96:   * Enterprise
+L97: 
+L98:     * ENTERPRISE SOLUTIONS
+L99:       * cite19†Enterprise platformAI-powered developer platform L100:     * AVAILABLE ADD-ONS
+L101:       * cite10†GitHub Advanced SecurityEnterprise-grade security features L102:       * cite58†Copilot for BusinessEnterprise-grade AI features L103:       * cite59†Premium SupportEnterprise-grade 24/7 support L104: 
+L105:   * cite60†Pricing L106: 
+L107: Search`/`
+L108: 
+L109: cite1†Sign in L110: 
+L111: cite61†Sign up L112: 
+L113: Appearance settings
+L114: You signed in with another tab or window. Reload to refresh your session. You signed out in another tab or window. Reload to refresh your session. You switched accounts on another tab or window. Reload to refresh your session. Dismiss alert
+L115: ### Uh oh!
+L116: 
+L117: There was an error while loading. Please reload this page.
+L118: 
+L119: cite62†big-ucl / cite63†rumboost Public
+L120: 
+L121:   * cite64†Notifications You must be signed in to change notification settings
+L122:   * cite64†Fork 3 L123:   * cite64†Star L124: 
+L125:   * cite65†Code L126:   * cite66†Issues 0 L127:   * cite67†Pull requests 0 L128:   * cite68†Actions L129:   * cite69†Projects L130:   * cite70†Security and quality 0 L131:   * cite71†Insights L132: 
+L133: Additional navigation options
+L134: 
+L135: v1.0.2
+L136: 
+L137: cite72†Branches cite73†Tags L138: 
+L139: [Input: Go to file]
+L140: 
+L141: Go to file
+L142: 
+L143: Code
+L144: 
+L145: Open more actions menu
+L146: 
+L147: ## Latest commit
+L148: ## History
+L149: 
+L150: 53 Commits
+L151: ## Folders and files
+L152: Name  | Name  | Last commit message  | Last commit date
+L153: --- | --- | --- | ---
+L154: cite74†Data | cite74†Data |    |
+L155: cite75†docs | cite75†docs |    |
+L156: cite76†example | cite76†example |    |
+L157: cite77†logo | cite77†logo |    |
+L158: cite78†rumboost | cite78†rumboost |    |
+L159: cite79†tests | cite79†tests |    |
+L160: cite80†.gitignore | cite80†.gitignore |    |
+L161: cite81†.readthedocs.yaml | cite81†.readthedocs.yaml |    |
+L162: cite82†LICENSE.txt | cite82†LICENSE.txt |    |
+L163: cite83†README.md | cite83†README.md |    |
+L164: cite84†pyproject.toml | cite84†pyproject.toml |    |
+L165: cite85†setup.py | cite85†setup.py |    |
+L166: [Button: View all files]
+L167: ## Repository files navigation
+L168: 
+L169:   *   * cite86†README L170:   * cite86†License L171: 
+L172: More items
+L173: 
+L174: * * *
+L175: ## Description
+L176: 
+L177: RUMBoost is a python package to estimate Random Utility models with Gradient Boosted Decision Trees. More specifically, each parameter in the traditional utility function is replaced by an ensemble of regression trees with appropriate constraints to: i) ensure the guarantee of marginal utilities monotonicity; ii) incorporate alternative-specific attributes; and iii) provide an intrinsically interpretable non-linear form of the utility function, directly learnt from the data.
+L178: Currently RUMBoost can estimate the following RUMs:
+L179: 
+L180:   * MNL
+L181:   * Nested Logit
+L182:   * Cross-Nested Logit
+L183:   * An equivalent of the Mixed Effect model
+L184: 
+L185: For more details, you can refer to the cite87†preprint†papers.ssrn.com of our paper.
+L186: ## Installation
+L187: 
+L188: RUMBoost is launched on pypi. You can install it with the following command:
+L189: 
+L190: `pip install rumboost`
+L191: 
+L192: We recommend to install rumboost in a separate environment with its dependencies.
+L193: ## Documentation and example
+L194: 
+L195: The full documentation can be found cite88†here†rumboost.readthedocs.io . In addition, you can find several examples on how to use RUMBoost under the example folder. Currently, there are seven example notebooks. We recommend using them in this order:
+L196:   1. simple_rumboost: how to train and plot parameters of a simple RUMBoost model
+L197:   2. feature_interaction: how to include feature interactions for training and plotting
+L198:   3. nested: how to train a nested logit RUMBoost model
+L199:   4. functional_effect: how to train and plot a functional effect RUMBoost model
+L200:   5. cross-nested: how to train a cross-nested logit RUMBoost model
+L201:   6. bootstrap: how to test the model robustness
+L202:   7. smoothing_and_vot: how to smooth a RUMBoost output and plot the smoothed version, as well as computing and plotting VoT
+L203: ## Bug reports and feature requests
+L204: 
+L205: If you encounter any issues or have ideas for new features, please open an cite89†issue . You can also contact us at nicolas.salvade.22@ucl.ac.uk
+L206: 
+L207: ## License
+L208: 
+L209: This project is licensed under the MIT License - see the cite82†LICENSE file for details.
+L210: ## Reference paper (preprint)
+L211: 
+L212: Salvadé, Nicolas and Hillel, Tim, Rumboost: Gradient Boosted Random Utility Models. Available at SSRN: cite90†https://ssrn.com/abstract=4701222†ssrn.com or cite91†http://dx.doi.org/10.2139/ssrn.4701222†dx.doi.org L213: 
+L214: ## About
+L215: 
+L216: Gradient Boosted Random Utility Models
+L217: 
+L218: cite88†rumboost.readthedocs.io/en/latest/†rumboost.readthedocs.io L219: 
+L220: ### Resources
+L221: 
+L222: cite92†Readme L223: 
+L224: cite93†License L225: 
+L226: cite94†Activity L227: 
+L228: cite95†Custom properties L229: 
+L230: ### Stars
+L231: 
+L232: 19 stars
+L233: 
+L234: ### Watchers
+L235: 
+L236: 3 watching
+L237: ### Forks
+L238: 
+L239: cite96†3 forks L240: 
+L241: cite97†Report repository L242: 
+L243: ## Releases
+L244: 
+L245: ## Packages
+L246: 
+L247: ## Used by
+L248: 
+L249: ## Contributors
+L250: 
+L251: ## Languages
+L252: 
+L253: You can’t perform that action at this time.
+--------------------------------------------------------------------------------
+rumboost/rumboost at main · big-ucl/rumboost · GitHub (https://github.com/big-ucl/rumboost/tree/main/rumboost)
+citeturn249view2 [wordlim: 200] Crawled: last month; Content type: text/html; Source: open({"ref_id":"turn247view4","lineno":170}); Total lines: 208
+L0: cite0†Skip to content L1: ## Navigation Menu
+L2: 
+L3: cite1†Sign in L4: 
+L5: Appearance settings
+L6: 
+L7:   * Platform
+L8: 
+L9:     * AI CODE CREATION
+L10:       * cite2†GitHub CopilotWrite better code with AI L11:       * cite3†GitHub Copilot appDirect agents from issue to merge L12:       * cite4†MCP RegistryIntegrate external tools L13: 
+L14:     * DEVELOPER WORKFLOWS
+L15:       * cite5†ActionsAutomate any workflow L16:       * cite6†CodespacesInstant dev environments L17:       * cite7†IssuesPlan and track work L18:       * cite8†Code ReviewManage code changes L19:       * cite9†Code QualityEnforce quality at merge L20:     * APPLICATION SECURITY
+L21:       * cite10†GitHub Advanced SecurityFind and fix vulnerabilities L22:       * cite11†Code securitySecure your code as you build L23:       * cite12†Secret protectionStop leaks before they start L24: 
+L25:     * EXPLORE
+L26:       * cite13†Why GitHub L27:       * cite14†Documentation†docs.github.com L28:       * cite15†Blog†github.blog L29:       * cite16†Changelog†github.blog L30:       * cite17†Marketplace L31: 
+L32: cite18†View all features L33: 
+L34:   * Solutions
+L35:     * BY COMPANY SIZE
+L36:       * cite19†Enterprises L37:       * cite20†Small and medium teams L38:       * cite21†Startups L39:       * cite22†Nonprofits L40: 
+L41:     * BY USE CASE
+L42:       * cite23†App Modernization L43:       * cite24†DevSecOps L44:       * cite25†DevOps L45:       * cite26†CI/CD L46:       * cite27†View all use cases L47: 
+L48:     * BY INDUSTRY
+L49:       * cite28†Healthcare L50:       * cite29†Financial services L51:       * cite30†Manufacturing L52:       * cite31†Government L53:       * cite32†View all industries L54: 
+L55: cite33†View all solutions L56: 
+L57:   * Resources
+L58:     * EXPLORE BY TOPIC
+L59:       * cite34†AI L60:       * cite35†Software Development L61:       * cite36†DevOps L62:       * cite37†Security L63:       * cite38†View all topics L64: 
+L65:     * EXPLORE BY TYPE
+L66:       * cite39†Customer stories L67:       * cite40†Events & webinars L68:       * cite41†Ebooks & reports L69:       * cite42†Business insights L70:       * cite43†GitHub Skills†skills.github.com L71:     * SUPPORT & SERVICES
+L72:       * cite14†Documentation†docs.github.com L73:       * cite44†Customer support†support.github.com L74:       * cite45†Community forum L75:       * cite46†Trust center L76:       * cite47†Partners L77: 
+L78: cite48†View all resources L79: 
+L80:   * Open Source
+L81: 
+L82:     * COMMUNITY
+L83:       * cite49†GitHub SponsorsFund open source developers L84:     * PROGRAMS
+L85:       * cite50†Security Lab†securitylab.github.com L86:       * cite51†Maintainer Community†maintainers.github.com L87:       * cite52†GitHub Stars†stars.github.com L88:       * cite53†Archive Program†archiveprogram.github.com L89: 
+L90:     * REPOSITORIES
+L91:       * cite54†Topics L92:       * cite55†Trending L93:       * cite56†Collections L94: 
+L95:   * Enterprise
+L96: 
+L97:     * ENTERPRISE SOLUTIONS
+L98:       * cite19†Enterprise platformAI-powered developer platform L99:     * AVAILABLE ADD-ONS
+L100:       * cite10†GitHub Advanced SecurityEnterprise-grade security features L101:       * cite57†Copilot for BusinessEnterprise-grade AI features L102:       * cite58†Premium SupportEnterprise-grade 24/7 support L103: 
+L104:   * cite59†Pricing L105: 
+L106: Search`/`
+L107: 
+L108: cite1†Sign in L109: 
+L110: cite60†Sign up L111: 
+L112: Appearance settings
+L113: You signed in with another tab or window. Reload to refresh your session. You signed out in another tab or window. Reload to refresh your session. You switched accounts on another tab or window. Reload to refresh your session. Dismiss alert
+L114: ### Uh oh!
+L115: 
+L116: There was an error while loading. Please reload this page.
+L117: 
+L118: cite61†big-ucl / cite62†rumboost Public
+L119: 
+L120:   * cite63†Notifications You must be signed in to change notification settings
+L121:   * cite63†Fork 3 L122:   * cite63†Star L123: 
+L124:   * cite62†Code L125:   * cite64†Issues 0 L126:   * cite65†Pull requests 0 L127:   * cite66†Actions L128:   * cite67†Projects L129:   * cite68†Security and quality 0 L130:   * cite69†Insights L131: 
+L132: Additional navigation options
+L133: 
+L134: ## Files Expand file tree
+L135: 
+L136: main
+L137: 
+L138: ## Breadcrumbs
+L139: 
+L140:   1. cite70†rumboost L141: 
+L142: /
+L143: 
+L144: # rumboost
+L145: 
+L146: /
+L147: 
+L148: Copy path
+L149: ## Directory actions
+L150: 
+L151: [Input: Go to file]
+L152: 
+L153: ## More options
+L154: 
+L155: More options
+L156: 
+L157: ## Directory actions
+L158: 
+L159: ## More options
+L160: 
+L161: More options
+L162: 
+L163: ## Latest commit
+L164: 
+L165: 
+L166: 
+L167: ## History
+L168: 
+L169: History
+L170: 
+L171: main
+L172: 
+L173: ## Breadcrumbs
+L174: 
+L175:   1. cite70†rumboost L176: 
+L177: /
+L178: 
+L179: # rumboost
+L180: 
+L181: /
+L182: 
+L183: Copy path
+L184: 
+L185: Top
+L186: 
+L187: ## Folders and files
+L188: 
+L189: Name  | Name  | Last commit message  | Last commit date
+L190: --- | --- | --- | ---
+L191: ### parent directory
+L192: cite70†.. L193: cite71†__init__.py | cite71†__init__.py |    |
+L194: cite72†constant_parameter.py | cite72†constant_parameter.py |    |
+L195: cite73†datasets.py | cite73†datasets.py |    |
+L196: cite74†linear_trees.py | cite74†linear_trees.py |    |
+L197: cite75†metrics.py | cite75†metrics.py |    |
+L198: cite76†models.py | cite76†models.py |    |
+L199: cite77†nested_cross_nested.py | cite77†nested_cross_nested.py |    |
+L200: cite78†ordinal.py | cite78†ordinal.py |    |
+L201: cite79†post_process.py | cite79†post_process.py |    |
+L202: cite80†rumboost.py | cite80†rumboost.py |    |
+L203: cite81†torch_functions.py | cite81†torch_functions.py |    |
+L204: cite82†utility_plotting.py | cite82†utility_plotting.py |    |
+L205: cite83†utility_smoothing.py | cite83†utility_smoothing.py |    |
+L206: cite84†utils.py | cite84†utils.py |    |
+L207: You can’t perform that action at this time.
+

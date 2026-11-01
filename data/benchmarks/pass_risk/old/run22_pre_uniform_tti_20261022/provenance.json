@@ -1,0 +1,18 @@
+{
+  "source_run": "22_pass_risk_duration_final_20261018_215357",
+  "sources": {
+    "results/pass_risk_review/19_duration_run_results_20261018/audit.json": "441a7f74fde64ff948d4efab9484c4b870b16ee688bb207335407ade62d2142c",
+    "results/pass_risk_review/19_duration_run_results_20261018/protocol.json": "7f1e4f2ef9248590dcaf30323ad46e6665e198976f49bd2a5a0c20cf776fcbc3",
+    "results/pass_risk_review/19_duration_run_results_20261018/run/report/01_vmax_5_oof.parquet": "3ec44b6e39964e4986760f32ea5eeace2ae0261cf9cd923ab758135c8907e4f3",
+    "results/pass_risk_review/19_duration_run_results_20261018/run/report/02_vmax_5_5_oof.parquet": "2cbb4b79fe3cefd16aeaab628a809afeb83aaae60a001b51a5a4bc916122e6eb",
+    "scripts/analysis/43_freeze_pass_risk_benchmark.py": "d49c4889189beba5de84e926a2f5fe0ea112b268a3e628159522e86e91534160",
+    "scripts/utils/base_pipeline.py": "8165ad5ae4f8932a9f8b6a7fa0637b6ffa1b6a3d90b7bf053b50e0ff01fa5045",
+    "results/pass_risk_review/19_duration_run_results_20261018/run/final_model/pass_risk_model.json": "60da9040ffc4fa7fe6de048502ee7d4c1d182a793238438687904ded2777e4b5",
+    "results/pass_risk_review/19_duration_run_results_20261018/run/final_model/verification.json": "f91c84e996134a67bab52d5dfb1ad474c17465147633c51023bc9edad4d04a4a"
+  },
+  "curvature": "100 * maximum perpendicular deviation from release-target line / release-target distance",
+  "diagnostic": "Same all-pass trained models and calibrators; no refit, no filtering during training or calibration",
+  "missing_curvature": "Empty subgroups omitted; missing curvature is never relabelled as curved",
+  "null": "Subgroup-specific null uses only other outer folds of the same subgroup; global-null gain also exported",
+  "publication": "Aggregates only; no raw tracking or per-pass data copied into the portfolio"
+}

@@ -1,0 +1,30 @@
+{
+  "status": "complete",
+  "model_id": "skillcorner_outfield_pass_risk_duration_v3",
+  "package_tests_x64": 97,
+  "installed_model_tests_float32": 2,
+  "executed_notebooks": 13,
+  "generated_vignette_figures": 36,
+  "docs_check": "13 executed notebooks;137 local links;public methods/citations;3 Quarto examples executed",
+  "rendered_pages": 22,
+  "rendered_local_links_assets_checked": 2093,
+  "quarto_version": "1.4.555 bundled with RStudio; invoked bundled Deno entry after restricted architecture probe",
+  "mathematical_displays_verified": 7,
+  "unresolved_citations": 0,
+  "publication": "Local build only; no deployment",
+  "model_sha256": "60da9040ffc4fa7fe6de048502ee7d4c1d182a793238438687904ded2777e4b5",
+  "reviewed_figures": [
+    "figures/pass_benchmark_calibration.png",
+    "figures/vignette_02_pass_pitch.png"
+  ],
+  "quantile_note": "Current speed>2m/s player-frame p95=5.74547; historical no-carrier-frame p95=5.65625;5.5 is an empirically motivated nearby cap, not an exact percentile",
+  "files": {
+    "benchmark.qmd": "45939e81fbea14ed8b8289d704e3f3664eba2f44100a1e456dce0f5340dfea21",
+    "vignettes/02_pass_probability/02_pass_probability.ipynb": "ed4a7193f0358f6b01df15fc815d431163513efd39f8ff76eb45b1a43602a0c9",
+    "api.qmd": "d65aa2f8e172c19e8a855767735a9c6061d5d9cec201af303576abea6879b81c",
+    "solvers.qmd": "1b476486580cc7dc732a54ae368427472cf4cfa52d19afc964c6dc0956041963",
+    "README.md": "f842de6d952b3a98d38199375e7d50967a2bd47df25337cefb5f48c217df34ff"
+  },
+  "wheel_asset_check": "Built offline wheel; included JSON matches verified model SHA256 and reader module is present",
+  "wheel_sha256": "c470d6a9989f73e002bc0eb66e59e51390e6e0c5310ebb28232113762d84041b"
+}

@@ -1,0 +1,21 @@
+{
+  "status": "executed_rendered_verified",
+  "documentation_only": true,
+  "models_refit": false,
+  "benchmark_scores_changed": false,
+  "archive": "docs/old/before_composed_benchmark_separation_20261030",
+  "bandara_definition_source": "https://link.springer.com/article/10.1007/s42979-025-03815-7",
+  "sha256": {
+    "vignettes/05a_residual_risk/05a_residual_risk.ipynb": "8fd1f431ab6211bc793335e6be21295772d39f84c7f3f0157db878b98d60ce5d",
+    "vignettes/extras/bcos/10_bcos.ipynb": "c462b76fe975f6e3679fddb5c2165d48bbec791893c040c825bfbf1571bdd2e1",
+    "_quarto.yml": "4e82703da01a9247b0315548415f4dd2fbe4610fec90d0558fa5e94d67a52a55",
+    "README.md": "cfeb4fff98ffd0736d63c50d296509a1a2a043562302a9578398d9889bdae142",
+    "roadmap.qmd": "81c8f6413fe107a8fe05ac81546bbacf040c21287f0d9bce4142681bea60be11",
+    "benchmark.qmd": "702417b58f54cb375d67eadf089edae3afb94fb589e82b3124f5f233bd980d0b",
+    "vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb": "9fa44e700cce12b90914c74f23a5f2065a05713a696afbcda658986bc57f803f"
+  },
+  "source_notebooks_checked": 14,
+  "source_links_checked": 271,
+  "rendered_pages": 23,
+  "rendered_links_assets_checked": 2494
+}

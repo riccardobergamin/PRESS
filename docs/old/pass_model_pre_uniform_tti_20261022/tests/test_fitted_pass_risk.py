@@ -1,0 +1,36 @@
+"""Installed pass-model artifact and public default must agree with the export."""
+import hashlib
+import json
+from pathlib import Path
+from importlib.resources import files
+import numpy as np
+from PRESS import PRESS
+from PRESS.datasets import load_demo_match
+from PRESS.model import PassRiskModel
+
+
+def test_installed_pass_model_is_the_verified_full_refit():
+    model=PassRiskModel.pretrained()
+    provenance=json.loads((Path(__file__).parents[1]/'docs/pass-risk-refit-provenance.json').read_text())
+    artifact=files('PRESS.utils').joinpath('data/pass_risk_model.json').read_bytes()
+    assert hashlib.sha256(artifact).hexdigest()==provenance['model_sha256']
+    assert provenance['cohort']['n']==6706 and provenance['cohort']['losses']==964
+    assert provenance['cohort']['duration_seconds']==[.5,10.]
+    assert model.physics['v_max']==5.5 and model.physics['a_max']==7
+    assert model.calibration['method']=='isotonic'
+    np.testing.assert_allclose(model.lambda_control,5.206773021540777)
+    np.testing.assert_allclose(model.s,.3304016005107726)
+    knots=np.asarray(model.calibration['x'])
+    np.testing.assert_allclose(model.calibrate(knots),model.calibration['y'],atol=1e-15)
+
+
+def test_public_default_uses_saved_isotonic_without_physics_overrides():
+    tracking,*_=load_demo_match()
+    match=PRESS(tracking)
+    match.compute_ppcf(5,r_max=12,step=12)
+    result=match.get_ppcf_result(5);fitted=PassRiskModel.pretrained()
+    assert result['params']['model_id']==fitted.model_id
+    assert result['params']['calibration']=='isotonic'
+    assert result['params']['calibration_matches_physics']
+    np.testing.assert_allclose(result['Pass probability'],fitted.calibrate(result['Attacking pitch control field']))
+    assert np.all(np.asarray(result['Pitch control field']).sum(axis=0)<=1+1e-6)

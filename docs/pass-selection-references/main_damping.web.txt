@@ -1,0 +1,336 @@
+ (https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/rumboost.py)
+citeturn263view0 [wordlim: 200] Crawled: 6 days ago; Content type: text/plain; Source: open({"ref_id":"https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/rumboost.py","lineno":1894}); Total lines: 3892
+L1785:                 self.raw_preds = torch.zeros(
+L1786:                     self.num_obs[0] * self.num_classes,
+L1787:                     device=self.device,
+L1788:                 )
+L1789:             else:
+L1790:                 self.raw_preds = np.zeros(self.num_obs[0] * self.num_classes)
+L1791: 
+L1792:         # add all ensembles prediction to raw utility predictions
+L1793:         for j, booster in enumerate(self.boosters):
+L1794:             if self.boost_from_parameter_space[j] and (
+L1795:                 "endogenous_variable" not in self.rum_structure[j].keys()
+L1796:             ):
+L1797:                 if j in best_boosters:
+L1798:                     self._update_linear_constants(booster)
+L1799:                 current_preds = self._linear_predict(
+L1800:                     j, 0
+L1801:                 )
+L1802:             elif "endogenous_variable" in self.rum_structure[j].keys():
+L1803:                 current_preds = (
+L1804:                     self._monotonise_leaves(
+L1805:                         booster._Booster__inner_predict(0),
+L1806:                         self.rum_structure[j]["boosting_params"][
+L1807:                             "monotone_constraints"
+L1808:                         ][0],
+L1809:                     )
+L1810:                     * self.distances[j]
+L1811:                 )
+L1812:             else:
+L1813:                 current_preds = booster._Booster__inner_predict(0)
+L1814:             if (
+L1815:                 self.device is not None
+L1816:                 and self.boost_from_parameter_space[j]
+L1817:                 and ("endogenous_variable" not in self.rum_structure[j].keys())
+L1818:             ):
+L1819:                 self.raw_preds[
+L1820:                     self.booster_train_idx[j][0] : self.booster_train_idx[j][1]
+L1821:                 ] += current_preds
+L1822:             elif self.device is not None:
+L1823:                 self.raw_preds[
+L1824:                     self.booster_train_idx[j][0] : self.booster_train_idx[j][1]
+L1825:                 ] += torch.from_numpy(current_preds).to(self.device)
+L1826:             else:
+L1827:                 self.raw_preds[self.booster_train_idx[j]] += current_preds
+L1828: 
+L1829:     def _monotonise_leaves(self, preds, monotone_constraints):
+L1830:         """
+L1831:         Monotonise a posteriori the leaves of the current booster preds.
+L1832: 
+L1833:         Parameters
+L1834:         ----------
+L1835:         preds : numpy array or torch tensor
+L1836:             The predictions to be monotonised.
+L1837:         monotone_constraints : int
+L1838:             The monotonicity constraints for this booster.
+L1839:             if 1: positice monotonicity, if -1 : negative monotonicity, if 0: no constraint.
+L1840:         """
+L1841:         if monotone_constraints == 1:
+L1842:             preds = np.maximum(preds, 0)
+L1843:         elif monotone_constraints == -1:
+L1844:             preds = np.minimum(preds, 0)
+L1845: 
+L1846:         return preds
+L1847: 
+L1848:     def _update_linear_constants(self, booster):
+L1849:         """
+L1850:         Update the linear constants for the jth booster.
+L1851:         The linear constants are the intercept of each model after a split point.
+L1852:         It is only implemented for a max depth of 1.
+L1853: 
+L1854:         Parameters
+L1855:         ----------
+L1856:         booster : Booster
+L1857:             The booster to gather linear constants from.
+L1858:         """
+L1859:         booster._update_linear_constants()
+L1860: 
+L1861:     def _linear_predict(self, j, data):
+L1862:         """Predict the linear part of the utility function."""
+L1863:         if isinstance(data, int):
+L1864:             raw_preds = self.boosters[j]._inner_predict(data)
+L1865:         else:
+L1866:             raw_preds = self.boosters[j].predict(data)
+L1867: 
+L1868:         if self.device:
+L1869:             raw_preds = torch.from_numpy(raw_preds).to(self.device)
+L1870: 
+L1871:         return raw_preds
+L1872: 
+L1873:     def _compute_grads(self, preds, labels_j):
+L1874:         """Compute the gradients of the utility function."""
+L1875:         return preds - labels_j
+L1876: 
+L1877:     def _compute_hessians(self, preds):
+L1878:         """Compute the hessians of the utility function."""
+L1879:         id_m_preds = torch.eye(self.num_classes, device=self.device)[
+L1880:             None, :, :
+L1881:         ] - preds[:, :, None].expand(-1, -1, self.num_classes)
+L1882:         m_preds = preds[:, :, None].expand(-1, -1, self.num_classes)
+L1883:         return torch.transpose(m_preds, 1, 2) * id_m_preds
+L1884: 
+L1885:     def _precompute_grad_hess(self):
+L1886:         """Precompute the gradients and hessians of the utility function."""
+L1887:         preds = self._preds
+L1888:         labels_j = self.labels_j[self.subsample_idx]
+L1889:         grads = self._compute_grads(preds, labels_j)
+L1890:         hess = self._compute_hessians(preds)
+L1891:         self.grads = (torch.linalg.pinv(hess) @ grads[:, :, None]).squeeze()
+L1892:         self.hess = torch.ones_like(grads)
+L1893: 
+L1894:     def _update_mu_or_alphas(self, res, optimise_mu: bool, optimise_alphas: bool, alpha_shape: Tuple[int, int]):
+L1895:         """Update mu or alphas for the cross-nested model.
+L1896: 
+L1897:         Parameters
+L1898:         ----------
+L1899:         res : OptimizeResult
+L1900:             The result of the optimization.
+L1901:         optimise_mu : bool
+L1902:             If True, optimise mu.
+L1903:         optimise_alphas : bool
+L1904:             If True, optimise alphas.
+L1905:         alpha_shape : tuple
+L1906:             The shape of the alphas array.
+L1907:         """
+L1908:         if optimise_mu:
+L1909:             if self.device is not None:
+L1910:                 self.mu.add_(
+L1911:                     0.1
+L1912:                     * (
+L1913:                         torch.tensor(
+L1914:                             res.x[: len(self.mu)],
+L1915:                             device=self.device,
+L1916:                             dtype=torch.double,
+L1917:                         )
+L1918:                         - self.mu
+L1919:                     )
+L1920:                 )
+L1921:             else:
+L1922:                 self.mu += 0.1 * (res.x[: len(self.mu)] - self.mu)
+L1923:         if optimise_alphas:
+L1924:             if self.device is not None:
+L1925:                 alphas_opt = torch.tensor(
+L1926:                     res.x[len(self.mu) :].reshape(alpha_shape),
+L1927:                     device=self.device,
+L1928:                     dtype=torch.double,
+L1929:                 )
+L1930:                 alphas_opt = alphas_opt / alphas_opt.sum(dim=1)[:, None]
+L1931:                 self.alphas.add_(0.1 * (alphas_opt - self.alphas))
+L1932:             else:
+L1933:                 alphas_opt = res.x[len(self.mu) :].reshape(alpha_shape)
+L1934:                 alphas_opt = alphas_opt / alphas_opt.sum(axis=1)[:, None]
+L1935:                 self.alphas += 0.1 * (alphas_opt - self.alphas)
+L1936: 
+L1937:     def _rollback_boosters(self, unchosen_boosters: list[int]) -> None:
+L1938:         """Rollback the unchosen booster(s)."""
+L1939:         for j in unchosen_boosters:
+L1940:             if self._current_gains[j] > 0:
+L1941:                 self.boosters[j].rollback_one_iter()
+L1942: 
+L1943:     def _append(self, booster: Booster) -> None:
+L1944:         """Add a booster to RUMBoost."""
+L1945:         self.boosters.append(booster)
+L1946: 
+L1947:     def _free_dataset_memory(self):
+L1948:         """Remove datasets from RUMBoost object."""
+L1949:         self.train_set = None
+L1950:         self.valid_sets = None
+L1951:         self.labels_j = None
+L1952:         self.labels = None
+L1953: 
+L1954:     def _from_dict(self, models: Dict[str, Any]) -> None:
+L1955:         """Load RUMBoost from dict."""
+L1956:         self.boosters = []
+L1957:         if "attributes" in models:
+L1958:             self.__dict__.update(models["attributes"])
+L1959:         for j, model_str in enumerate(models["boosters"]):
+L1960:             if self.boost_from_parameter_space and self.boost_from_parameter_space[j]:
+L1961:                 booster = LinearTree()
+L1962:                 self._append(booster.model_from_string(s=model_str))
+L1963:             else:
+L1964:                 self._append(Booster(model_str=model_str))
+L1965: 
+L1966: 
+L1967:     def _to_dict(
+L1968:         self, num_iteration: Optional[int], start_iteration: int, importance_type: str
+L1969:     ) -> Dict[str, Any]:
+L1970:         """Serialize RUMBoost to dict."""
+L1971:         models_str = []
+L1972:         for booster in self.boosters:
+L1973:             models_str.append(
+L1974:                 booster.model_to_string(
+L1975:                     num_iteration=num_iteration,
+L1976:                     start_iteration=start_iteration,
+L1977:                     importance_type=importance_type,
+L1978:                 )
+L1979:             )
+L1980:         if self.device is not None:
+L1981:             if self.labels_j is not None:
+L1982:                 labels_j_numpy = [l.cpu().numpy().tolist() for l in self.labels_j]
+L1983:             else:
+L1984:                 labels_j_numpy = []
+L1985:             if self.valid_labels is not None:
+L1986:                 valid_labels_numpy = [
+L1987:                     v.cpu().numpy().tolist() for v in self.valid_labels
+L1988:                 ]
+L1989:             else:
+L1990:                 valid_labels_numpy = []
+L1991:             rumb_to_dict = {
+L1992:                 "boosters": models_str,
+L1993:                 "attributes": {
+L1994:                     "best_iteration": self.best_iteration,
+L1995:                     "best_score": float(self.best_score),
+L1996:                     "best_score_train": float(self.best_score_train),
+L1997:                     "alphas": (
+L1998:                         self.alphas.cpu().numpy().tolist()
+L1999:                         if self.alphas is not None
+L2000:                         else None
+L2001:                     ),
+L2002:                     "mu": (
+L2003:                         self.mu.cpu().numpy().tolist() if self.mu is not None else None
+L2004:                     ),
+L2005:                     "nests": self.nests,
+L2006:                     "nest_alt": self.nest_alt,
+L2007:                     "ord_model": self.ord_model,
+L2008:                     "thresholds": (
+L2009:                         self.thresholds.tolist()
+L2010:                         if self.thresholds is not None
+L2011:                         else None
+L2012:                     ),
+L2013:                     "num_classes": self.num_classes,
+L2014:                     "num_obs": self.num_obs,
+L2015:                     "labels": (
+L2016:                         self.labels.cpu().numpy().tolist()
+L2017:                         if self.labels is not None
+L2018:                         else None
+L2019:                     ),
+L2020:                     "labels_j": labels_j_numpy,
+L2021:                     "valid_labels": valid_labels_numpy,
+L2022:                     "device": "cuda" if self.device.type == "cuda" else "cpu",
+L2023:                     "torch_compile": self.torch_compile,
+L2024:                     "rum_structure": self.rum_structure,
+L2025:                     "boost_from_parameter_space": self.boost_from_parameter_space,
+L2026:                     "asc": (
+L2027:                         self.asc.cpu().numpy().tolist()
+L2028:                         if self.asc is not None
+L2029:                         else None
+L2030:                     ),
+L2031:                 },
+L2032:             }
+L2033:         else:
+L2034:             if self.labels_j is not None:
+L2035:                 labels_j_list = [l.tolist() for l in self.labels_j]
+L2036:             else:
+L2037:                 labels_j_list = []
+L2038:             if self.valid_labels is not None:
+L2039:                 valid_labs = [v.tolist() for v in self.valid_labels]
+L2040:             else:
+L2041:                 valid_labs = []
+L2042:             rumb_to_dict = {
+L2043:                 "boosters": models_str,
+L2044:                 "attributes": {
+L2045:                     "best_iteration": self.best_iteration,
+L2046:                     "best_score": float(self.best_score),
+L2047:                     "best_score_train": float(self.best_score_train),
+L2048:                     "alphas": self.alphas.tolist() if self.alphas is not None else None,
+L2049:                     "mu": self.mu.tolist() if self.mu is not None else None,
+L2050:                     "nests": self.nests,
+L2051:                     "nest_alt": self.nest_alt,
+L2052:                     "ord_model": self.ord_model,
+L2053:                     "thresholds": (
+L2054:                         self.thresholds.tolist()
+L2055:                         if self.thresholds is not None
+L2056:                         else None
+L2057:                     ),
+L2058:                     "num_classes": self.num_classes,
+L2059:                     "num_obs": self.num_obs,
+L2060:                     "labels": self.labels.tolist() if self.labels is not None else None,
+L2061:                     "labels_j": labels_j_list,
+L2062:                     "valid_labels": valid_labs,
+L2063:                     "device": None,
+L2064:                     "torch_compile": self.torch_compile,
+L2065:                     "rum_structure": self.rum_structure,
+L2066:                     "boost_from_parameter_space": self.boost_from_parameter_space,
+L2067:                     "asc": self.asc.tolist() if self.asc is not None else None,
+L2068:                 },
+L2069:             }
+L2070: 
+L2071:         return rumb_to_dict
+L2072: 
+L2073:     def __getattr__(self, name: str) -> Callable[[Any, Any], List[Any]]:
+L2074:         """Redirect methods call of RUMBoost."""
+L2075:         def handler_function(*args: Any, **kwargs: Any) -> List[Any]:
+L2076:             """Call methods with each booster, and concatenate their results."""
+L2077:             ret = []
+L2078:             for booster in self.boosters:
+L2079:                 ret.append(getattr(booster, name)(*args, **kwargs))
+L2080:             return ret
+L2081: 
+L2082:         return handler_function
+L2083: 
+L2084:     def __getstate__(self) -> Dict[str, Any]:
+L2085:         return vars(self)
+L2086: 
+L2087:     def __setstate__(self, state: Dict[str, Any]) -> None:
+L2088:         vars(self).update(state)
+L2089: 
+L2090:     def model_from_string(self, model_str: str):
+L2091:         """Load RUMBoost from a string.
+L2092: 
+L2093:         Parameters
+L2094:         ----------
+L2095:         model_str : str
+L2096:             Model will be loaded from this string.
+L2097: 
+L2098:         Returns
+L2099:         -------
+L2100:         self : RUMBoost
+L2101:             Loaded RUMBoost object.
+L2102:         """
+L2103:         self._from_dict(json.loads(model_str))
+L2104:         return self
+L2105: 
+L2106:     def model_to_string(
+L2107:         self,
+L2108:         num_iteration: Optional[int] = None,
+L2109:         start_iteration: int = 0,
+L2110:         importance_type: str = "split",
+L2111:     ) -> str:
+L2112:         """Save RUMBoost to JSON string.
+L2113: 
+L2114:         Parameters
+L2115:         ----------
+L2116:         num_iteration : int or None, optional (default=None)
+L2117:             Index of the iteration that should be saved.
+

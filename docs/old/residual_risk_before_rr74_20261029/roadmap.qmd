@@ -1,0 +1,96 @@
+---
+title: "Package and portfolio action plan"
+---
+
+The deliverable is a reusable Python package and a Quarto portfolio website built from the same executable notebooks. The user journey is **initialize one match → browse team possessions → choose any usable frame → compute quantities → retrieve and plot → summarize a possession**. Documentation describes this journey before introducing equations and internal solvers.
+
+## 1. Define the data and object contract — implemented
+
+Keep `PRESS(tracking_data, ...)` as the main entry point. Construction validates inputs and establishes per-frame result stores; it does not execute costly solvers. Optional explicit team/player interval and action tables enable navigation. `PRESS.from_skillcorner` loads the already processed match files and standardizes action context for checkpoint use. Separate team-possession IDs, player segments and frame IDs throughout the API.
+
+The team reconstruction only links verified successful receptions. No possession boundaries are invented from tracking carrier changes alone. Inspect excluded checkpoint rows before a report and retain source action IDs for audit. [Data contract and errors](api.qmd).
+
+## 2. Make the common analysis path explicit — implemented
+
+Provide getters for team intervals, player intervals, tracking frames, states and eligible checkpoints. Provide `compute_frame` for arbitrary-frame evaluation and `compute_possession` for trajectories on a chosen sampling. The accepted default uses canonical action starts plus separately marked short-tail/terminal evaluation snapshots; `include_snapshots=False` keeps canonical rows and explicit `frame_ids` supports another sampling. This default is inspired by action-based EPV organization [@fernandez2019] and will be reviewed in the benchmarks. **design choice** Resolve event context independently through frame annotations or containing action intervals, with explicit overrides. Retain the component compute methods for research and inspection. Clear dependent results after a component is recomputed. Keep BCOS in `PRESS.extras`; its scalar feature is supplied explicitly at the low-level selection API or calculated by the orchestration method.
+
+The [run guide](usage.qmd), [workflow vignette](vignettes/00_match_workflow/00_match_workflow.ipynb), and `examples/checkpoint.py` show the complete flow on synthetic data and explain how to swap in local match files.
+
+## 3. Give each task an executable vignette — implemented
+
+| Task | Vignette and API |
+|---|---|
+| Initialize and inspect a match | 00 · match workflow; constructor, possession/frame/checkpoint getters |
+| Carry loss | 01 · ball-drive risk; `compute_ball_drive_loss`, drive getter |
+| Pass execution | 02 · pass probability; `compute_ppcf`, PPCF getter |
+| Destination choice | 03 · transition model; `compute_transition_probabilities`; features and sources |
+| Pass-versus-carry choice | 04 · action selection; `compute_action_selection_probability`; features and BCOS link |
+| Mixture risk and labels | 05 · hazard and bands; `compute_frame`, hazard getter, `hazard_to_band` |
+| Team units and checkpoint selection | 06 · possession setup; interval/frame/checkpoint getters |
+| Possession difficulty | 07 · survival; `compute_possession`, `possession_survival` |
+| Sequence categories | 08 · typologies; `classify_possession_typology`, observed outcome |
+| Cohort summaries and case studies | 09 · league report; category aggregation and deterministic case selection |
+| Optional open-space field | Extra BCOS; separate class, getter and plot |
+| Event-derived location value | Extra xT; Bellman iteration, citation, shape/orientation and grid lookup |
+
+Each notebook includes the task, inputs, model assumptions, a code-generated visual, a runnable package example and interpretation/limits. Synthetic inputs are labelled and enable execution without redistributing match data. Coarse demo grids are distinguished from the model’s default research settings. References distinguish published ideas from project choices.
+
+The optional [residual-risk vignette](vignettes/extras/residual_risk/12_residual_risk.ipynb) documents existing individual-possession continuation experiments and `PRESS.extras.compose_individual_xloss`; it remains outside the core pressure pipeline.
+
+## 4. Build documentation and portfolio together — implemented configuration
+
+Use `api.qmd` for the public contracts, `solvers.qmd` for low-level scientific signatures, `usage.qmd` for the main workflow, and the notebooks as both downloadable executable source and website pages. `_quarto.yml` supplies navigation, citations and rendering. Keep notebook outputs and generated figures reproducible with `scripts/rebuild_vignettes.py`; use `scripts/check_docs.py` to check source links, references and examples. Dependency pins match the verified Python environment; `scripts/check_environment.py` checks them. After rendering, `scripts/check_site.py` verifies local HTML links, assets and anchors. Generated bytecode and build metadata are excluded from Git.
+
+GitHub Actions verifies the package, examples and website on pull requests and pushes to `development`/`main`; publication occurs only on `main`. GitHub Pages needs its repository setting switched to GitHub Actions. Local HTML review requires the pinned Quarto CLI. Configuration is not evidence that a deployment already happened.
+
+## 5. Validation and research work after this packaging change
+
+Before reporting performance, define eligible possession/checkpoint coverage across all ten matches, inspect conservative team-link breaks, and choose the case-study policy. Rebuild component predictions on shared match-level folds to evaluate the final composed hazard without in-sample component leakage. Populate the benchmark page with actual results and reproducible code; leave the existing placeholder until this analysis is complete.
+
+A first public release should follow review of the API, rendered pages, data attribution, learned-model provenance and the benchmark’s actual scope. Publishing and release tagging are separate actions. This packaging change does not claim new validation results.
+
+For pipeline migration targets, script responsibilities and existing file contracts, see the [pipeline layout](pipeline.qmd).
+
+## Repository responsibilities
+
+| Location | Responsibility |
+|---|---|
+| `PRESS/core/press.py` | Match object, navigation, compute orchestration, component result stores |
+| `PRESS/utils/match.py` | Provider adapter, interval validation and event-category mapping |
+| `PRESS/utils/possession.py` | Bands, retrospective survival and typology rules |
+| `PRESS/datasets.py` | Fresh deterministic synthetic inputs for examples |
+| `PRESS/model/`, `PRESS/physics/` | Existing numerical solvers and physics primitives |
+| `PRESS/extras/` | Optional models such as BCOS |
+| `examples/`, `tests/` | Runnable user entry points and behavioral API checks |
+| `vignettes/`, `*.qmd`, `_quarto.yml` | Executable explanations, function reference and portfolio site |
+| `scripts/`, `.github/workflows/` | Rebuild, source checks, continuous verification and main-branch publication |
+
+## Migration map
+
+| Earlier access / location | Current package structure |
+|---|---|
+| BCOS methods in the main class | `PRESS.extras.BCOS`; core action selection receives the scalar feature |
+| `vignettes/10_bcos/10_bcos.ipynb` | `vignettes/extras/bcos/10_bcos.ipynb` |
+| Manual tracking filters and direct result-store reads | Public possession/frame/checkpoint getters and component result getters |
+| Manually ordered compute calls | Retained component APIs, plus `compute_frame` and `compute_possession` wrappers |
+| Separate prose and toy figures | Executable notebooks with both an explanatory visual and a package-usage example |
+| Existing `PRESS/` package and physics modules | Retained paths; no forced migration to `src/press/` |
+| Machine-specific raw-data preprocessing/training scripts | Remain in the sibling analysis repository; processed-file adapter and table contracts are provided here |
+
+```text
+PRESS/
+  core/press.py
+  datasets.py
+  extras/bcos.py
+  model/  physics/  visualization/
+  utils/match.py  utils/possession.py  utils/data/
+examples/checkpoint.py
+tests/test_match_workflow.py
+vignettes/00_match_workflow/ ... 09_league_level_report/
+vignettes/extras/bcos/  extras/expected_threat/
+usage.qmd  api.qmd  solvers.qmd  roadmap.qmd
+_quarto.yml  index.qmd  data.qmd  benchmark.qmd
+scripts/rebuild_vignettes.py  scripts/check_environment.py
+scripts/check_docs.py  scripts/check_site.py
+.github/workflows/verify.yml  .github/workflows/publish-site.yml
+```

@@ -1,0 +1,15 @@
+{
+  "status": "definition_and_bands_draft_for_review",
+  "canonical_actions": [
+    "carry_1s",
+    "pass_to_destination"
+  ],
+  "hazard_index": "canonical action opportunity, not clock time or frame",
+  "query_at_any_reliable_frame": true,
+  "extra_snapshot_is_not_new_training_action": true,
+  "band_cutoffs_exact_formula": "1-2**(-1/n), n=8,4,2",
+  "reports_agreed": false,
+  "no_runtime_or_fit_change": true,
+  "notebook_sha256": "f5c37320c6e43d55aac5e3358f8406c4320bc26bb2ee5a86a4a39232e4f4b457",
+  "previous_source": "docs/old/h_before_canonical_hazard_clarification_20261030/05_composed_hazard_and_bands.ipynb"
+}

@@ -1,0 +1,641 @@
+ (https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/rumboost.py)
+citeturn247view0 [wordlim: 200] Crawled: 6 days ago; Content type: text/plain; Source: open({"ref_id":"turn243view0","lineno":740}); Total lines: 3892
+L625:                     / len(self.rum_structure[j]["variables"])
+L626:                 ),
+L627:                 -1,
+L628:             ).sum(axis=0)
+L629:             hess = hess.T.reshape(
+L641:     @multiply_grad_hess_by_data
+L642:     def f_obj_cross_nested(self, _, __):
+L643:         """
+L644:         Objective function of the binary classification boosters, for a cross-nested rumboost.
+L645: 
+L646:         Returns
+L647:         -------
+L648:         grad : numpy array
+L649:             The gradient with the cross-entropy loss function and cross-nested probabilities.
+L650:         hess : numpy array
+L651:             The hessian with the cross-entropy loss function and cross-nested probabilities (second derivative approximation rather than the hessian).
+L652:         """
+L653:         j = self._current_j  # jth booster
+L654:         if self.device is not None:
+L655:             if self.torch_compile:
+L656:                 grad, hess = _f_obj_cross_nested_torch_compiled(
+L657:                     self.labels[self.subsample_idx],
+L658:                     self.preds_i_m,
+L659:                     self.preds_m,
+L660:                     self._preds,
+L661:                     self.num_classes,
+L662:                     self.mu,
+L663:                     self.device,
+L664:                     self.rum_structure[j]["utility"],
+L665:                 )
+L666:             else:
+L667:                 grad, hess = _f_obj_cross_nested_torch(
+L668:                     self.labels[self.subsample_idx],
+L669:                     self.preds_i_m,
+L670:                     self.preds_m,
+L671:                     self._preds,
+L672:                     self.num_classes,
+L673:                     self.mu,
+L674:                     self.device,
+L675:                     self.rum_structure[j]["utility"],
+L676:                 )
+L677: 
+L678:             grad = grad.cpu().numpy()
+L679:             hess = hess.cpu().numpy()
+L680: 
+L681:             if self.subsample_idx.shape[0] < self.num_obs[0]:
+L682:                 grad_rescaled = np.zeros(
+L683:                     (self.num_obs[0], len(self.rum_structure[j]["utility"]))
+L684:                 )
+L685:                 hess_rescaled = np.zeros(
+L686:                     (self.num_obs[0], len(self.rum_structure[j]["utility"]))
+L687:                 )
+L688:                 grad_rescaled[self.subsample_idx.cpu().numpy(), :] = grad.squeeze()
+L689:                 hess_rescaled[self.subsample_idx.cpu().numpy(), :] = hess.squeeze()
+L690: 
+L691:                 grad = grad_rescaled
+L692:                 hess = hess_rescaled
+L693: 
+L694:             if not self.rum_structure[j]["shared"]:
+L695:                 grad = grad.sum(axis=1)
+L696:                 hess = hess.sum(axis=1)
+L697:             elif len(self.rum_structure[j]["variables"]) < len(
+L698:                 self.rum_structure[j]["utility"]
+L699:             ):
+L700:                 grad = grad.T.reshape(
+L701:                     int(
+L702:                         len(self.rum_structure[j]["utility"])
+L703:                         / len(self.rum_structure[j]["variables"])
+L704:                     ),
+L705:                     -1,
+L706:                 ).sum(axis=0)
+L707:                 hess = hess.T.reshape(
+L708:                     int(
+L709:                         len(self.rum_structure[j]["utility"])
+L710:                         / len(self.rum_structure[j]["variables"])
+L711:                     ),
+L712:                     -1,
+L713:                 ).sum(axis=0)
+L714: 
+L715:             return grad.T.reshape(-1), hess.T.reshape(-1)
+L716: 
+L717:         j = self._current_j
+L718:         label = self.labels[self.subsample_idx]
+L719:         data_idx = np.arange(self.preds_i_m.shape[0])
+L720:         factor = self.num_classes / (self.num_classes - 1)
+L721: 
+L722:         pred_j_m = self.preds_i_m[
+L723:             :, self.rum_structure[j]["utility"], :
+L724:         ]  # pred of alternative j knowing nest m
+L725:         pred_i_m = self.preds_i_m[data_idx, label, :][
+L726:             :, None, :
+L727:         ]  # prediction of choice i knowing nest m
+L728:         pred_m = self.preds_m[:, None, :]  # prediction of choosing nest m
+L729:         pred_i = self._preds[data_idx, label][:, None, None]  # pred of choice i
+L730:         pred_j = self._preds[:, self.rum_structure[j]["utility"]][
+L731:             :, :, None
+L732:         ]  # pred of alt j
+L733: 
+L734:         pred_i_m_pred_m = pred_i_m * pred_m
+L735:         pred_j_m_pred_m = pred_j_m * pred_m
+L736:         pred_i_m_pred_i = pred_i_m * pred_i
+L737:         pred_i_m_squared = pred_i_m**2
+L738:         pred_j_m_squared = pred_j_m**2
+L739:         pred_i_squared = pred_i**2
+L740:         pred_j_m_pred_j_squared = (pred_j_m - pred_j) ** 2
+L741:         pred_i_m_1_mu_mu_pred_i = pred_i_m * (1 - self.mu) + self.mu - pred_i
+L742:         pred_j_m_1_mu_pred_j = pred_j_m * (1 - self.mu) - pred_j
+L743:         mu_squared = self.mu**2
+L744: 
+L745:         d_pred_i_Vi = np.sum(
+L746:             (pred_i_m_pred_m * pred_i_m_1_mu_mu_pred_i), axis=2, keepdims=True
+L747:         )  # first derivative of pred i with respect to Vi
+L748:         d_pred_i_Vj = np.sum(
+L749:             (pred_i_m_pred_m * pred_j_m_1_mu_pred_j), axis=2, keepdims=True
+L750:         )  # first derivative of pred i with respect to Vj
+L751:         d_pred_j_Vj = np.sum(
+L752:             (pred_j_m_pred_m * (pred_j_m_1_mu_pred_j + self.mu)),
+L753:             axis=2,
+L754:             keepdims=True,
+L755:         )  # first derivative of pred j with respect to Vj
+L756: 
+L757:         mu_3pim2_3pim_2pimpi_pi = self.mu * (
+L758:             -3 * pred_i_m_squared + 3 * pred_i_m + 2 * (pred_i_m_pred_i - pred_i)
+L759:         )
+L760:         pim2_2pimpi_pi2_dpiVi = (
+L761:             pred_i_m_squared - 2 * pred_i_m_pred_i + pred_i_squared - d_pred_i_Vi
+L762:         )
+L763:         mu2_2pim2_3pim_1 = mu_squared * (2 * pred_i_m_squared - 3 * pred_i_m + 1)
+L764:         mu2_pjm = mu_squared * (-pred_j_m)
+L765:         mu_pjm2_pjm = self.mu * (-pred_j_m_squared + pred_j_m)
+L766: 
+L767:         d2_pred_i_Vi = np.sum(
+L768:             (
+L769:                 pred_i_m_pred_m
+L770:                 * (mu2_2pim2_3pim_1 + mu_3pim2_3pim_2pimpi_pi + pim2_2pimpi_pi2_dpiVi)
+L771:             ),
+L772:             axis=2,
+L773:             keepdims=True,
+L774:         )
+L775:         d2_pred_i_Vj = np.sum(
+L776:             (
+L777:                 pred_i_m_pred_m
+L778:                 * (mu2_pjm + mu_pjm2_pjm + pred_j_m_pred_j_squared - d_pred_j_Vj)
+L779:             ),
+L780:             axis=2,
+L781:             keepdims=True,
+L782:         )
+L783: 
+L784:         mask = np.array(self.rum_structure[j]["utility"])[None, :] == label[:, None]
+L785:         grad = np.where(
+L786:             mask[:, :, None],
+L787:             ((-1 / pred_i) * d_pred_i_Vi),
+L788:             ((-1 / pred_i) * d_pred_i_Vj),
+L789:         )
+L790:         hess = np.where(
+L791:             mask[:, :, None],
+L792:             ((-1 / pred_i**2) * (d2_pred_i_Vi * pred_i - d_pred_i_Vi**2)),
+L793:             ((-1 / pred_i**2) * (d2_pred_i_Vj * pred_i - d_pred_i_Vj**2)),
+L794:         )
+L795:         hess *= factor
+L796: 
+L797:         if self.subsample_idx.size < self.num_obs[0]:
+L798:             grad_rescaled = np.zeros(
+L799:                 (self.num_obs[0], len(self.rum_structure[j]["utility"]))
+L800:             )
+L801:             hess_rescaled = np.zeros(
+L802:                 (self.num_obs[0], len(self.rum_structure[j]["utility"]))
+L803:             )
+L804:             grad_rescaled[self.subsample_idx, :] = grad.squeeze()
+L805:             hess_rescaled[self.subsample_idx, :] = hess.squeeze()
+L806: 
+L807:             grad = grad_rescaled
+L808:             hess = hess_rescaled
+L809: 
+L810:         if not self.rum_structure[j]["shared"]:
+L811:             grad = grad.sum(axis=1)
+L812:             hess = hess.sum(axis=1)
+L813:         elif len(self.rum_structure[j]["variables"]) < len(
+L814:             self.rum_structure[j]["utility"]
+L815:         ):
+L816:             grad = grad.T.reshape(
+L817:                 int(
+L818:                     len(self.rum_structure[j]["utility"])
+L819:                     / len(self.rum_structure[j]["variables"])
+L820:                 ),
+L821:                 -1,
+L822:             ).sum(axis=0)
+L823:             hess = hess.T.reshape(
+L824:                 int(
+L825:                     len(self.rum_structure[j]["utility"])
+L826:                     / len(self.rum_structure[j]["variables"])
+L827:                 ),
+L828:                 -1,
+L829:             ).sum(axis=0)
+L830: 
+L831:         grad = grad.T.reshape(-1)
+L832:         hess = hess.T.reshape(-1)
+L833: 
+L834:         return grad, hess
+L835: 
+L836:     @multiply_grad_hess_by_data
+L837:     def f_obj_proportional_odds(self, _, __):
+L838:         """
+L839:         Objective function for a proportional odds rumboost.
+L840: 
+L841:         Returns
+L842:         -------
+L843:         grad : numpy array
+L844:             The gradient with the cross-entropy loss function and proportional odds probabilities.
+L845:         hess : numpy array
+L846:             The hessian with the cross-entropy loss function and proportional odds probabilities (second derivative approximation rather than the hessian).
+L847:         """
+L848:         if self.device is not None:
+L849:             if self.torch_compile:
+L850:                 grad, hess = _f_obj_proportional_odds_torch_compiled(
+L851:                     self.labels[self.subsample_idx],
+L852:                     self._preds,
+L853:                     self.raw_preds[self.subsample_idx],
+L854:                     self.thresholds,
+L855:                 )
+L856:             else:
+L857:                 grad, hess = _f_obj_proportional_odds_torch(
+L858:                     self.labels[self.subsample_idx],
+L859:                     self._preds,
+L860:                     self.raw_preds[self.subsample_idx],
+L861:                     self.thresholds,
+L862:                 )
+L863: 
+L864:             grad = grad.cpu().numpy()
+L865:             hess = hess.cpu().numpy()
+L866: 
+L867:             if self.subsample_idx.shape[0] < self.num_obs[0]:
+L868:                 grad_rescaled = np.zeros((self.num_obs[0], len(self.thresholds) - 1))
+L869:                 hess_rescaled = np.zeros((self.num_obs[0], len(self.thresholds) - 1))
+L870:                 grad_rescaled[self.subsample_idx.cpu().numpy(), :] = grad
+L871:                 hess_rescaled[self.subsample_idx.cpu().numpy(), :] = hess
+L872: 
+L873:                 grad = grad_rescaled
+L874:                 hess = hess_rescaled
+L875: 
+L876:             return grad.reshape(-1, order="F"), hess.reshape(-1, order="F")
+L877: 
+L878:         labels = self.labels[self.subsample_idx]
+L879:         preds = self._preds
+L880:         thresholds = self.thresholds
+L881:         # add 0 to the end of thresholds to avoid index error, but not used for calculations
+L882:         thresholds = np.append(thresholds, 0)
+L883:         raw_preds = self.raw_preds[self.subsample_idx]
+L884:         grad = np.where(
+L885:             labels == 0,
+L886:             expit(raw_preds - thresholds[0]),
+L887:             np.where(
+L888:                 labels == len(thresholds),
+L889:                 preds[:, -1] - 1,
+L890:                 expit(raw_preds - thresholds[labels - 1])
+L891:                 + expit(raw_preds - thresholds[labels])
+L892:                 - 1,
+L893:             ),
+L894:         )
+L895:         hess = np.where(
+L896:             labels == 0,
+L897:             preds[:, 0] * expit(raw_preds - thresholds[0]),
+L898:             np.where(
+L899:                 labels == len(thresholds),
+L900:                 preds[:, -1] * (1 - preds[:, -1]),
+L901:                 expit(raw_preds - thresholds[labels - 1])
+L902:                 * (1 - expit(raw_preds - thresholds[labels - 1]))
+L903:                 + expit(raw_preds - thresholds[labels])
+L904:                 * (1 - expit(raw_preds - thresholds[labels])),
+L905:             ),
+L906:         )
+L907: 
+L908:         if self.subsample_idx.size < self.num_obs[0]:
+L909:             grad_rescaled = np.zeros((self.num_obs[0], len(self.thresholds) - 1))
+L910:             hess_rescaled = np.zeros((self.num_obs[0], len(self.thresholds) - 1))
+L911:             grad_rescaled[self.subsample_idx, :] = grad
+L912:             hess_rescaled[self.subsample_idx, :] = hess
+L913: 
+L914:             grad = grad_rescaled
+L915:             hess = hess_rescaled
+L916: 
+L917:         return grad, hess
+L918: 
+L919:     @multiply_grad_hess_by_data
+L920:     def f_obj_coral(self, _, __):
+L921:         """
+L922:         Objective function for a coral rumboost.
+L923: 
+L924:         Returns
+L925:         -------
+L926:         grad : numpy array
+L927:             The gradient of the weighted binary cross-entropy loss function with coral probabilities.
+L928:         hess : numpy array
+L929:             The hessian of the weighted binary cross-entropy loss function with coral probabilities (second derivative approximation rather than the hessian).
+L930:         """
+L931:         if self.device is not None:
+L932:             if self.torch_compile:
+L933:                 grad, hess = _f_obj_coral_torch_compiled(
+L934:                     self.labels[self.subsample_idx],
+L935:                     self.raw_preds[self.subsample_idx],
+L936:                     self.thresholds,
+L937:                 )
+L938:             else:
+L939:                 grad, hess = _f_obj_coral_torch(
+L940:                     self.labels[self.subsample_idx],
+L941:                     self.raw_preds[self.subsample_idx],
+L942:                     self.thresholds,
+L943:                 )
+L944: 
+L945:             grad = grad.cpu().numpy()
+L946:             hess = hess.cpu().numpy()
+L947:             if self.subsample_idx.shape[0] < self.num_obs[0]:
+L948:                 grad_rescaled = np.zeros((self.num_obs[0], len(self.thresholds) - 1))
+L949:                 hess_rescaled = np.zeros((self.num_obs[0], len(self.thresholds) - 1))
+L950:                 grad_rescaled[self.subsample_idx.cpu().numpy(), :] = grad
+L951:                 hess_rescaled[self.subsample_idx.cpu().numpy(), :] = hess
+L952: 
+L953:                 grad = grad_rescaled
+L954:                 hess = hess_rescaled
+--------------------------------------------------------------------------------
+ (https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/rumboost.py)
+citeturn247view1 [wordlim: 200] Crawled: 6 days ago; Content type: text/plain; Source: open({"ref_id":"turn243view0","lineno":3180}); Total lines: 3892
+L3071:                     rumb.num_obs[1], device=rumb.device, dtype=torch.int32
+L3072:                 )
+L3073:             else:
+L3074:                 rumb.subsample_idx_valid = np.arange(rumb.num_obs[1])
+L3075: 
+L3076:     # setting up eval function
+L3077:     if eval_func is not None:
+L3078:         rumb.eval_func = eval_func
+L3079:     elif torch_tensors:
+L3080:         if rumb.torch_compile:
+L3081:             if rumb.num_classes == 2:
+L3082:                 eval_func = binary_cross_entropy_torch_compiled
+L3083:             elif rumb.num_classes == 1 and not rumb.ord_model:
+L3084:                 eval_func = mse_torch_compiled
+L3085:             elif rumb.ord_model == "coral":
+L3086:                 eval_func = coral_eval_torch_compiled
+L3087:             else:
+L3088:                 eval_func = cross_entropy_torch_compiled
+L3089:         else:
+L3090:             if rumb.num_classes == 2:
+L3091:                 eval_func = binary_cross_entropy_torch
+L3092:             elif rumb.num_classes == 1 and not rumb.ord_model:
+L3093:                 eval_func = mse_torch
+L3094:             elif rumb.ord_model == "coral":
+L3095:                 eval_func = coral_eval_torch
+L3096:             else:
+L3097:                 eval_func = cross_entropy_torch
+L3098:     else:
+L3099:         if rumb.num_classes == 2:
+L3100:             eval_func = binary_cross_entropy
+L3101:         elif rumb.num_classes == 1 and not rumb.ord_model:
+L3102:             eval_func = mse
+L3103:         elif rumb.ord_model == "coral":
+L3104:             eval_func = coral_eval
+L3105:         else:
+L3106:             eval_func = cross_entropy
+L3107: 
+L3108:     # initial predictions
+L3109:     if torch_tensors:
+L3110:         if rumb.num_classes == 2:
+L3111:             rumb.raw_preds = torch.zeros(
+L3112:                 rumb.num_obs[0], device=rumb.device, dtype=torch.double
+L3113:             )
+L3114:         else:
+L3115:             rumb.raw_preds = torch.zeros(
+L3116:                 rumb.num_classes * rumb.num_obs[0],
+L3117:                 device=rumb.device,
+L3118:                 dtype=torch.double,
+L3119:             )
+L3120:     else:
+L3121:         if rumb.num_classes == 2:
+L3122:             rumb.raw_preds = np.zeros(rumb.num_obs[0])
+L3123:         else:
+L3124:             rumb.raw_preds = np.zeros(rumb.num_classes * rumb.num_obs[0])
+L3125:     if init_models:
+L3126:         for j, booster in enumerate(rumb.boosters):
+L3127:             if (
+L3128:                 rumb.boost_from_parameter_space[j]
+L3129:                 and not "endogenous_variable" in rumb.rum_structure[j].keys()
+L3130:             ):
+L3131:                 init_preds = rumb._linear_predict(
+L3132:                     j, rumb.train_set[j].get_data().reshape(-1)
+L3133:                 )
+L3134:             elif "endogenous_variable" in rumb.rum_structure[j].keys():
+L3135:                 init_preds = (
+L3136:                     rumb._monotonise_leaves(
+L3137:                         booster._Booster__inner_predict(0),
+L3138:                         rumb.rum_structure[j]["monotone_constraints"][0],
+L3139:                     )
+L3140:                     * rumb.distances[j]
+L3141:                 )
+L3142:             else:
+L3143:                 init_preds = booster._Booster__inner_predict(0)
+L3144:             if torch_tensors:
+L3145:                 rumb.raw_preds[
+L3146:                     rumb.booster_train_idx[j][0] : rumb.booster_train_idx[j][1]
+L3147:                 ] += torch.from_numpy(init_preds).to(rumb.device)
+L3148:             else:
+L3149:                 rumb.raw_preds[rumb.booster_train_idx[j]] += init_preds
+L3150: 
+L3151:     rumb._update_raw_preds([])
+L3152:     rumb._preds = rumb._inner_predict()
+L3153: 
+L3154:     if params.get("full_hessian", False):
+L3155:         rumb._precompute_grad_hess()
+L3156: 
+L3157:     # start training
+L3158:     for i in range(init_iteration, init_iteration + num_boost_round):
+L3159:         # initialising the current predictions
+L3160:         rumb._current_gains = []
+L3161:         # update all binary boosters of the rumb
+L3162:         for j, booster in enumerate(rumb.boosters):
+L3163:             for cb in callbacks_before_iter:
+L3164:                 cb(
+L3165:                     callback.CallbackEnv(
+L3166:                         model=booster,
+L3167:                         params=rumb.params[j],
+L3168:                         iteration=i,
+L3169:                         begin_iteration=init_iteration,
+L3170:                         end_iteration=init_iteration + num_boost_round,
+L3171:                         evaluation_result_list=None,
+L3172:                     )
+L3173:                 )
+L3174: 
+L3175:             # store current class
+L3176:             rumb._current_j = j
+L3177: 
+L3178:             # initial gain
+L3179:             temp_gain = booster.feature_importance("gain").sum()
+L3180: 
+L3181:             # update the booster
+L3182:             booster.update(train_set=None, fobj=f_obj)
+L3183:             # store update gain
+L3184:             rumb._current_gains.append(
+L3185:                 (booster.feature_importance("gain").sum() - temp_gain)
+L3186:                 / (
+L3187:                     rumb.num_obs[0] * len(rumb.rum_structure[j]["variables"])
+L3188:                 )  # we normalise with the full number of observations even when not predicting for all alternatives since the gradient are summed in the objective function
+L3189:             )
+L3190:             # check evaluation result. (from lightGBM initial code, check on all J binary boosters)
+L3191:             evaluation_result_list = []
+L3192:             if rumb.valid_labels is not None:
+L3193:                 if is_valid_contain_train:
+L3194:                     evaluation_result_list.extend(booster.eval_train(feval))
+L3195:                 evaluation_result_list.extend(booster.eval_valid(feval))
+L3196:             try:
+L3197:                 for cb in callbacks_after_iter:
+L3198:                     cb(
+L3199:                         callback.CallbackEnv(
+L3200:                             model=booster,
+L3201:                             params=rumb.params[j],
+L3202:                             iteration=i,
+L3203:                             begin_iteration=init_iteration,
+L3204:                             end_iteration=init_iteration + num_boost_round,
+L3205:                             evaluation_result_list=evaluation_result_list,
+L3206:                         )
+L3207:                     )
+L3208:             except callback.EarlyStopException as earlyStopException:
+L3209:                 booster.best_iteration = earlyStopException.best_iteration + 1
+L3210:                 evaluation_result_list = earlyStopException.best_score
+L3211: 
+L3212:         # find best booster and update raw predictions
+L3213:         best_boosters = rumb._find_best_booster()
+L3214: 
+L3215:         # rollback unchosen boosters
+L3216:         unchosen_boosters = set(range(len(rumb.boosters))) - set(best_boosters)
+L3217:         rumb._rollback_boosters(unchosen_boosters)
+L3218:         # update raw predictions
+L3219:         rumb._update_raw_preds(best_boosters)
+L3220: 
+L3221:         if (optimise_mu or optimise_alphas) and ((i + 1) % optim_interval == 0):
+L3222:             params_to_optimise = []
+L3223: 
+L3224:             if optimise_mu:
+L3225:                 if rumb.device is not None:
+L3226:                     params_to_optimise += rumb.mu.cpu().numpy().tolist()
+L3227:                 else:
+L3228:                     params_to_optimise += rumb.mu.tolist()
+L3229:             if optimise_alphas:
+L3230:                 if rumb.device is not None:
+L3231:                     params_to_optimise += rumb.alphas.cpu().numpy().flatten().tolist()
+L3232:                 else:
+L3233:                     params_to_optimise += rumb.alphas.flatten().tolist()
+L3234:             # update mu
+L3235:             res = minimize(
+L3236:                 optimise_mu_or_alpha,
+L3237:                 np.array(params_to_optimise),
+L3238:                 args=(
+L3239:                     rumb.labels[rumb.subsample_idx],
+L3240:                     rumb,
+L3241:                     optimise_mu,
+L3242:                     optimise_alphas,
+L3243:                     alpha_shape,
+L3244:                 ),
+L3245:                 bounds=bounds,
+L3246:                 method="SLSQP",
+L3247:             )
+L3248: 
+L3249:             rumb._update_mu_or_alphas(res, optimise_mu, optimise_alphas, alpha_shape)
+L3250: 
+L3251:         if optimise_thresholds and (
+L3252:             i % optim_interval == 0
+L3253:         ):  # need to optimise form first iteration for ordinal logit
+L3254: 
+L3255:             thresh_diff = threshold_to_diff(rumb.thresholds)
+L3256:             if rumb.ord_model == "coral":
+L3257:                 opt_func = optimise_thresholds_coral
+L3258:             elif rumb.ord_model == "proportional_odds":
+L3259:                 opt_func = optimise_thresholds_proportional_odds
+L3260: 
+L3261:             if rumb.device is not None:
+L3262:                 raw_preds = (
+L3263:                     rumb.raw_preds.view(-1, rumb.num_obs[0])
+L3264:                     .T[rumb.subsample_idx, :]
+L3265:                     .cpu()
+L3266:                     .numpy()
+L3267:                 )
+L3268:                 labels = rumb.labels[rumb.subsample_idx].cpu().numpy()
+L3269:             else:
+L3270:                 raw_preds = rumb.raw_preds.reshape((rumb.num_obs[0], -1), order="F")[
+L3271:                     rumb.subsample_idx, :
+L3272:                 ]
+L3273:                 labels = rumb.labels[rumb.subsample_idx]
+L3274: 
+L3275:             # update thresholds
+L3276:             res = minimize(
+L3277:                 opt_func,
+L3278:                 np.array(thresh_diff),
+L3279:                 args=(
+L3280:                     labels,
+L3281:                     raw_preds,
+L3282:                 ),
+L3283:                 bounds=bounds,
+L3284:                 method="SLSQP",
+L3285:             )
+L3286: 
+L3287:             rumb.thresholds = diff_to_threshold(res.x)
+L3288: 
+L3289:         rumb._preds = rumb._inner_predict()
+L3290: 
+L3291:         if optimise_ascs and ((i + 1) % optim_interval == 0):
+L3292:             grad, hess = compute_grad_hess(
+L3293:                 rumb._preds,
+L3294:                 rumb.device,
+L3295:                 rumb.num_classes,
+L3296:                 rumb.labels[rumb.subsample_idx],
+L3297:                 (
+L3298:                     rumb.labels_j[rumb.subsample_idx]
+L3299:                     if rumb.labels_j is not None
+L3300:                     else None
+L3301:                 ),
+L3302:             )
+L3303: 
+L3304:             for j, cst in enumerate(constant_parameters):
+L3305:                 cst.boost(grad[:, j], hess[:, j])
+L3306:             if rumb.device is not None:
+L3307:                 rumb.asc = (
+L3308:                     torch.from_numpy(np.array([c() for c in constant_parameters]))
+L3309:                     .type(torch.double)
+L3310:                     .to(rumb.device)
+L3311:                 )
+L3312:             else:
+L3313:                 rumb.asc = np.array([c() for c in constant_parameters])
+L3314: 
+L3315:         # reshuffle indices
+L3316:         if subsample_freq > 0 and (i + 1) % subsample_freq == 0:
+L3317:             if torch_tensors:
+L3318:                 rumb.subsample_idx = torch.randperm(
+L3319:                     rumb.num_obs[0], device=rumb.device
+L3320:                 )[: int(subsample * rumb.num_obs[0])]
+L3321:             else:
+L3322:                 rumb.subsample_idx = np.random.choice(
+L3323:                     np.arange(rumb.num_obs[0]),
+L3324:                     int(subsample * rumb.num_obs[0]),
+L3325:                     replace=False,
+L3326:                 )
+L3327:         elif rumb.batch_size:
+L3328:             if (i + 1) % len(batches) == 0:
+L3329:                 permutations = torch.randperm(
+L3330:                     rumb.num_obs[0], device=rumb.device, dtype=torch.int32
+L3331:                 )
+L3332:                 batches = torch.split(permutations, rumb.batch_size)
+L3333:             rumb.subsample_idx = batches[(i + 1) % len(batches)]
+L3334: 
+L3335:         if subsample_valid < 1.0 and (i + 1) % 50:
+L3336:             if torch_tensors:
+L3337:                 rumb.subsample_idx_valid = torch.randperm(
+L3338:                     rumb.num_obs[1], device=rumb.device
+L3339:                 )[: int(subsample_valid * rumb.num_obs[1])]
+L3340:             else:
+L3341:                 rumb.subsample_idx_valid = np.random.choice(
+L3342:                     np.arange(rumb.num_obs[1]),
+L3343:                     int(subsample_valid * rumb.num_obs[1]),
+L3344:                     replace=False,
+L3345:                 )
+L3346: 
+L3347:         # make predictions after boosting round to compute new cross entropy and for next iteration grad and hess
+L3348:         rumb._preds = rumb._inner_predict()
+L3349: 
+L3350:         if params.get("full_hessian", False):
+L3351:             rumb._precompute_grad_hess()
+L3352: 
+L3353:         # compute cross validation on training or validation test
+L3354:         eval_train = eval_func(rumb._preds, rumb.labels[rumb.subsample_idx])
+L3355: 
+L3356:         if len(rumb.num_obs) > 1:  # only if there are validation sets
+L3357:             eval_test = []
+L3358:             for k, val_labels in enumerate(rumb.valid_labels):
+L3359:                 preds_valid = rumb._inner_predict(k + 1)
+L3360:                 eval_test.append(eval_func(preds_valid, val_labels))
+L3361: 
+L3362:             # update best score and best iteration
+L3363:             if eval_test[0] < rumb.best_score:
+L3364:                 rumb.best_score = eval_test[0]
+L3365:                 rumb.best_iteration = i + 1
+L3366: 
+L3367:         rumb.best_score_train = eval_train
+L3368: 
+L3369:         # verbosity
+L3370:         if (verbosity >= 1) and (i % verbose_interval == 0):
+L3371:             print(
+L3372:                 f"[{i+1}]"
+L3373:                 + "-" * (6 - int(np.log10(i + 1)))
+L3374:                 + f"NCE value on train set : {eval_train:.4f}"
+L3375:             )
+L3376:             if rumb.valid_labels is not None:
+L3377:                 for k, _ in enumerate(rumb.valid_labels):
+--------------------------------------------------------------------------------
+GitHub - big-ucl/rumboost at v1.0.2 · GitHub (https://github.com/big-ucl/rumboost/tree/v1.0.2)
+citeturn247view2 [wordlim: 200] Crawled: last month; Content type: text/html; Source: click({"ref_id":"turn244view0","id":97}); Total lines: 254
+--------------------------------------------------------------------------------
+rumboost/examples/6_cross-nested.ipynb at main · big-ucl/rumboost · GitHub (https://github.com/NicoSlvd/rumboost/blob/main/examples/6_cross-nested.ipynb)
+citeturn247view3 [wordlim: 200] Crawled: 8 months ago; Content type: text/html; Source: click({"ref_id":"turn244view0","id":104}); Redirected to URL: https://github.com/big-ucl/rumboost/blob/main/examples/6_cross-nested.ipynb; Total lines: 187
+--------------------------------------------------------------------------------
+rumboost/rumboost at main · big-ucl/rumboost · GitHub (https://github.com/big-ucl/rumboost/tree/main/rumboost)
+citeturn247view4 [wordlim: 200] Crawled: last month; Content type: text/html; Source: click({"ref_id":"turn244view0","id":84}); Total lines: 208
+

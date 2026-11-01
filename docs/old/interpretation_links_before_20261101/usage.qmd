@@ -1,0 +1,168 @@
+---
+title: "Match → possession → frame → quantities"
+jupyter: python3
+---
+
+## Why initialize an object?
+
+One `PRESS` object represents one match. It holds canonical tracking, optional event/action context, explicit team-possession intervals, and the computed results keyed by frame ID. Initialization validates inputs and copies the tracking table; it does **not** run physics, train a model, compute xT, or predict every frame. Compute only the frames needed for an analysis and retrieve their component results afterwards. Use a fresh object for another match: frame IDs and possession IDs are local to one match. Treat loaded tables as fixed inputs. **design choice**
+
+## Start with an executable example
+
+This example needs no downloaded data. The bundled 22-player match, action table and xT surface are synthetic. Coarse grids keep this demonstration fast; its numbers are illustrative and are not the research configuration or a benchmark.
+
+```{python}
+from PRESS import PRESS
+from PRESS.datasets import load_demo_match
+
+tracking, possessions, actions, xT_grid = load_demo_match()
+model = PRESS(tracking, possessions_data=possessions, actions_data=actions)
+print(model.get_possessions().to_string(index=False))
+print(model.get_checkpoints(1)[["frame_id", "start_type_std", "previous_action_std"]].to_string(index=False))
+
+possession_id = model.get_possessions().possession_id.iloc[0]
+frame_id = int(model.get_checkpoints(possession_id).frame_id.iloc[0])
+frame = model.get_frame(frame_id)
+state = model.get_state(frame_id)
+print("carrier:", state["player"], "position (m):", state["x_bc"])
+
+# Evaluate an interior frame, independently of default checkpoint selection.
+frame_id = int(model.get_frames(possession_id, valid_only=True).frame.iloc[5])
+print("frame context:", model.get_frame_context(frame_id))
+
+result = model.compute_frame(
+    frame_id, xT_grid,
+    ppcf_kwargs={"r_max": 12, "step": 6},
+    bcos_kwargs={"r_max": 8, "step": 4},
+)
+print("P(pass):", result["ACTION_SELECTION"]["Pass probability"])
+print("next-action hazard:", model.get_hazard_result(frame_id))
+```
+
+For the same executable workflow from the command line, run `python -m examples.checkpoint` from the repository root after installing PRESS. The [workflow vignette](vignettes/00_match_workflow/00_match_workflow.ipynb) also plots the selected frame.
+
+## Load a processed local SkillCorner match
+
+Install the file-reading extra with `pip install -e '.[io,vignettes]'`. Obtain the source data from [SkillCorner opendata](https://github.com/SkillCorner/opendata), then run the existing preprocessing and action-segmentation pipeline described in [data setup](data.qmd). The adapter reads **processed** tables, not the raw JSON or raw dynamic-event CSV.
+
+Set `SKILLCORNER_OPENDATA` and `SKILLCORNER_ANALYSIS` to your local repository roots. Replace the example match ID with a directory in your local data. This plain Python block is intentionally not executed by the public site build.
+
+```python
+from pathlib import Path
+import os
+import numpy as np
+from PRESS import PRESS
+
+opendata = Path(os.environ["SKILLCORNER_OPENDATA"])
+analysis = Path(os.environ["SKILLCORNER_ANALYSIS"])
+match_id = "1886347"  # choose one of your processed match directories
+model = PRESS.from_skillcorner(
+    opendata / "data" / "matches" / match_id,
+    actions_path=opendata / "data" / "actions.csv",
+)
+xT_grid = np.load(analysis / "results" / "xt" / "xt_grid.npy")
+
+# IDs below are TEAM possessions created by the adapter.
+print(model.get_possessions().head().to_string(index=False))
+eligible = model.get_checkpoints()
+if eligible.empty:
+    raise ValueError("This match has no eligible checkpoints.")
+frame_id = int(eligible.frame_id.iloc[0])
+intervals = model.get_possessions()
+selected = intervals.loc[
+    (intervals.frame_start <= frame_id) & (intervals.frame_end >= frame_id)
+].iloc[0]
+possession_id = selected.possession_id
+
+print(model.get_player_possessions(possession_id).to_string(index=False))
+print(model.get_frames(possession_id, valid_only=True)[["frame", "player_possession"]].head())
+print(model.get_checkpoints(possession_id, eligible_only=False).to_string(index=False))
+
+# Full research defaults. These grids cost more than the synthetic demo.
+result = model.compute_frame(frame_id, xT_grid)
+print(model.get_hazard_result(frame_id))
+```
+
+The adapter links adjacent player segments only when a successful pass has a matching receiver and receipt frame, with the same team and no recorded interruption. Unverified links start a new team interval; this is a conservative reconstruction, not a claim to recover every provider team possession. Original `actions.csv` possession IDs remain player-possession IDs. `get_possessions()` exposes separate match-local team IDs. Frame ranges are inclusive; in-flight frames can lack a carrier and are removed by `valid_only=True`. Unknown event categories are excluded from eligible checkpoints, matching the original training pipeline. **design choice**
+
+## Calculate components separately
+
+Each component vignette demonstrates its public compute method. Computing all components for a frame requires this order:
+
+```python
+from PRESS.extras import BCOS
+import numpy as np
+
+model.compute_ppcf(frame_id)
+model.compute_ball_drive_loss(frame_id)
+transition = model.compute_transition_probabilities(frame_id, xT_grid)
+
+bcos = BCOS(model.tracking_data)
+bcos_result = bcos.compute_bcos(frame_id)
+bcos_value = float(bcos_result["BCOS area"])
+context = model.get_frame_context(frame_id)
+p_pass = model.compute_action_selection_probability(
+    frame_id, xT_grid,
+    start_type=context["start_type"],
+    previous_action=context["previous_action"],
+    bcos_value=bcos_value,
+)
+hazard = model.compute_hazard(frame_id)
+ppcf = model.get_ppcf_result(frame_id)
+drive = model.get_ball_drive_result(frame_id)
+```
+
+`compute_ppcf` and `compute_ball_drive_loss` store their outputs and return `None`; read them with getters. Transition choice returns one probability per candidate location; these probabilities sum to one. Action selection and hazard return scalar probabilities. Recomputing an upstream component invalidates dependent stored results for that frame, so getters cannot silently return an old hazard. BCOS remains an optional extra class; its scalar area in m² is required by the current trained action-selection model. `compute_frame` calls that extra when `bcos_value` is not supplied. **design choice**
+
+## Any frame inside a possession
+
+Frame-level computation and possession sampling are separate. PRESS evaluates the current state at any usable frame; action decomposition supplies a default sampling for a trajectory, inspired by the EPV framework [@fernandez2019]. **design choice**
+
+`get_frames(possession_id, valid_only=True)` exposes usable tracking rows. `compute_frame` reads event context from per-frame annotations or from an annotated action interval containing the selected frame. It does not require the frame to be an action start. `get_frame_context(frame_id)` exposes the categories and their source.
+
+```python
+frame_id = int(model.get_frames(possession_id, valid_only=True).frame.iloc[5])
+print(model.get_frame_context(frame_id))
+result = model.compute_frame(frame_id, xT_grid)
+```
+
+If annotation coverage is unavailable, supply the actual event categories explicitly. This also works with an object initialized only from tracking, without any segmentation table:
+
+```python
+frame_model = PRESS(tracking)
+result = frame_model.compute_frame(
+    frame_id, xT_grid,
+    start_type="reception_open_play",
+    previous_action="ball_drive",
+)
+```
+
+The strings illustrate the arguments; use the actual context for that frame. Tracking positions alone cannot identify those categorical model features. The installed model uses raw granular categories and explicit unknown/missing buckets. `granular=False` on the context getter preserves the historical standardized view. The configured carry-risk horizon remains one second by default and is independent of how densely a possession is sampled. **design choice**
+
+Plot the computed state with `plot_pi(model, frame_id)`, `plot_ppcf(model, frame_id, field="pass_success")`, `plot_transition(model, frame_id)` and `plot_action_selection(model, frame_id)` from `PRESS.visualization`. The component vignettes execute these package plots on the pitch.
+
+## A possession trajectory
+
+```python
+from PRESS.utils.possession import possession_survival, classify_possession_typology
+
+checkpoints = model.compute_possession(possession_id, xT_grid)  # current default sampling
+canonical = checkpoints.loc[checkpoints.is_canonical]
+summary = possession_survival(canonical["Hazard"].to_numpy())
+metadata = model.get_possession(possession_id)
+category = classify_possession_typology(summary["bands"], lost=bool(metadata["lost"]))
+print(checkpoints)
+print(summary["survival"])
+print(category)
+```
+
+For another segmentation or sampling policy, supply its frame IDs explicitly:
+
+```python
+chosen_frames = model.get_frames(possession_id, valid_only=True).frame.iloc[::5].tolist()
+trajectory = model.compute_possession(possession_id, xT_grid, frame_ids=chosen_frames)
+```
+
+The same `compute_frame` evaluator is used for every selected frame. The current default includes eligible canonical action starts and extra evaluation snapshots, marked by `checkpoint_kind`/`is_canonical`; it is an analysis convention to review during benchmarking, rather than a restriction on frame-level computation. **design choice** Inspect excluded rows first with `get_checkpoints(..., eligible_only=False)` and define your coverage criteria before a real-data survival report. Filter additional snapshots before any canonical summary; the remaining product still requires coherent conditional steps for a probabilistic survival interpretation. `include_snapshots=False` selects canonical evaluations directly. A completed pass continues the team interval. Terminal loss comes from the possession metadata, not from thresholding the model hazard. Survival summarizes the supplied sequence retrospectively and depends on that sampling. Record the selection policy alongside a possession summary. **design choice** See [survival](vignettes/07_survival_curve/07_survival_curve.ipynb), [typologies](vignettes/08_possession_typologies/08_possession_typologies.ipynb), and the [API reference](api.qmd).
+
+See [pressure and action-step interpretation](interpretation.qmd) for the one-second drive convention, frame inference and the conditions for a retrospective survival interpretation.

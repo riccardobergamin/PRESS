@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "model_type": "binary_action_choice",
+  "model_id": "skillcorner_outfield_action_selection_v2",
+  "feature_contract": "canonical_action_30_v1",
+  "booster_file": "action_selection_model.ubj",
+  "booster_sha256": "307dc003bede024a60110b57aa8af2233e67d1b04651632ff4cbaaa50f853b77",
+  "feature_names": [
+    "match_clock_min",
+    "score_difference_prefix",
+    "completed_canonical_drives",
+    "carrier_x_attack",
+    "carrier_y_attack",
+    "carrier_speed",
+    "carrier_velocity_attack_angle",
+    "drive_success_1s",
+    "bcos",
+    "xt_team_drive_1s",
+    "xt_opp_drive_1s",
+    "team_line_index_drive_1s",
+    "opp_line_index_drive_1s",
+    "team_line_distance_drive_1s",
+    "opp_line_distance_drive_1s",
+    "teammates_ahead_bc",
+    "opponents_ahead_bc",
+    "pass_success_mean",
+    "xt_team_pass_success",
+    "xt_opp_pass_failure",
+    "team_line_pass_success",
+    "team_line_pass_failure",
+    "opp_line_pass_success",
+    "opp_line_pass_failure",
+    "teammates_ahead_pass_success",
+    "teammates_ahead_pass_failure",
+    "opponents_ahead_pass_success",
+    "opponents_ahead_pass_failure",
+    "start_type_raw=corner_interception",
+    "start_type_raw=corner_reception",
+    "start_type_raw=free_kick_interception",
+    "start_type_raw=free_kick_reception",
+    "start_type_raw=goal_kick_interception",
+    "start_type_raw=goal_kick_reception",
+    "start_type_raw=keep_possession",
+    "start_type_raw=pass_interception",
+    "start_type_raw=pass_reception",
+    "start_type_raw=recovery",
+    "start_type_raw=throw_in_interception",
+    "start_type_raw=throw_in_reception",
+    "start_type_raw=unknown",
+    "start_type_raw=__missing__",
+    "start_type_raw=__unseen__",
+    "previous_action_raw=ball_drive",
+    "previous_action_raw=corner_interception",
+    "previous_action_raw=corner_reception",
+    "previous_action_raw=free_kick_interception",
+    "previous_action_raw=free_kick_reception",
+    "previous_action_raw=goal_kick_interception",
+    "previous_action_raw=goal_kick_reception",
+    "previous_action_raw=keep_possession",
+    "previous_action_raw=pass_interception",
+    "previous_action_raw=pass_reception",
+    "previous_action_raw=recovery",
+    "previous_action_raw=throw_in_interception",
+    "previous_action_raw=throw_in_reception",
+    "previous_action_raw=unknown",
+    "previous_action_raw=__missing__",
+    "previous_action_raw=__unseen__"
+  ],
+  "vocabulary": {
+    "start_type_raw": [
+      "corner_interception",
+      "corner_reception",
+      "free_kick_interception",
+      "free_kick_reception",
+      "goal_kick_interception",
+      "goal_kick_reception",
+      "keep_possession",
+      "pass_interception",
+      "pass_reception",
+      "recovery",
+      "throw_in_interception",
+      "throw_in_reception",
+      "unknown",
+      "__missing__",
+      "__unseen__"
+    ],
+    "previous_action_raw": [
+      "ball_drive",
+      "corner_interception",
+      "corner_reception",
+      "free_kick_interception",
+      "free_kick_reception",
+      "goal_kick_interception",
+      "goal_kick_reception",
+      "keep_possession",
+      "pass_interception",
+      "pass_reception",
+      "recovery",
+      "throw_in_interception",
+      "throw_in_reception",
+      "unknown",
+      "__missing__",
+      "__unseen__"
+    ]
+  },
+  "xt_grid": [
+    [
+      0.00219074409215372,
+      0.0029080006019016847,
+      0.002741451138245335,
+      0.0027372353190173596,
+      0.0027176311452268573,
+      0.0024671254625413057
+    ],
+    [
+      0.0032439293748223463,
+      0.0035090473171308367,
+      0.003956364154177674,
+      0.00395060660934358,
+      0.003977190297660268,
+      0.003397383252331107
+    ],
+    [
+      0.0037426482236688195,
+      0.0052712503541786394,
+      0.005450562159604563,
+      0.0056199214326671035,
+      0.0054189104761354825,
+      0.004786561487006194
+    ],
+    [
+      0.005548325920160955,
+      0.007097772559732452,
+      0.0077947266137610915,
+      0.008022638585100876,
+      0.007086143536518727,
+      0.006550294818957699
+    ],
+    [
+      0.007937711561476775,
+      0.009170522012460627,
+      0.009943707832907855,
+      0.00998411804609245,
+      0.009267567325562586,
+      0.008286123985551487
+    ],
+    [
+      0.010859506458007926,
+      0.012314413387716674,
+      0.012766394665340249,
+      0.013139870732171419,
+      0.013228266168787427,
+      0.01088076160606133
+    ],
+    [
+      0.014758014190226891,
+      0.017009848079048054,
+      0.018243528041548406,
+      0.017473224015905325,
+      0.0176815142790783,
+      0.014041111875017472
+    ],
+    [
+      0.02020253549256573,
+      0.02329120745142379,
+      0.026587428360570844,
+      0.02988551984098049,
+      0.022399104074902334,
+      0.019831041574113275
+    ],
+    [
+      0.022680255121832662,
+      0.02891890749012733,
+      0.06775862711476842,
+      0.07916745930165564,
+      0.029932784453187714,
+      0.025047549293533308
+    ],
+    [
+      0.024265514397964323,
+      0.0535648631614395,
+      0.15080736407124756,
+      0.14702774824212209,
+      0.039767354052534246,
+      0.019204726100985163
+    ]
+  ],
+  "calibration": {
+    "method": "none"
+  },
+  "training": {
+    "match_ids": [
+      "1886347",
+      "1899585",
+      "1925299",
+      "1953632",
+      "1996435",
+      "2006229",
+      "2011166",
+      "2013725",
+      "2015213",
+      "2017461"
+    ],
+    "n_actions": 16918,
+    "target": {
+      "pass": 1,
+      "carry": 0
+    },
+    "parameters": {
+      "objective": "binary:logistic",
+      "eval_metric": "logloss",
+      "tree_method": "hist",
+      "device": "cpu",
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "max_bin": 256,
+      "seed_per_iteration": true,
+      "max_depth": 6,
+      "min_child_weight": 1.0,
+      "reg_lambda": 10.0,
+      "eta": 0.03,
+      "seed": 20261026,
+      "nthread": 4
+    },
+    "rounds": 277,
+    "selection": "Lowest unweighted mean of five saved AS70 validation CE values; fixed trees=median of the five best prefixes for THAT SAME configuration. No test score used.",
+    "smoke": false,
+    "benchmark_source": "70_action_selection_fine_bcos_20261029_102502",
+    "refit_is_not_held_out_evaluation": true
+  },
+  "upstream": {
+    "files": {
+      "ball_drive_model.json": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+      "pass_risk_model.json": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+      "pass_selection_model.json": "ad755c562588440a9d2e476af736a1150924487ad818cef51c5d799d8da5f49a",
+      "pass_selection_model.ubj": "5b2b4222240f50dd208ab842763b8953f628ffb83a8fc4a2ea018ecd1366c24d"
+    },
+    "pass_model_id": "skillcorner_outfield_pass_risk_uniform_tti_v4",
+    "ball_drive_model_id": "skillcorner_outfield_ball_drive_obe_v2",
+    "pass_selection_model_id": "skillcorner_outfield_pass_selection_flat_v3",
+    "bcos": {
+      "r_max": 40.0,
+      "step": 1.0,
+      "dx": 0.03125,
+      "dt": 0.04,
+      "T_max": 15.0,
+      "stop_eps": 1e-09,
+      "configuration": [
+        0.2996318904783872,
+        6.6,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0
+      ]
+    }
+  },
+  "protocol_sha256": "6e586dc91b093ba5880ccf664ccddf830c5b4da48162dec064d33e53f168b464"
+}

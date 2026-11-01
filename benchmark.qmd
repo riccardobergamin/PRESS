@@ -1,0 +1,59 @@
+---
+title: "Benchmarks"
+---
+
+Choose a model to read its cohort, training procedure, results and calibration.
+
+::: {.page-directory}
+
+::: {.directory-section}
+### Ball-drive risk {#ball-drive-benchmark}
+
+[Open benchmark](benchmarks/01_ball_drive_risk.qmd)
+:::
+
+::: {.directory-section}
+### Pass-probability {#pass-risk-benchmark}
+
+[Open benchmark](benchmarks/02_pass_probability.qmd)
+:::
+
+::: {.directory-section}
+### Pass-selection {#pass-selection-benchmark}
+
+[Open benchmark](benchmarks/03_pass_selection.qmd)
+:::
+
+::: {.directory-section}
+### Action-selection {#action-selection-benchmark}
+
+[Open benchmark](benchmarks/04_action_selection.qmd)
+:::
+
+::: {.directory-section}
+### Residual-risk {#residual-risk-benchmark}
+
+[Open benchmark](benchmarks/05_residual_risk.qmd)
+:::
+
+::: {.directory-section}
+### Composed h and xLoss
+
+[Open benchmark](vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb)
+:::
+
+:::
+
+## Interpretation: spatial features and tree importance
+
+The [pass-selection](vignettes/03_transition_model/03_transition_model.ipynb),
+[action-selection](vignettes/04_action_selection/04_action_selection.ipynb) and
+[residual-risk](vignettes/05a_residual_risk/05a_residual_risk.ipynb) vignettes now
+show conceptual-input split importance for their frozen production and outer
+ensembles. These explain model use, not new performance benchmarks or causal
+effects. The [BCOS extra](vignettes/extras/bcos/10_bcos.ipynb) additionally reports
+fixed-model held-out perturbations. Its relevance motivates testing richer
+descriptions of accessible-space shape for continuation risk, without assuming
+that an improvement will follow. Compare a small current-state feature block
+on identical match folds, using validation selection and held-out CE/calibration.
+No such extension is included in the final models.

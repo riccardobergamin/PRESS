@@ -1,0 +1,82 @@
+---
+title: "Pipeline and regenerated training bases"
+---
+
+The raw-data pipeline lives in the sibling **`skillcorner-analysis`** repository. The input and output files live in **`opendata`**. This package consumes canonical processed tables and evaluates any usable frame independently of the segmentation or sampling policy.
+
+## Actual layout
+
+```text
+skillcorner-analysis/
+  scripts/utils/base_pipeline.py          # raw loading, kinematics, cohorts, validation
+  scripts/utils/possession_selection.py   # boundary matching and release provenance
+  scripts/utils/training_contracts.py     # data root, match folds, stable trajectory identity
+  scripts/pipeline/rebuild_base.py        # raw -> base tables
+  scripts/pipeline/build_ball_trajectories.py
+  scripts/pipeline/validate_base.py
+  scripts/pipeline/build_action_features.py
+  scripts/training/                      # fitting and model-dependent feature stages
+  docs/pipeline-review.md
+  README.md
+opendata/data/
+  matches/                              # original provider inputs
+  processed/2026-10-15_training_v5_outfield/           # regenerated, versioned output
+PRESS-portfolio-work/
+  PRESS/                                # inference, navigation, physics and pitch views
+```
+
+The former preprocessing, segmentation and pass-extraction entry points in `scripts/analysis` call the same portable rebuild command. Their previous implementations are preserved under `scripts/analysis/old`. No raw-data pipeline has been moved into this package.
+
+## Stages and contracts
+
+| Stage | Output and contract |
+|---|---|
+| Read raw tracking | Preserve every frame, native centred metre coordinates, pitch dimensions, provider carrier and nullable detection flags. |
+| Estimate kinematics | Offline centred Savitzky–Golay derivatives; split at periods, gaps and nonfinite values. Extrapolated finite players are allowed. |
+| Select individual intervals | Both start and end must be explicitly matched. Retain the complete raw event table with eligibility reasons separately. |
+| Extract passes | Match release and the immediate next raw possession start within the same match/period; sender start and receiver end are not mandatory. |
+| Annotate carrier | Disjoint selected intervals plus eligible release-only points; retain provider labels and provenance separately. |
+| Segment | Canonical one-second drives and release passes; short non-loss exposure tails and terminal snapshots distinguished explicitly. Frame evaluation remains independent. |
+| Export component bases | Actions, drives, passes, destination/action/residual cohorts with match-local IDs, state eligibility and standardized context. |
+| Reconstruct ball trajectories | Same mean-first-five-velocity physical method, with stable pass identity and checked provenance. This uses post-release observations. |
+| Validate | Hashes, cross-table contracts, every exported training state through the real package extractor, and trajectory shape/identity. |
+| Build features and fit | Separate downstream stages; no old feature matrices or predictions are copied into the new base root. |
+
+## Regeneration completed
+
+The ten-match output contains 642,687 tracking frames, 9,106 selected individual intervals, 3,027 conservative team intervals, 24,073 action/snapshot rows and 7,467 extracted passes. The v5 component bases contain 9,148 one-second drive labels, 5,279 straight-pass rows, 7,010 destination examples, 16,583 action-selection rows and 8,541 optional residual-risk rows. Goalkeeper carriers are excluded from training; goalkeeper defenders/receivers remain in model states. All inference intervals and checkpoints are retained. These are coverage counts, not predictive benchmarks.
+
+All 16,901 distinct v5 training states passed the package state extractor, including canonical/snapshot selection and event context. All ten tracking files are byte-identical to v4. The v5 output includes `manifest.json`, `coverage.csv`, `folds.json` and `validation.json`. The historical v4 root retains its 5,608 validated trajectories; trajectories and downstream features have not been regenerated for the filtered v5 indices. Ball-drive training does not require them. Previous raw/processed files and distributed model artifacts were retained.
+
+The new base tables are complete. The final booster feature matrices have **not** been regenerated in bulk: they depend on physical parameters, calibration, transition-model artifacts and xT. The new action-feature command was smoke-tested on real tracking with a reduced grid; its partial outputs are kept outside the training feature directory. Review fitting and dependencies per fold before reporting out-of-sample component performance.
+
+## Accepted boundary policy
+
+Individual intervals require both provider boundaries matched. Passes require a matched sender end and the immediate next possession's matched start. Search the full chronological provider stream before selecting individual intervals; never skip an unmatched neighbor to substitute a later receiver. **design choice**
+
+Interception/recovery points remain observed endpoints, with no inferred passer intention. The Spearman-style target assumption and pass-probability benchmark will be reviewed separately. The target geometry convention was retained.
+
+## Accepted segmentation convention
+
+Policy `one_second_actions_with_exposure_tails_v2` keeps drives anchored to the individual start: 0–1, 1–2, etc. All failed drives remain, including early failures. Pass rows occur at release; previous action is the start type before one second of control, otherwise drive. Short non-loss tails remain inference checkpoints and do not enter the one-second training benchmark. Shot/foul/clearance preserve preceding control and have additional terminal snapshots. **design choice**
+
+There are 18,266 canonical rows and 5,807 additional snapshots. The outfield-only drive training cohort contains 8,672 full successes and all 476 outfield failures, including 40 zero-frame failures. The target is loss within one second for every failure, even when observed earlier. Individual shot-ending possessions and goalkeeper carriers are excluded from all training components. The previous timing/censoring run is a separate experiment; the historical 9,845-row benchmark has been reproduced and remains frozen in v4.
+
+| Example | Canonical evaluation times (s) | Additional snapshots (s) |
+|---|---|---|
+| Pass at 0.4 | 0.4 | 0 |
+| Pass at 2.4 | 0; 1; 2.4 | 2 |
+| Loss at 2.4 | 0; 1; 2 | None |
+| Clearance at 1.4 | 0 | 1; 1.4 |
+
+For clearance at 1.4, the 0–1 drive is successful for drive execution and eligible for choice. The 1–1.4 tail remains an evaluation checkpoint without entering training. Only the full successful drive enters the optional residual cohort, whose final individual outcome is loss because clearance is conventionally loss there. The v5 residual cohort contains 25 clearance rows; short tails do not enter it. Shot-ending possessions are excluded from all training cohorts; their tracking and evaluation checkpoints remain available.
+
+`get_checkpoints()` returns canonical rows; `include_snapshots=True` also returns extras. `compute_possession()` evaluates both by default, with `checkpoint_kind` and `is_canonical`; `include_snapshots=False` selects canonical rows only. These snapshots do not alter the one-second prediction horizon. Do not multiply extra overlapping forecasts into survival; even canonical aggregation requires coherent conditional steps. See [framework interpretation](interpretation.qmd). **model scope**
+
+The previous `2026-10-14_base_v1` root is retained as historical preprocessing validation. Full details and the literature comparison live in `skillcorner-analysis/docs/segmentation-review.md`. The next fitting protocol is the outfield-only ball-drive baseline, followed by penalized splines in the tackle log-rate and kinematic tests with the logistic arrival structure retained. The target remains loss within one second, including early failures.
+
+Native dimensions now flow through pass candidates, drive boundary distance, BCOS, xT lookup and pitch views; legacy data without dimensions uses 105×68. `ball_drive_prob` is a legacy model feature with opposite historical meanings in the two original training paths. New derived outputs also expose explicit `drive_loss_probability` and `drive_success_probability`; existing boosters retain their trained aliases until refitted.
+
+## Carry mathematics follow-up
+
+The v5 base retains the v2 checkpoint convention and one-second Bernoulli target, excluding short non-loss tails, shot-ending possessions and goalkeeper carriers from training. Producer source hashes and consumer source snapshots are now recorded separately, so a change to model fitting or numerical integration does not pretend to change the base observations. Carry inference/training now supports exponential Euler and explicit historical Euler. No distributed weights have been refitted. The research report `skillcorner-analysis/docs/ball-drive-review.md` maps the paper covariates to snapshot features and records the mathematical audit and historical diagnostic scope.

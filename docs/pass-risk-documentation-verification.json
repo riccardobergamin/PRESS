@@ -1,0 +1,45 @@
+{
+  "status": "complete",
+  "model_id": "skillcorner_outfield_pass_risk_uniform_tti_v4",
+  "model_sha256": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+  "package_tests_x64": 100,
+  "installed_and_uniform_tti_tests_float32": 5,
+  "executed_notebooks": 13,
+  "generated_vignette_figures": 36,
+  "rendered_pages": 22,
+  "rendered_local_links_assets_checked": 2109,
+  "docs_check": "13 executed notebooks;143 source links;3 standalone Quarto Python examples executed",
+  "quarto_version": "1.4.555 bundled with RStudio; Deno entry; no-execute rendering after separate notebook/example execution",
+  "physical_change": "Only preserve v0 above vmax in all pass TTI uses; same flight, boundary, likelihood and integration",
+  "numerical_interface_fix": "Low-level scans retain a compatible probability-state dtype for mixed float32/float64 arrays; no change to fitted equations or artifact physics",
+  "procedure": "Vignette explains BFGS log-MLE starts, independent isotonic fitting, four inner6+2 rotations within outer8+2 and separate full10-match deployment refit",
+  "metrics": {
+    "cross_entropy": 0.13112077166507466,
+    "gain_ce": 0.6819170929680417,
+    "ECE_quantile": 0.0018331187967812038
+  },
+  "full_refit": {
+    "lambda_control": 5.437829752595985,
+    "s": 0.29455974908543886,
+    "isotonic_knots": 56,
+    "raw_prediction_max_difference": 1.0198758726431834e-08,
+    "calibration_max_difference": 6.984345459759567e-07
+  },
+  "publication": "Local source and rendered website only; no deployment or cluster job submitted",
+  "files": {
+    "benchmark.qmd": "13be9b1b6c3fab6ee38fdceb5bb3c1b9dea297379ce762feed9a3aef463afe3d",
+    "README.md": "bf96ccd7f586f0b6b9bd9f9dae6c99dc10369ce16f35237e97e879685bcd9f40",
+    "api.qmd": "88b872239d69f6c6bac24348d46b4cbb9eabbed4361344eb979fb4e3cca4ae2f",
+    "solvers.qmd": "7239b928a583a6b1613715c532477393a94e2a0140555176a069b298c50b3d8c",
+    "vignettes/02_pass_probability/02_pass_probability.ipynb": "a989e3ef26c0b08f8c8ff575cfba2d218e5c16024707a8519baa048df48bf624",
+    "PRESS/utils/data/pass_risk_model.json": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+    "PRESS/physics/flight_ball.py": "11804647c3fc2575d8194b087a75507b82bbbe2a8bbec8149bfec7c1c2019cc9",
+    "PRESS/model/pass_risk.py": "625939afdbc5baafd9eeebcc52971b0c1eebfe5df6e1ef234990a5f766cf88de",
+    "PRESS/model/solver_pitch_control.py": "24084f7677a3dd0e066719e7ad273a2947bd55cdba20cc8219d40d3157779a60",
+    "data/benchmarks/pass_risk/frozen_specification.json": "0dafac337d62358f1f561ff6fbe2a0f69eb409dcaa47e33dc98751ebf406594e",
+    "docs/pass-risk-refit-provenance.json": "2ccf151a8f9067ab6074032c613ab0d37cb0d9dbe84fa975c3e97738f7263e14",
+    "docs/pass-risk-benchmark-provenance.json": "99c83829cb1091514e7ca8c693d5b7ecd526bba35723e32fb2fd2e7f4bfcb960",
+    "figures/pass_benchmark_calibration.png": "53e21be23693a45c68a2c8e270730ef4ba3854658574eef19fa5e472e61520a0",
+    "figures/vignette_02_pass_pitch.png": "8496acdc5715810bb5462999a4213fecabb52cc3c07d2e4461a1098eb47075af"
+  }
+}

@@ -129,32 +129,17 @@ def compute_exit_point(x, v, bounds):
         First boundary point reached.
     """
 
-    (x_min, x_max), (y_min, y_max) = bounds
-
-    vx, vy = v
-
-    t_x = jnp.where(
-        vx > 0.0,
-        (x_max - x[0]) / vx,
-        jnp.where(
-            vx < 0.0,
-            (x_min - x[0]) / vx,
-            jnp.inf,
-        ),
-    )
-
-    t_y = jnp.where(
-        vy > 0.0,
-        (y_max - x[1]) / vy,
-        jnp.where(
-            vy < 0.0,
-            (y_min - x[1]) / vy,
-            jnp.inf,
-        ),
-    )
-
-    t_exit = jnp.minimum(t_x, t_y)
-
-    return x + v * t_exit
+    x=jnp.asarray(x);v=jnp.asarray(v);bounds=jnp.asarray(bounds)
+    moving=v!=0.;safe=jnp.where(moving,v,1.)
+    left=(bounds[:,0]-x)/safe;right=(bounds[:,1]-x)/safe
+    near=jnp.where(moving,jnp.minimum(left,right),-jnp.inf)
+    far=jnp.where(moving,jnp.maximum(left,right),jnp.inf)
+    outside=(x<bounds[:,0]) | (x>bounds[:,1])
+    near=jnp.where(~moving & outside,jnp.inf,near)
+    far=jnp.where(~moving & outside,-jnp.inf,far)
+    entry=jnp.max(near);exit=jnp.min(far)
+    valid=(exit>=jnp.maximum(entry,0.)) & jnp.isfinite(exit)
+    # No forward intersection (including a stationary ray): preserve origin.
+    return x+v*jnp.where(valid,exit,0.)
   
   

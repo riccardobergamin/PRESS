@@ -1,0 +1,55 @@
+{
+  "status": "passed",
+  "match_id": "1925299",
+  "date": "2024-12-21T06:00:00Z",
+  "teams": {
+    "home": "Brisbane FC",
+    "away": "Perth Glory"
+  },
+  "score": {
+    "home": 0,
+    "away": 1
+  },
+  "pitch_length": 105.0,
+  "pitch_width": 68.0,
+  "n_checkpoints": 1928,
+  "n_individual_possessions": 931,
+  "grid": [
+    8,
+    5
+  ],
+  "minimum_distinct_parents_to_display": 5,
+  "heatmap_inside_count": 1921,
+  "heatmap_outside_count": 7,
+  "outside_coordinates_clipped": false,
+  "sampling": "Exact1928canonical AS73 training-cohort checkpoints; not uniform10Hz, all-match time or a time-weighted estimate.",
+  "model_parameters": "Full-data production carry dispersion; no folded-mixture values.",
+  "aggregation": "Checkpoint-weighted means; parent counts and medians accompany them. Whole-team-possession bootstrap uncertainty.",
+  "temporal": "Mean scalar BCOS conditional on carrier third, not open-space probability mass lying in each third. Five-minute bins separately by half.",
+  "half_durations_minutes": {
+    "1": 50.38333333333333,
+    "2": 51.75
+  },
+  "source_sha256": {
+    "opendata/data/processed/2026-10-15_training_v5_outfield/matches/1925299/1925299_tracking.parquet": "7c04a9ada7f871d493992922dfd78dcc4011ef07f038eb6456adab43c230ef23",
+    "opendata/data/matches/1925299/1925299_match.json": "f4345b32c0fdd7c9990df70050b3a74f57b1992cf762e20f2a4d309bd2fba7d2",
+    "PRESS/utils/data/ball_drive_model.json": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+    "opendata/data/matches/1925299/1925299_dynamic_events.csv": "a84ca873474e1708ea703bcd8db8a19b2c8cc8137a4353880be1976a7db2ecc7"
+  },
+  "no_new_fit": true,
+  "no_match_prediction": true,
+  "raw_tables_published": false,
+  "temporal_windows": "Five equal windows per half (ten total); means conditional on carrier third; gaps if fewer than5individual parents.",
+  "grid_selection": "Pragmatic8x5display compromise after sample-support audit, grouped-bootstrap and heldout spatial-mean stability checks; not an optimality claim or solver-error estimate.",
+  "goals": [
+    {
+      "team": "away",
+      "team_name": "Perth Glory",
+      "period": 2,
+      "frame_id": 44300,
+      "period_minute": 23.416666666666668,
+      "clock": "68:25",
+      "source": "Matched player_possession shot with lead_to_goal=True; retrospective context only."
+    }
+  ]
+}

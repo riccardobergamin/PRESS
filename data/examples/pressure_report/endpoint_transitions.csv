@@ -1,0 +1,17 @@
+start_band,end_band,n,retained
+High,High,279,153
+High,Low,30,26
+High,Medium,49,32
+High,None,23,21
+Low,High,34,25
+Low,Low,599,453
+Low,Medium,104,82
+Low,None,215,202
+Medium,High,32,22
+Medium,Low,109,90
+Medium,Medium,673,435
+Medium,None,119,102
+None,High,50,37
+None,Low,473,404
+None,Medium,258,203
+None,None,2554,2367

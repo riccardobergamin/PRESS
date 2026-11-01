@@ -1,0 +1,37 @@
+{
+  "status": "benchmark_verified_refit_installed",
+  "experiment": "77_residual_risk_verified_endpoints_20261029_170451",
+  "n_actions": 7820,
+  "n_losses": 1423,
+  "selected_variant": "with_action_choice",
+  "calibration": "none",
+  "composition_n": 15085,
+  "composition_losses": 2888,
+  "composition_calibration": "none",
+  "composition_source_sha256": "40aaf7c8deba34df5b7783f96676ae17d8ed961e9536398a8c868e69cc5f7a91",
+  "aggregate_sha256": {
+    "data/benchmarks/residual_risk/metrics_by_match.csv": "416b6417c22fcf944880eda977fd4c5e233ad940905a95aeadbd85fcf6ed7a62",
+    "data/benchmarks/residual_risk/metrics_by_fold.csv": "4a92f1c8b2bf36378238f91fe620879b3584f394859d477fbcc0dc1234c4789e",
+    "data/benchmarks/residual_risk/selected_configurations.csv": "ff959a9cc50fc615dd245bc7923fc9ed6e5e4db3ed7b8a145abed234cb95bd5f",
+    "data/benchmarks/residual_risk/remaining_time_sensitivity.csv": "1b8062ff34dee28960bf28a2da4c52e706b8a3f6accafadcbab6811e272eaee1",
+    "data/benchmarks/residual_risk/calibration_quantile10.csv": "86dee3c200e8348eafd190380cec989379b3609f4dff7cf2cdd625b9d7a5f3d2",
+    "data/benchmarks/residual_risk/pooled_metrics.csv": "4459df9953fc994c72e617c478f1637d9753ca238b124c833bf9975381543f4a",
+    "data/benchmarks/residual_risk/related_literature.csv": "0cb8a28d16edf50446765e84124112b40e5b60ec80a11146fe9b3c82a901a21b",
+    "data/benchmarks/composed_risk/metrics_by_match.csv": "8fb99dde9e74ec89146b78443d0d2f25fe0fe8631435d3bfe51d02ec47ac495a",
+    "data/benchmarks/composed_risk/metrics_by_fold.csv": "dfa98c6190ac855748b9c3bb047cde498ec40ee6c864576f7166bcb01f250f6f",
+    "data/benchmarks/composed_risk/calibration_quantile10.csv": "d7a65bf0de6b83f9610c0d354f1a043707cd5480bca03a30230c0ab227df7eaf",
+    "data/benchmarks/composed_risk/pooled_metrics.csv": "dd291fa4ac0128f9a83db5df8944561aa3296b896fb57368418d72f2b6ba021e"
+  },
+  "refit_experiment": "78_residual_risk_verified_full_refit_20261029",
+  "refit_run": "78_residual_risk_verified_full_refit_20261029_203422",
+  "primary_vignette": "vignettes/05a_residual_risk/05a_residual_risk.ipynb",
+  "calibration_plots": [
+    "figures/residual_risk_pooled_calibration.png",
+    "figures/composed_risk_pooled_calibration.png"
+  ],
+  "old_documentation_archive": "docs/old/residual_docs_before_rr78_20261029",
+  "no_row_level_data_published": true,
+  "vendor_scores_published": false,
+  "direct_numerical_literature_benchmark_found": false,
+  "literature_search_date": "2026-10-29"
+}

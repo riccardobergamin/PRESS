@@ -1,0 +1,602 @@
+Internal Error ()
+citeturn252view0 [wordlim: 200] Source: open({"ref_id":"https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/utils.py","lineno":null}); Total lines: 1
+L0: Failed to fetch https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/utils.py: Cache miss
+--------------------------------------------------------------------------------
+Internal Error ()
+citeturn252view1 [wordlim: 200] Source: open({"ref_id":"https://rumboost.readthedocs.io/en/latest/_modules/rumboost/nested_cross_nested.html","lineno":null}); Total lines: 1
+L0: URL https://rumboost.readthedocs.io/en/latest/_modules/rumboost/nested_cross_nested.html is not accessible via this tool.
+--------------------------------------------------------------------------------
+Internal Error ()
+citeturn252view2 [wordlim: 200] Source: open({"ref_id":"https://github.com/big-ucl/rumboost/blob/v1.0.2/LICENSE.txt","lineno":null}); Total lines: 1
+L0: Failed to fetch https://github.com/big-ucl/rumboost/blob/v1.0.2/LICENSE.txt: Cache miss
+--------------------------------------------------------------------------------
+ (https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/rumboost.py)
+citeturn252view3 [wordlim: 200] Crawled: 6 days ago; Content type: text/plain; Source: open({"ref_id":"https://raw.githubusercontent.com/big-ucl/rumboost/main/rumboost/rumboost.py","lineno":2730}); Total lines: 3892
+L2508:     callbacks_after_iter = sorted(callbacks_after_iter_set, key=attrgetter("order"))
+L2509: 
+L2510:     # construct rumboost object
+L2511:     rumb = RUMBoost()
+L2512: 
+L2513:     if torch_tensors:
+L2514:         if not torch_installed:
+L2515:             raise ImportError(
+L2516:                 "PyTorch is not installed. Please install PyTorch to use torch tensors."
+L2517:             )
+L2518:         dev_str = torch_tensors.get("device", "cpu")
+L2519:         rumb.torch_compile = torch_tensors.get("torch_compile", False)
+L2520:         if dev_str == "cuda":
+L2521:             rumb.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+L2522:         elif dev_str == "gpu":
+L2523:             rumb.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+L2524:         else:
+L2525:             rumb.device = torch.cpu.current_device()
+L2526:         print(f"Using torch tensors on {rumb.device}")
+L2527:     else:
+L2528:         rumb.device = None
+L2529:         rumb.torch_compile = False
+L2530: 
+L2531:     # check number of classes
+L2532:     if "num_classes" not in params:
+L2533:         raise ValueError(
+L2534:             "Specify the number of classes in the dictionary of parameters with the key num_classes"
+L2535:         )
+L2536:     rumb.num_classes = params.get("num_classes")  # saving number of classes
+L2537: 
+L2538:     # checking model specification
+L2539:     if "rum_structure" not in model_specification:
+L2540:         raise ValueError("Model specification must contain rum_structure key")
+L2541:     rumb.rum_structure = model_specification["rum_structure"]
+L2542:     _check_rum_structure(rumb.rum_structure)
+L2543: 
+L2544:     if (
+L2545:         (
+L2546:             "nested_logit" in model_specification
+L2547:             and "cross_nested_logit" in model_specification
+L2548:         )
+L2549:         or (
+L2550:             "nested_logit" in model_specification
+L2551:             and "ordinal_logit" in model_specification
+L2552:         )
+L2553:         or (
+L2554:             "cross_nested_logit" in model_specification
+L2555:             and "ordinal_logit" in model_specification
+L2556:         )
+L2557:     ):
+L2558:         raise ValueError(
+L2559:             "Only one model specification can be used at a time. Choose between nested_logit, cross_nested_logit or ordinal_logit"
+L2560:         )
+L2561: 
+L2562:     rumb.batch_size = params.get("batch_size", 0)
+L2563: 
+L2564:     # additional parameters to compete for best booster
+L2565:     rumb.additional_params_idx = []
+L2566: 
+L2567:     # nested logit or cross nested logit or mnl
+L2568:     if "nested_logit" in model_specification:
+L2569:         if (
+L2570:             "nests" not in model_specification["nested_logit"]
+L2571:             or "mu" not in model_specification["nested_logit"]
+L2572:         ):
+L2573:             raise ValueError("Nested logit must contain nests key and mu key")
+L2574: 
+L2575:         # store the nests and mu values
+L2576:         rumb.nests = model_specification["nested_logit"]["nests"]
+L2577:         rumb.mu = copy.copy(model_specification["nested_logit"]["mu"])
+L2578:         rumb.alphas = None
+L2579:         f_obj = rumb.f_obj_nest
+L2580: 
+L2581:         # mu optimisation initialisaiton
+L2582:         optimise_mu = copy.copy(
+L2583:             model_specification["nested_logit"].get("optimise_mu", True)
+L2584:         )
+L2585:         if isinstance(optimise_mu, list):
+L2586:             if len(optimise_mu) != len(rumb.mu):
+L2587:                 raise ValueError(
+L2588:                     "The length of optimise_mu must be equal to the number of nests"
+L2589:                 )
+L2590:             bounds = [(1, 2.5) if opt else (1, 1) for opt in optimise_mu]
+L2591:             optimise_mu = True
+L2592:             optim_interval = model_specification["nested_logit"].get(
+L2593:                 "optim_interval", 20
+L2594:             )
+L2595:         elif optimise_mu:
+L2596:             bounds = [(1, 2.5)] * len(rumb.mu)
+L2597:             optim_interval = model_specification["nested_logit"].get(
+L2598:                 "optim_interval", 20
+L2599:             )
+L2600:         else:
+L2601:             bounds = None
+L2602:             optimise_mu = False
+L2603:         optimise_alphas = False
+L2604:         alpha_shape = None
+L2605: 
+L2606:         # store the nest alternative. If torch tensors are used, nest alternatives
+L2607:         # will be created later.
+L2608:         if not torch_tensors:
+L2609:             nest_alt = np.zeros(rumb.num_classes)
+L2610:             for n, alts in rumb.nests.items():
+L2611:                 nest_alt[alts] = n
+L2612:             rumb.nest_alt = nest_alt.astype(int)
+L2613: 
+L2614:         # not ordinal logit
+L2615:         rumb.ord_model = None
+L2616:         optimise_thresholds = False
+L2617:         rumb.thresholds = None
+L2618: 
+L2619:         # type checks
+L2620:         if not isinstance(rumb.mu, np.ndarray):
+L2621:             raise ValueError("Mu must be a numpy array")
+L2622:         if not isinstance(rumb.nests, dict):
+L2623:             raise ValueError("Nests must be a dictionary")
+L2624:     elif "cross_nested_logit" in model_specification:
+L2625:         if (
+L2626:             "alphas" not in model_specification["cross_nested_logit"]
+L2627:             or "mu" not in model_specification["cross_nested_logit"]
+L2628:         ):
+L2629:             raise ValueError("Cross nested logit must contain alphas key and mu key")
+L2630: 
+L2631:         # store the mu and alphas values
+L2632:         rumb.mu = copy.copy(model_specification["cross_nested_logit"]["mu"])
+L2633:         rumb.alphas = copy.copy(model_specification["cross_nested_logit"]["alphas"])
+L2634:         rumb.nests = None
+L2635:         rumb.nest_alt = None
+L2636:         f_obj = rumb.f_obj_cross_nested
+L2637: 
+L2638:         optimise_mu = copy.copy(
+L2639:             model_specification["cross_nested_logit"].get("optimise_mu", True)
+L2640:         )
+L2641:         optimise_alphas = copy.copy(
+L2642:             model_specification["cross_nested_logit"].get("optimise_alphas", False)
+L2643:         )
+L2644: 
+L2645:         if isinstance(optimise_mu, list):
+L2646:             if len(optimise_mu) != len(rumb.mu):
+L2647:                 raise ValueError(
+L2648:                     "The length of optimise_mu must be equal to the number of nests"
+L2649:                 )
+L2650:             bounds = [(1, 2.5) if opt else (1, 1) for opt in optimise_mu]
+L2651:             optimise_mu = True
+L2652:             optim_interval = model_specification["cross_nested_logit"].get(
+L2653:                 "optim_interval", 20
+L2654:             )
+L2655:         elif optimise_mu:
+L2656:             bounds = [(1, 2.5)] * len(rumb.mu)
+L2657:             optim_interval = model_specification["cross_nested_logit"].get(
+L2658:                 "optim_interval", 20
+L2659:             )
+L2660:         else:
+L2661:             bounds = None
+L2662:             optimise_mu = False
+L2663: 
+L2664:         if isinstance(optimise_alphas, np.ndarray):
+L2665:             if optimise_alphas.shape != rumb.alphas.shape:
+L2666:                 raise ValueError(
+L2667:                     "The shape of optimise_alphas must be equal to the shape of alphas"
+L2668:                 )
+L2669: 
+L2670:             if not bounds:
+L2671:                 bounds = []
+L2672:             bounds.extend(
+L2673:                 [
+L2674:                     (
+L2675:                         (0, 1)
+L2676:                         if alpha
+L2677:                         else (rumb.alphas.flatten()[i], rumb.alphas.flatten()[i])
+L2678:                     )
+L2679:                     for i, alpha in enumerate(optimise_alphas.flatten().tolist())
+L2680:                 ]
+L2681:             )
+L2682:             optimise_alphas = True
+L2683:             alpha_shape = rumb.alphas.shape
+L2684:             optim_interval = model_specification["cross_nested_logit"].get(
+L2685:                 "optim_interval", 20
+L2686:             )
+L2687:         elif optimise_alphas:
+L2688:             if not bounds:
+L2689:                 bounds = []
+L2690:             bounds.extend([(0, 1)] * rumb.alphas.flatten().size)
+L2691:             alpha_shape = rumb.alphas.shape
+L2692:             optim_interval = model_specification["cross_nested_logit"].get(
+L2693:                 "optim_interval", 20
+L2694:             )
+L2695:         else:
+L2696:             alpha_shape = None
+L2697:             optimise_alphas = False
+L2698: 
+L2699:         # not ordinal logit
+L2700:         rumb.ord_model = None
+L2701:         optimise_thresholds = False
+L2702:         rumb.thresholds = None
+L2703: 
+L2704:         # type checks
+L2705:         if not isinstance(rumb.mu, np.ndarray):
+L2706:             raise ValueError("Mu must be a numpy array")
+L2707:         if not isinstance(rumb.alphas, np.ndarray):
+L2708:             raise ValueError("Alphas must be a numpy array")
+L2709:     elif "ordinal_logit" in model_specification:
+L2710:         ordinal_model = model_specification["ordinal_logit"]["model"]
+L2711:         optim_interval = model_specification["ordinal_logit"].get("optim_interval", 20)
+L2712: 
+L2713:         # some checks
+L2714:         if ordinal_model not in [
+L2715:             "proportional_odds",
+L2716:             "coral",
+L2717:         ]:
+L2718:             raise ValueError("Ordinal logit model must be proportional_odds or coral.")
+L2719:         if rumb.num_classes == 2:
+L2720:             raise ValueError("Ordinal logit requires a minimum of 3 classes")
+L2721:         if "model" not in model_specification["ordinal_logit"]:
+L2722:             raise ValueError("Ordinal logit must contain model key")
+L2723: 
+L2724:         if ordinal_model == "proportional_odds":
+L2725:             f_obj = rumb.f_obj_proportional_odds
+L2726:             optimise_thresholds = optim_interval > 0
+L2727:             rumb.thresholds = np.arange(rumb.num_classes - 1)
+L2728:             bounds = [(None, None)]
+L2729:             bounds.extend([(0, None)] * (rumb.num_classes - 2))
+L2730:             rumb.num_classes = 1
+L2731:         elif ordinal_model == "coral":
+L2732:             f_obj = rumb.f_obj_coral
+L2733:             optimise_thresholds = optim_interval > 0
+L2734:             rumb.thresholds = np.arange(rumb.num_classes - 1)
+L2735:             bounds = [(None, None)]
+L2736:             bounds.extend([(0, None)] * (rumb.num_classes - 2))
+L2737:             rumb.num_classes = 1
+L2738:         rumb.ord_model = ordinal_model
+L2739: 
+L2740:         # no nesting structure
+L2741:         optimise_mu = False
+L2742:         optimise_alphas = False
+L2743:         rumb.mu = None
+L2744:         rumb.nests = None
+L2745:         rumb.nest_alt = None
+L2746:         rumb.alphas = None
+L2747:     else:
+L2748:         # no nesting structure nor ordinal logit
+L2749:         rumb.mu = None
+L2750:         rumb.nests = None
+L2751:         rumb.nest_alt = None
+L2752:         rumb.alphas = None
+L2753:         rumb.ord_model = None
+L2754:         rumb.thresholds = None
+L2755:         if params.get("full_hessian", False):
+L2756:             if rumb.num_classes < 3:
+L2757:                 raise ValueError(
+L2758:                     "Full hessian is only implemented for multi-class tasks."
+L2759:                 )
+L2760:             if not torch_installed:
+L2761:                 raise ImportError(
+L2762:                     "PyTorch is not installed. Please install PyTorch to use the full hessian."
+L2763:                 )
+L2764:             if not torch_tensors:
+L2765:                 raise ValueError(
+L2766:                     "The full hessian requires torch tensors to be used. Please specify torch_tensors."
+L2767:                 )
+L2768:             if rumb.device != torch.device("cuda"):
+L2769:                 raise ValueError(
+L2770:                     "The full hessian requires the device to be cuda. Please specify torch_tensors."
+L2771:                 )
+L2772:             f_obj = rumb.f_obj_full_hessian
+L2773:         elif rumb.num_classes == 2:
+L2774:             f_obj = rumb.f_obj_binary
+L2775:         elif rumb.num_classes > 2:
+L2776:             f_obj = rumb.f_obj
+L2777:         elif rumb.num_classes == 1 and not rumb.ord_model:
+L2778:             f_obj = rumb.f_obj_mse
+L2779:         else:
+L2780:             raise ValueError("Number of classes must be greater than 0")
+L2781:         optimise_mu = False
+L2782:         optimise_alphas = False
+L2783:         optimise_thresholds = False
+L2784: 
+L2785:     if optimise_mu or optimise_alphas:
+L2786:         opt_mu_or_alpha_idx = len(rumb.rum_structure)
+L2787:         rumb.additional_params_idx.append(opt_mu_or_alpha_idx)
+L2788:     else:
+L2789:         opt_mu_or_alpha_idx = None
+L2790: 
+L2791:     # store utility function specifications
+L2792:     rumb.utility_functions = {}
+L2793:     for j, struct in enumerate(rumb.rum_structure):
+L2794:         for u in struct["utility"]:
+L2795:             if u not in rumb.utility_functions:
+L2796:                 rumb.utility_functions[u] = []
+L2797:             rumb.utility_functions[u].append(j)
+L2798: 
+L2799:     if rumb.num_classes > 2:
+L2800:         rumb.max_booster_to_update = params.get(
+L2801:             "max_booster_to_update", rumb.num_classes
+L2802:         )
+L2803:         if rumb.max_booster_to_update < rumb.num_classes:
+L2804:             raise ValueError(
+L2805:                 f"The maximum number of boosters to update must be at least equal to the number of classes ({rumb.num_classes})"
+L2806:             )
+L2807:         min_utility = min([len(u_idx) for u_idx in rumb.utility_functions.values()])
+L2808:         if rumb.max_booster_to_update > rumb.num_classes * min_utility:
+L2809:             raise ValueError(
+L2810:                 f"The maximum number of boosters to update must be at most equal to the number of classes ({rumb.num_classes}) times the maximum number of boosters in the smallest utility function ({min_utility})"
+L2811:             )
+L2812:     else:
+L2813:         # if binary classification, the maximum number of boosters to update is multiplied
+L2814:         # by 2 because it is then divided by the number of classed when lookinf dor best booster
+L2815:         rumb.max_booster_to_update = (
+L2816:             params.get("max_booster_to_update", 1) * rumb.num_classes
+L2817:         )
+L2818: 
+L2819:     if params.get("boost_from_parameter_space", []):
+L2820:         if len(params["boost_from_parameter_space"]) != len(rumb.rum_structure):
+L2821:             raise ValueError(
+L2822:                 "If specified, the length of boost_from_parameter_space must be equal to the number of parameter ensembles."
+L2823:             )
+L2824:         rumb.boost_from_parameter_space = params["boost_from_parameter_space"]
+L2825:         optim_interval = params.get("optim_interval", 20)
+L2826:         optimise_ascs = (optim_interval > 0) and (
+L2827:             "ordinal_logit" not in model_specification
+L2828:         )
+L2829: 
+L2830:         if optimise_ascs and "nested_logit" in model_specification:
+L2831:             raise ValueError(
+L2832:                 "The ASCs cannot be optimised when using nested logit. Please set optim_interval to 0."
+L2833:             )
+L2834:         if optimise_ascs and "cross_nested_logit" in model_specification:
+L2835:             raise ValueError(
+L2836:                 "The ASCs cannot be optimised when using cross nested logit. Please set optim_interval to 0."
+L2837:             )
+L2838: 
+L2839:         rumb.distances = {}
+L2840:         for j, struct in enumerate(rumb.rum_structure):
+L2841:             if params["boost_from_parameter_space"][j]:
+L2842:                 if (
+L2843:                     "endogenous_variable" in struct
+L2844:                     and struct["endogenous_variable"] in struct["variables"]
+L2845:                 ):
+L2846:                     raise ValueError(
+L2847:                         "The endogenous variable must not be in the variables list."
+L2848:                         "If you want to use piece-wise linear utility functions,"
+L2849:                         "please provide only one variable in the variables list and no endogenous variable."
+L2850:                     )
+L2851: 
+L2852:                 train_set.construct()
+L2853: 
+L2854:                 if "endogenous_variable" in struct:
+L2855:                     rumb.distances[j] = train_set.get_data()[
+L2856:                         struct["endogenous_variable"]
+L2857:                     ].values
+L2858:                     if valid_sets is not None:
+L2859:                         if not isinstance(rumb.distances_valid, list):
+L2860:                             rumb.distances_valid = [{}] * len(valid_sets)
+L2861:                         for i, val_set in enumerate(valid_sets):
+L2862:                             val_set.construct()
+L2863:                             rumb.distances_valid[i][j] = val_set.get_data()[
+L2864:                                 struct["endogenous_variable"]
+L2865:                             ].values
+L2866:                 else:
+L2867: 
+L2868:                     # default regularisation on the hessian because
+L2869:                     # the sum of hessian can be 0 in the parameter space.
+L2870:                     if "lambda_l2" not in struct["boosting_params"]:
+L2871:                         struct["boosting_params"]["lambda_l2"] = 0
+L2872:                     if (
+L2873:                         "max_depth" in struct["boosting_params"]
+L2874:                         and struct["boosting_params"]["max_depth"] > 1
+L2875:                     ):
+L2876:                         raise ValueError(
+L2877:                             "Feature interaction is not implemented when using piece-wise linear RUMBoost, please set max_depth to 1."
+L2878:                         )
+L2879: 
+L2880:                     feature = struct["variables"][0]
+L2881:                     data = train_set.get_data()[feature]
+L2882:                     rumb.distances[j] = data
+L2883:     else:
+L2884:         rumb.boost_from_parameter_space = [False] * len(rumb.rum_structure)
+L2885:         optimise_ascs = False
+L2886: 
+L2887:     # check dataset and preprocess it
+L2888:     if isinstance(train_set, dict):
+L2889:         if "num_data" not in train_set:
+L2890:             raise ValueError(
+L2891:                 "The dictionary must contain the number of observations with the key num_data"
+L2892:             )
+L2893:         if "labels" not in train_set:
+L2894:             raise ValueError(
+L2895:                 "The dictionary must contain the labels with the key labels"
+L2896:             )
+L2897:         rumb.train_set = train_set[
+L2898:             "train_sets"
+L2899:         ]  # assign the J previously preprocessed datasets
+L2900:         rumb.labels = train_set["labels"]
+L2901:         if rumb.mu is None and rumb.ord_model is None and rumb.num_classes > 2:
+L2902:             if not train_set.get("labels_j", None):
+L2903:                 rumb.labels_j = (
+L2904:                     rumb.labels[:, None] == np.array(range(rumb.num_classes))[None, :]
+L2905:                 ).astype(np.int8)
+L2906:             else:
+L2907:                 rumb.labels_j = train_set["labels_j"]
+L2908:         else:
+L2909:             rumb.labels_j = None
+L2910:         rumb.num_obs = [train_set["num_data"]]
+L2911:         if isinstance(valid_sets[0], dict):
+L2912:             rumb.valid_sets = valid_sets[0]["valid_sets"]
+L2913:             rumb.valid_labels = valid_sets[0]["valid_labels"]
+L2914:             rumb.num_obs.extend(valid_sets[0]["num_data"])
+L2915:         else:
+L2916:             rumb.valid_sets = []
+L2917:             rumb.valid_labels = []
+L2918:         is_valid_contain_train = False
+L2919:         train_data_name = "training"
+L2920:         name_valid_sets = ["valid_0"]
+L2921:         for j, train_set_j in enumerate(rumb.train_set):
+L2922:             predictor_j = predictor[j] if predictor else None
+L2923:             train_set_j.construct()
+L2924:             train_set_j._update_params(
+L2925:                 rumb.rum_structure[j]["boosting_params"]
+L2926:             )._set_predictor(predictor_j).set_feature_name(
+L2927:                 feature_name
+L2928:             ).set_categorical_feature(
+L2929:                 categorical_feature
+L2930:             )
+L2931:             if rumb.valid_sets:
+L2932:                 for _, valid_set_j in enumerate(rumb.valid_sets):
+L2933:                     valid_set_j[j]._update_params(
+L2934:                         rumb.rum_structure[j]["boosting_params"]
+L2935:                     )._set_predictor(predictor_j)
+L2936:     elif not isinstance(train_set, Dataset):
+L2937:         raise TypeError("Training only accepts Dataset object or dictionary")
+L2938:     else:
+L2939:         train_set._update_params(params)._set_predictor(None).set_feature_name(
+L2940:             feature_name
+L2941:         ).set_categorical_feature(categorical_feature)
+L2942:         reduced_valid_sets, name_valid_sets, is_valid_contain_train, train_data_name = (
+L2943:             rumb._preprocess_valids(train_set, params, valid_sets)
+L2944:         )  # prepare validation sets
+L2945:         free_raw_data = not any(rumb.boost_from_parameter_space)
+L2946:         rumb._preprocess_data(
+L2947:             train_set,
+L2948:             reduced_valid_sets,
+L2949:             predictor=predictor,
+L2950:             free_raw_data=free_raw_data,
+L2951:         )  # prepare J datasets with relevant features
+L2952:         if rumb.mu is not None or rumb.ord_model or rumb.num_classes < 3:
+L2953:             rumb.labels_j = None
+L2954: 
+L2955:     # create J boosters with corresponding params and datasets
+L2956:     rumb._construct_boosters(train_data_name, is_valid_contain_train, name_valid_sets)
+L2957: 
+L2958:     # ascs start with observed market shares
+L2959:     if rumb.num_classes == 2:
+L2960:         rumb.asc = [np.log(np.mean(rumb.labels, axis=0))]
+L2961:         lr = rumb.rum_structure[0]["boosting_params"]["learning_rate"]
+L2962:         warnings.warn(f"Assuming the learning rate is {lr} for all boosters")
+L2963:         constant_parameters = [Constant(str(0), rumb.asc[0])]
+L2964:     elif rumb.num_classes > 2:
+L2965:         rumb.asc = np.log(
+L2966:             np.mean(rumb.labels[:, None] == range(rumb.num_classes), axis=0)
+L2967:         )
+L2968:         lr = rumb.rum_structure[0]["boosting_params"]["learning_rate"]
+L2969:         warnings.warn(f"Assuming the learning rate is {lr} for all boosters")
+L2970:         constant_parameters = [
+L2971:             Constant(str(i), rumb.asc[i]) for i in range(rumb.num_classes)
+L2972:         ]
+L2973:     elif rumb.num_classes == 1 and not rumb.ord_model:
+L2974:         rumb.asc = np.mean(rumb.labels, axis=0).reshape(1)
+L2975:         constant_parameters = [Constant("0", rumb.asc[0])]
+L2976:     else:  # rumb.num_classes == 1 and rumb.ord_model
+L2977:         rumb.asc = np.array([0.0])  # for ordinal logit, the asc is not used
+L2978: 
+L2979:     # free datasets from memory
+L2980:     if not any(rumb.boost_from_parameter_space):
+L2981:         rumb.train_set = None
+L2982:         rumb.valid_sets = None
+L2983:     train_set = None
+L2984:     valid_sets = None
+L2985: 
+L2986:     # convert a few numpy arrays to torch tensors if needed
+L2987:     if torch_tensors:
+L2988:         if rumb.num_classes == 1 and rumb.thresholds is None:
+L2989:             rumb.labels = torch.from_numpy(rumb.labels).type(torch.double).to(rumb.device)
+L2990:         else:
+L2991:             rumb.labels = torch.from_numpy(rumb.labels).type(torch.int16).to(rumb.device)
+L2992:         rumb.asc = torch.from_numpy(rumb.asc).type(torch.double).to(rumb.device)
+L2993:         if rumb.labels_j is not None:
+L2994:             rumb.labels_j = (
+L2995:                 torch.from_numpy(rumb.labels_j).type(torch.int8).to(rumb.device)
+L2996:             )
+L2997:         if rumb.valid_labels:
+L2998:             if rumb.num_classes == 1 and rumb.thresholds is None:
+L2999:                 dtype = torch.double
+L3000:             else:
+L3001:                 dtype = torch.int16
+L3002:             rumb.valid_labels = [
+L3003:                 torch.from_numpy(valid_labs).type(dtype).to(rumb.device)
+L3004:                 for valid_labs in rumb.valid_labels
+L3005:             ]
+L3006:         if rumb.mu is not None:
+L3007:             rumb.mu = torch.from_numpy(rumb.mu).type(torch.double).to(rumb.device)
+L3008:         if rumb.alphas is not None:
+L3009:             rumb.alphas = (
+L3010:                 torch.from_numpy(rumb.alphas).type(torch.double).to(rumb.device)
+L3011:             )
+L3012: 
+L3013:     if "subsampling" in params and rumb.batch_size > 0:
+L3014:         subsample = params["subsampling"]
+L3015:         if subsample == 1.0:
+L3016:             subsample_freq = 0
+L3017:             if torch_tensors:
+L3018:                 rumb.subsample_idx = torch.arange(
+L3019:                     rumb.num_obs[0], dtype=torch.int32, device=rumb.device
+L3020:                 )
+L3021:             else:
+L3022:                 rumb.subsample_idx = np.arange(rumb.num_obs[0])
+L3023:         else:
+L3024:             subsample_freq = params.get("subsampling_freq", 0)
+L3025:             if torch_tensors:
+L3026:                 permutations = torch.randperm(
+L3027:                     rumb.num_obs[0], device=rumb.device, dtype=torch.int32
+L3028:                 )
+L3029:                 rumb.subsample_idx = permutations[: int(subsample * rumb.num_obs[0])]
+L3030:             else:
+L3031:                 rumb.subsample_idx = np.random.choice(
+L3032:                     np.arange(rumb.num_obs[0]),
+L3033:                     int(subsample * rumb.num_obs[0]),
+L3034:                     replace=False,
+L3035:                 )
+L3036:     elif rumb.batch_size > 0:
+L3037:         subsample = 1.0
+L3038:         subsample_freq = 0
+L3039:         permutations = torch.randperm(
+L3040:             rumb.num_obs[0], device=rumb.device, dtype=torch.int32
+L3041:         )
+L3042:         batches = torch.split(permutations, rumb.batch_size)
+L3043:         rumb.subsample_idx = batches[0]
+L3044:     else:
+L3045:         subsample = 1.0
+L3046:         subsample_freq = 0
+L3047:         if torch_tensors:
+L3048:             rumb.subsample_idx = torch.arange(
+L3049:                 rumb.num_obs[0], device=rumb.device, dtype=torch.int32
+L3050:             )
+L3051:         else:
+L3052:             rumb.subsample_idx = np.arange(rumb.num_obs[0])
+L3053: 
+L3054:     if "subsample_valid" in params:
+L3055:         subsample_valid = params["subsample_valid"]
+L3056:         if torch_tensors:
+L3057:             rumb.subsample_idx_valid = torch.randperm(
+L3058:                 rumb.num_obs[1], device=rumb.device
+L3059:             )[: int(subsample_valid * rumb.num_obs[1])]
+L3060:         else:
+L3061:             rumb.subsample_idx_valid = np.random.choice(
+L3062:                 np.arange(rumb.num_obs[1]),
+L3063:                 int(subsample_valid * rumb.num_obs[1]),
+L3064:                 replace=False,
+L3065:             )
+L3066:     else:
+L3067:         subsample_valid = 1.0
+L3068:         if len(rumb.num_obs) > 1:  # if there are validation sets
+L3069:             if torch_tensors:
+L3070:                 rumb.subsample_idx_valid = torch.arange(
+L3071:                     rumb.num_obs[1], device=rumb.device, dtype=torch.int32
+L3072:                 )
+L3073:             else:
+L3074:                 rumb.subsample_idx_valid = np.arange(rumb.num_obs[1])
+L3075: 
+L3076:     # setting up eval function
+L3077:     if eval_func is not None:
+L3078:         rumb.eval_func = eval_func
+L3079:     elif torch_tensors:
+L3080:         if rumb.torch_compile:
+L3081:             if rumb.num_classes == 2:
+L3082:                 eval_func = binary_cross_entropy_torch_compiled
+L3083:             elif rumb.num_classes == 1 and not rumb.ord_model:
+L3084:                 eval_func = mse_torch_compiled
+L3085:             elif rumb.ord_model == "coral":
+L3086:                 eval_func = coral_eval_torch_compiled
+L3087:             else:
+L3088:                 eval_func = cross_entropy_torch_compiled
+L3089:         else:
+L3090:             if rumb.num_classes == 2:
+L3091:                 eval_func = binary_cross_entropy_torch
+L3092:             elif rumb.num_classes == 1 and not rumb.ord_model:
+L3093:                 eval_func = mse_torch
+L3094:             elif rumb.ord_model == "coral":
+

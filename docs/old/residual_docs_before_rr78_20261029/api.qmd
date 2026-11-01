@@ -1,0 +1,261 @@
+---
+title: "Python function reference"
+---
+
+All signatures below describe the current package. The supported match workflow starts with `from PRESS import PRESS`. Each object represents **one match**. See the [run guide](usage.qmd) for complete executable examples and the [workflow vignette](vignettes/00_match_workflow/00_match_workflow.ipynb) for a visual introduction.
+
+## Initialize and load
+
+```python
+PRESS(tracking_data, events_data=None, *, possessions_data=None,
+      actions_data=None, player_possessions_data=None, ball_drive_model=None,
+      pass_risk_model=None, pass_selection_model=None, action_selection_model=None)
+PRESS.from_skillcorner(match_dir, *, actions_path=None)
+```
+
+| Argument | Contract |
+|---|---|
+| `tracking_data` | Wide pandas DataFrame; unique integer `frame`; carrier label `player_possession`; direction `attacking_side` (`left_to_right` or `right_to_left`); `ball_x`, `ball_y`; each player has `{home|away}_<number>_{x,y,vx,vy,v}`. Coordinates are centred native metres; velocities are m/s. Optional `pitch_length`/`pitch_width` give native dimensions; legacy data defaults to 105 × 68 m. Missing carrier rows are allowed for navigation, but cannot be computed. |
+| `events_data` | Optional **canonical** event DataFrame: `frame`, `player_id`, `team_id`, `event_type`; pass events need boolean `is_successful`, and successful passes need a same-format `receiver_player_id`. This is not the raw provider event CSV. Events are not necessary for checkpoint prediction when `actions_data` supplies context. |
+| `possessions_data` | Optional explicit **team** interval table: unique nonmissing `possession_id`, `team_id` (`home`/`away`), inclusive integer `frame_start`, `frame_end`; optional `lost` boolean for reporting. Intervals cannot overlap. IDs may be strings or integers; preserve their type when selecting. |
+| `player_possessions_data` | Alternative to team intervals: processed player table required by `link_team_possessions` below. Automatically links verified pass receptions. Supplying both team and player intervals raises `ValueError`. |
+| `actions_data` | One-match interval table with integer `frame_start`, `frame_end`, `action`, `start_type`, `previous_action`. The adapter accepts the multi-match `actions.csv` or `actions.parquet`, filters by directory match ID, and keeps the original raw context and source player-possession IDs. |
+| `match_dir` | Path ending in the match ID, containing `<id>_tracking.parquet` and `<id>_possession.parquet`. Requires `pip install -e '.[io]'` in this repository. |
+| `actions_path` | Optional path to multi-match `actions.csv` or `actions.parquet` with `match_id`. Required for checkpoint discovery, not for explicit-context frame computation. |
+| `ball_drive_model` | Optional `BallDriveModel` instance or exported JSON path. Use `BallDriveModel.pretrained()` for the bundled final ten-match refit. Omission uses the bundled final spline model. Supplying legacy coefficient keys explicitly (`lambda_0`, `beta_v`, `beta_B`, `s`, `a_max`) without a fitted model selects the historical solver. |
+| `pass_risk_model` | Optional `PassRiskModel` instance or exported JSON path. Omission loads the verified bundled trajectory-MLE/isotonic model when pass probability is computed. Loading never fits a model. |
+| `pass_selection_model` | Optional `PassSelectionModel` or manifest path; omission uses the installed flat destination model. |
+| `action_selection_model` | Optional `ActionSelectionModel` or manifest path; omission uses the installed native277-tree refit. Its saved vocabulary, xT and exact30-input contract are loaded without fitting. |
+
+Initialization validates and prepares tables; it runs no solvers. Input tracking and interval tables are copied. File loading errors propagate from pandas/filesystem; malformed canonical tables raise `ValueError`. Data arrays are not indexed by positional row number: `frame_id` is the actual value in `frame`.
+
+## Browse possessions and frames
+
+| Method | Return value | Errors / details |
+|---|---|---|
+| `get_possessions(*, team_id=None)` | Copied DataFrame of chronological team intervals. | No interval table: `ValueError`. Filter team is `home` or `away`; an empty selection is a valid empty table. |
+| `get_possession(possession_id)` | Copied pandas Series for one team interval. | Unknown typed ID: `KeyError`. |
+| `get_player_possessions(possession_id=None)` | Copied linked player intervals, with `team_possession_id`. | Requires player intervals; otherwise `ValueError`. Optional filter refers to the team ID. |
+| `get_frames(possession_id=None, *, valid_only=False)` | Copied chronological wide tracking DataFrame. | Optional inclusive team range. `valid_only` removes missing carrier/direction or nonfinite carrier position/velocity; it is not a full tracking quality check. |
+| `get_frame(frame_id)` | Copied one-row wide DataFrame. | Unknown frame: `KeyError`. Includes metadata and all player columns. |
+| `get_state(frame_id)` | Mapping with `player`, `team_id`, `shirt_num`, `attacking_side`, `x_bc`, `v_bc`, `r_atts`, `v_atts`, `r_defs`, `v_defs`, player IDs, and `frame_df`. | Missing/duplicated frame or missing carrier: `ValueError`. Teammates/defenders are padded to 10/11 slots; absent IDs are `None`. |
+| `get_frame_context(frame_id, *, granular=None)` | Raw `start_type`, `previous_action`, `completed_canonical_drives`, annotation `source` with the revised classifier. | Derives integer completed carries from 10Hz individual-control intervals or annotated action age. `granular=False` preserves historical standardized context. Unknown labels remain categories; unavailable values remain missing. |
+| `get_checkpoints(possession_id=None, *, eligible_only=True, include_snapshots=False)` | Copied action table plus `frame_id`, `start_type_std`, `previous_action_std`, `eligible`, `checkpoint_kind`, `is_canonical`. | Requires actions (`ValueError`). Eligible default rows are canonical drive attempts and pass releases with valid tracking/context. `include_snapshots=True` adds short-tail and terminal evaluation rows; duplicate eligible frame IDs raise `ValueError`. `eligible_only=False` retains excluded rows for a coverage audit. |
+
+A player-possession ID in an action table is different from a team-possession ID. Successful passes keep the team unit alive, even as `player_possession` changes. Frame getters expose every tracking row; checkpoint getters expose the **current default sampling** for possession trajectories. Single-frame evaluation is independent of that selection. **design choice**
+
+## Compute one frame or one possession
+
+```python
+compute_frame(frame_id, xT_grid, *, start_type=None, previous_action=None,
+              bcos_value=None, ppcf_kwargs=None, ball_drive_kwargs=None,
+              bcos_kwargs=None, transition_kwargs=None, match_clock_min=None,
+              score_difference_prefix=None, completed_canonical_drives=None)
+compute_possession(possession_id, xT_grid, *, frame_ids=None,
+                   include_snapshots=True, **frame_kwargs)
+```
+
+`compute_frame` evaluates **any usable tracking frame**, independently of possession segmentation, computes all core components in order and returns a mapping keyed by `PPCF`, `PI`, `ACTION_SELECTION`, `HAZARD`. Values are the stored result mappings, not copies. `compute_possession` applies the same frame evaluator to a chosen sampling: canonical starts plus additional snapshots by default when `frame_ids=None`, or explicitly selected frames otherwise. It returns a chronological DataFrame containing `possession_id`, `frame_id`, `checkpoint_kind`, `is_canonical`, `p_pass`, `Hazard`, `Drive risk`, `Pass failure expected`, `rppcf`. A possession with no eligible default checkpoints raises `ValueError` unless another sampling is supplied. Sampling policy is a project choice inspired by action-based EPV decomposition [@fernandez2019], to be reviewed with the benchmarks. **design choice**
+
+| Parameter | Meaning |
+|---|---|
+| `frame_id` | Existing tracking frame. Missing ID raises `KeyError`; a computable carrier and direction are needed. |
+| `xT_grid` | External finite, nonnegative array of shape **`(n_x, n_y)`**; grid values correspond to attack towards positive x. No training or xT fitting happens here. Invalid shape/values raise `ValueError`. |
+| `start_type`, `previous_action` | Actual event categories. Missing values are read from per-frame tracking annotations or an action interval containing this frame, including its interior. The frame need not be an interval start. Supply context explicitly if annotations are unavailable; both explicit categories allow computation without any segmentation/action table. The revised classifier retains raw categories with missing/unseen buckets. Historical artifacts retain their standardized context path. |
+| `bcos_value` | Optional finite nonnegative BCOS area in m² (`result["BCOS area"]`, probability sum × target-cell area). If omitted, an instance of the extra `BCOS` computes it. BCOS is not added to the core class or its result stores. |
+| `ppcf_kwargs` | Dictionary passed to `compute_ppcf`, e.g. `r_max`, `step`, `physics_kwargs`. Defaults below. |
+| `ball_drive_kwargs` | Dictionary passed to `compute_ball_drive_loss`, e.g. `t_press`, `physics_kwargs`; the latter accepts `integration_method` (`"exponential"` default, `"euler"` historical) and `dt` (0.04 s default). |
+| `transition_kwargs` | Optional raw choice context, `match_clock_min` and `score_difference_prefix`, forwarded to destination choice; the same stored clock/score context is used by action selection unless explicitly overridden. |
+| `bcos_kwargs` | Dictionary passed to `BCOS.compute_bcos`, e.g. `r_max`, `step`, `physics_args`. Used only when `bcos_value` is omitted. |
+| `match_clock_min`, `score_difference_prefix` | Optional current clock and prefix score for both destination/action models; otherwise use available frame/stored choice context. Never infer a final score. |
+| `completed_canonical_drives` | Optional integer count of already completed full carries. Otherwise resolve from individual-control start or annotated action age; if unavailable leave missing rather than invent zero. |
+| `frame_ids` | Optional nonempty one-dimensional sequence of unique integer frame IDs inside the selected possession. All must have a usable carrier state. Returned rows are chronological; malformed/duplicate/out-of-possession selections raise `ValueError` before calculations. This changes sampling, not the modeled carry horizon. |
+| `include_snapshots` | With default sampling, include short-tail/terminal evaluations (default `True`). Set `False` for canonical rows only. Explicit `frame_ids` take precedence. Additional forecasts may overlap and must not be inserted blindly into survival. |
+| `frame_kwargs` | The same keyword options applied to every selected frame in `compute_possession`. Action context is resolved separately per frame unless explicitly overridden. |
+
+Both convenience methods recompute requested frames. They do not reuse cached components automatically. Coarse grids are useful for runnable demonstrations but change candidate distributions and the BCOS sum: they are not equivalent to the production configuration. Inspect the chosen frame coverage before interpreting possession summaries. The carry horizon remains the configured `t_press` (one second by default), independently of frame spacing. The product used by `possession_survival` depends on which frames are sampled; retain the sampling policy with a report. **design choice**
+
+## Individual component methods
+
+### Pitch control and pass success
+
+```python
+compute_ppcf(frame_id, r_max=150, step=1.0, physics_kwargs=None, model=None)
+```
+
+Creates a circular candidate grid around the carrier, clipped to the native pitch, computes exact-distance flight times and raw attacking control, then applies the saved **isotonic** map. `r_max` and `step` are metres. The per-call `model` overrides the constructor model; otherwise `PassRiskModel.pretrained()` loads the bundled full-data fit. Returns **`None`**; retrieve `get_ppcf_result(frame_id)`.
+
+Result keys: `grid` `(N, 2)` centred-pitch coordinates; `Pitch control field` player-by-target array; `Attacking pitch control field` `(N,)`; calibrated `Pass probability` `(N,)`; `ball flight time`; `attacker_idx`, `ball_carrier_idx`; `params`. Recomputing replaces this frame’s PPCF result and clears action-selection/hazard results.
+
+`physics_kwargs` supplies **partial overrides** of the exported physics settings. The verified model uses `v_max=5.5`, `a_max=7.0`, `dt_ball=0.04`, `t_max_flight=10.0`, `dt_pc=0.01`, `t_max_pc=15.0`, `z_max=2.0`, `rho=1.22`, `Cd=0.25`, `A=0.038`, `m=0.42`, `g=9.81`, exact target distances and exponential integration. Launch candidates span 5–25 m/s and 0–45 degrees, 30 values each. Time is seconds and physics parameters use SI units. Overrides are sensitivity analyses: `params.calibration_matches_physics` is false when settings differ from those used to fit the saved calibration.
+
+```python
+from PRESS.model import PassRiskModel
+fitted = PassRiskModel.pretrained()
+model = PRESS(tracking, pass_risk_model=fitted)
+model.compute_ppcf(frame_id, r_max=80, step=8)
+```
+
+`PassRiskModel.from_json(path)` loads an exported artifact; `to_dict()` returns a copy; `calibrate(p)` applies its frozen monotone map. `predict_field(p_pos, p_vel, x_bc, targets, attacker_idx, ball_carrier_idx, *, physics_kwargs=None)` accepts centred-metre arrays, with players/velocities `(P,2)`, carrier `(2,)` and targets `(M,2)`, and returns per-player control `(P,M)`, raw and calibrated success `(M,)`, flight times and physics metadata. `predict_from_times(tau, t_ball, valid, attacker_idx)` is the export-check primitive with arrival/mask arrays `(P,M)` and ball times `(M,)`. The final run41 artifact preserves initial overspeed with `a_turn=a_max=7`; the same TTI is used for endpoint control and receiver flight matching. The full-data estimates are `lambda_control=5.437830`, `s=0.294560`; they are separate from the nested OOF benchmark. [Export provenance](docs/pass-risk-refit-provenance.json).
+
+[Executable pass example](vignettes/02_pass_probability/02_pass_probability.ipynb).
+
+### Ball-drive loss
+
+```python
+compute_ball_drive_loss(frame_id, t_press=1.0, physics_kwargs=None, model=None)
+```
+
+Integrates competing defender causes over `t_press` seconds. Returns **`None`**; retrieve `get_ball_drive_result(frame_id)`. Keys: `Individual tackle probabilities`, scalar `Ball drive loss probability` (their sum), `params`.
+
+By default this uses the bundled final spline refit, including its learned coefficients and arrival scale. Recomputing drive loss removes transition probabilities and downstream action/hazard outputs for this frame. [Executable drive example](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb).
+
+The final model can also be selected explicitly through the constructor or per-call argument:
+
+```python
+from PRESS.model import BallDriveModel
+
+model = BallDriveModel.pretrained()
+press.compute_ball_drive_loss(frame_id, model=model, t_press=1.0)
+result = press.get_ball_drive_result(frame_id)
+```
+
+For historical comparisons only, supplying legacy coefficient keys without an explicit fitted model selects the old log-linear solver. Its complete original dictionary was `v_max=7.0`, `a_max=7.0`, `lambda_0=0.36`, `beta_v=0.09`, `beta_B=-0.02`, `s=0.43`.
+
+The fitted path additionally returns `Survival probability`, `Survival curve`, and `Times`; `params` records the model ID. It uses stored spline bases and coefficients, exponential Euler with partial final steps, signed boundary distance, and a point-like carrier moving at constant velocity. The standalone artifact defaults to its saved 105 × 68 m pitch. The `PRESS` wrapper supplies the current native pitch dimensions, matching destination-choice feature construction. `physics_kwargs` supplies **partial physics overrides**: `v_max`, `a_linear`, `a_turn`, `preserve_initial_overspeed`, `pitch_length`, `pitch_width`, `dt`, `integration_method` (only `"exponential"`), or `boundary_mode` (`"signed"` / `"absolute"`). Overrides are sensitivity analyses, not recalibrated models. `a_max`, `lambda_0`, `s` and other legacy coefficient overrides are rejected on this path.
+
+`BallDriveModel.from_json(path)` loads a self-contained export; `to_dict()` copies its parameters and provenance. `predict(r_defs, v_defs, x_bc, v_bc, *, horizon=1.0, physics_kwargs=None)` evaluates one state; `predict_batch(...)` accepts defenders shaped `(N,D,2)` and carriers `(N,2)`. Positions are centred metres and velocities m/s. Results contain `loss_probability`, `survival_probability`, `cause_probabilities`, `survival_curve`, `times`, `physics`, `model_id`, and `horizon`. Cause probabilities sum to loss; zero horizon gives zero risk. Absent defenders may be padded beyond 500 m. Inference returns raw probabilities without the benchmark's Bernoulli floor. Short horizons are supported mathematically but were not independently calibrated. See the [benchmark and runnable pitch example](benchmark.qmd).
+
+### Destination choice
+
+```python
+compute_transition_probabilities(frame_id, xT_grid, *, start_type_raw=None,
+                                 previous_action_raw=None, match_clock_min=None,
+                                 score_difference_prefix=None)
+```
+
+Requires pitch control and one-second drive loss. Returns a normalized destination-choice vector and stores `Transition probabilities`; these are choices, not pass-success probabilities. It clears downstream action/hazard results.
+
+`PassSelectionModel.from_json(path)` loads the final refit manifest and adjacent checksum-verified `.ubj` ensemble. `PRESS(..., pass_selection_model=model)` selects it explicitly. Its saved vocabulary, 10×6 xT surface and feature order are used at inference; raw start/previous labels and prefix score context must be known at the frame. Omitted raw context is resolved from canonical tracking columns or the latest containing action interval; otherwise trained missing buckets/NaNs are used. Minute and score require known frame columns or explicit values. The one-second drive feature is required; shorter drive horizons are rejected for destination choice. It uses raw control, not isotonic pass success, and the ball-drive **loss** feature. With this model, `compute_ppcf` uses the complete native one-metre pitch grid, matching the benchmark. The verified flat refit is installed and selected by default. Explicit coarse/restricted grids remain supported for demonstrations or sensitivity checks; they change the choice denominator and set `choice_grid_matches_benchmark=False` in PPCF parameters.
+
+`model.build_features(**state)` constructs one complete choice set. Arguments are `x_bc`, `v_bc`, `r_atts` (excluding carrier), `r_defs`, `targets`, `attacking_side`, `target_pitch_control`, `ball_drive_prob`; optional raw context, minute, score and pitch dimensions match the method above. The installed reader uses `ahead_of_carrier_and_target_v1`: four counts of teammates/opponents beyond the transverse carrier/candidate line, always along the carrier team’s attacking direction. Backward targets may increase counts; equality is excluded and tracked goalkeepers are included. Older manifests retain their explicitly supported legacy schema. `model.predict_features(X, *, log_membership=None, calibrated=True)` returns cell probabilities. A secondary CNL export requires per-cell teammate log memberships; its calibration tempers the final distribution. `to_dict()` returns a copy of its manifest. `pretrained()` loads the installed operational flat export: 1,444 trees, μ=1 and T=1.0132954379. The secondary CNL refit remains only in the research history.
+
+[Executable pitch example](vignettes/03_transition_model/03_transition_model.ipynb) · [Features, likelihoods, screening and both final runs](benchmark.qmd#pass-selection-benchmark).
+
+### Action selection
+
+```python
+compute_action_selection_probability(frame_id, xT_grid, start_type,
+                                     previous_action, bcos_value, *,
+                                     match_clock_min=None,
+                                     score_difference_prefix=None,
+                                     completed_canonical_drives=None)
+```
+
+Requires pitch control, one-second drive loss and transition choice. The revised
+model uses raw granular context (e.g. `pass_reception`, `ball_drive`) with explicit
+unknown/missing/unseen buckets. `bcos_value` is area in m². The model uses its
+saved10x6 xT surface. Returns scalar native `P(pass)`, stores its complement,
+and invalidates the previous hazard. No temperature is applied. The current
+state supplies all30 conceptual inputs; no future destination or outcome enters.
+[All feature definitions and example](vignettes/04_action_selection/04_action_selection.ipynb).
+
+```python
+from PRESS.model import ActionSelectionModel
+fitted = ActionSelectionModel.pretrained()
+```
+
+`ActionSelectionModel.from_json(path)` checks the adjacent UBJ checksum and exact
+column order; `build_feature_record`, `build_features`, `encode` and
+`predict_features` expose the same frozen contract used by the refit. Old
+artifacts remain available in the recorded archive.
+
+### Next-action hazard
+
+```python
+compute_hazard(frame_id)
+```
+
+Requires all four upstream outputs for this frame (`ValueError` otherwise). Returns raw scalar hazard. Stores `Hazard`, `Drive risk`, `Pass failure expected`, and `rppcf` (transition-weighted pass success). No post-hoc calibration is applied. [Executable hazard/band example](vignettes/05_composed_hazard_and_bands/05_composed_hazard_and_bands.ipynb).
+
+## Result getters
+
+| Method | Stored component |
+|---|---|
+| `get_result(component, frame_id)` | One of `PPCF`, `PI`, `ACTION_SELECTION`, `HAZARD`; component name is case-insensitive. |
+| `get_ppcf_result(frame_id)` | `PPCF` |
+| `get_ball_drive_result(frame_id)` | `PI` |
+| `get_action_selection_result(frame_id)` | `ACTION_SELECTION` |
+| `get_hazard_result(frame_id)` | `HAZARD` |
+
+All return the stored mapping by reference. Unknown component: `ValueError`; unavailable/invalidated frame output: `KeyError`. Recompute prerequisites before requesting downstream results. Getter errors do not trigger hidden calculations.
+
+## Optional BCOS
+
+Import with `from PRESS.extras import BCOS`.
+
+```python
+BCOS(tracking_data, *, ball_drive_model=None)
+BCOS.compute_bcos(frame_id, r_max=40.0, step=1.0, physics_args=None)
+BCOS.get_result(frame_id)
+```
+
+`compute_bcos` returns `Ball carrier open space` (probabilities), `Defensive
+control`, `Unresolved probability`, `BCOS area` (m²), `grid`, integration steps,
+mass error and parameters. Area is `sum(probabilities) * step**2`; the1m grid
+has1m² cells. Defaults are40m radius,1m targets,0.03125m paths, dt0.04s,
+Tmax15s and remaining-survival stop bound1e-9. Carrier/defender caps are6.6/7m/s,
+linear/turning scales7m/s², with shared overspeed-preserving TTI. Dispersion is
+loaded from the selected physical carry model. The conditional-hazard kernel
+uses exponential shared-survival integration; it does not differentiate a
+product as an interception CDF. `physics_args` overrides these scales; a supplied
+`MAX_POINTS` cannot truncate the chosen path. `get_result` raises `KeyError`
+before computation. [BCOS example](vignettes/extras/bcos/10_bcos.ipynb).
+
+## Plot functions
+
+Import from `PRESS.visualization`. `plot_frame(press, frame_id, ...)`, `plot_ppcf(press, frame_id, ...)`, `plot_pi(press, frame_id, ...)`, and `plot_bcos(bcos, frame_id, ...)` draw Matplotlib figures and return **`None`**. Use `plt.gcf()` to save the created figure. Compute the matching output first; `plot_frame` only requires a tracked carrier and both teams.
+
+Pitch dimensions default to tracking metadata, with 105×68 fallback; explicit `pitch_length` and `pitch_width` override the display. All share `figsize=(12, 8)`, `title_fontsize=9`, `legend_fontsize=8`. `plot_bcos` receives the separate BCOS object. `plot_ppcf` adds keyword-only `field="pitch_control"` (raw attacking control) or `field="pass_success"` (calibrated pass success). `plot_pi` colors and labels each defender by their stored tackle probability and reports total carry-loss probability. Field interpolation is for display; plots do not recompute model probabilities. [Plotting example](vignettes/00_match_workflow/00_match_workflow.ipynb).
+
+`plot_transition(press, frame_id, pitch_length=105, pitch_width=68, figsize=(12,8), title_fontsize=11, legend_fontsize=8)` plots the stored destination-choice mass on the original candidate grid with tracked players and the carrier. It requires transition probabilities and returns `(figure, pitch_axes)`. Candidate values are not interpolated or renormalized. [Pitch example](vignettes/03_transition_model/03_transition_model.ipynb).
+
+`plot_action_selection(press, frame_id, pitch_length=105, pitch_width=68, figsize=(12,8), title_fontsize=11, legend_fontsize=8)` plots the frame and an inset of its scalar pass/carry probabilities. It requires action-selection results and returns `(figure, pitch_axes)`; those scalar weights are not a spatial field. [Pitch example](vignettes/04_action_selection/04_action_selection.ipynb).
+
+## Possession summaries
+
+Import from `PRESS.utils.possession`.
+
+| Function | Arguments and return value |
+|---|---|
+| `hazard_band_thresholds()` | Returns `{half_life: cutoff}` for 1, 2, 4, 8 **checkpoints**. Operational bands use 8/4/2. |
+| `hazard_to_band(hazard)` | Finite scalar or array in `[0,1]`; returns string or same-shape array of `None`, `Low`, `Medium`, `High`. Invalid values: `ValueError`. The `None` label is a string. |
+| `possession_survival(hazards)` | Nonempty one-dimensional hazards in `[0,1]`; returns arrays `difficulty_increment`, `cumulative_difficulty`, `survival`, `bands`. At hazard=1, cumulative difficulty becomes infinite and survival stays zero. Invalid inputs: `ValueError`. |
+| `classify_possession_typology(bands, lost, has_engagement=False)` | Nonempty sequence of the four band strings, observed terminal boolean and optional engagement context; returns `category`, `has_engagement`. Invalid band sequence: `ValueError`. |
+
+These functions summarize supplied checkpoint data retrospectively; they do not load matches or infer observed loss. See [survival](vignettes/07_survival_curve/07_survival_curve.ipynb), [typologies](vignettes/08_possession_typologies/08_possession_typologies.ipynb), and [league reporting](vignettes/09_league_level_report/09_league_level_report.ipynb).
+
+## Data helpers and low-level utilities
+
+| Function / import | Contract |
+|---|---|
+| `PRESS.datasets.load_demo_match()` | Returns fresh `(tracking, possessions, actions, xT_grid)`; all inputs are deterministic and synthetic. [Workflow example](vignettes/00_match_workflow/00_match_workflow.ipynb). |
+| `PRESS.utils.match.link_team_possessions(player_possessions)` | Requires `player_id`, `frame_start`, `frame_end`, `end_type`, `pass_outcome`, `target_pass`, `frame_receipt`, boolean `loss`; optional `game_interruption_after`, `period`. Returns `(team_intervals, annotated_player_intervals)`. Malformed IDs, loss types, reversed/overlapping intervals: `ValueError`. Links only successful, matching same-team receptions without an interruption or period change. |
+| `PRESS.utils.match.standardize_action_context(value, *, previous=False)` | Maps the original training categories to standardized labels. `unknown`, missing and unsupported categories return `None`; `ball_drive` is allowed only with `previous=True`. |
+| `PRESS.utils.state.get_xt_values(targets, attacking_side, xt_grid)` | Targets `(N,2)`, direction string and `(n_x,n_y)` grid → attacking/opponent xT arrays. Coordinates are mirrored for attack direction and clipped to pitch bins. [Executable xT example](vignettes/extras/expected_threat/11_expected_threat.ipynb). |
+| `PRESS.utils.get_pv_players(frame, tracking_df)` | Same state extraction as `get_state`; padded teammates/defenders. Prefer the object method for match use. |
+| `PRESS.utils.generate_circular_grid(r_max, step)` | Returns circular relative target coordinates around `(0,0)`; both parameters are metres. The class then translates and clips to pitch bounds. |
+| `PRESS.utils.hazard.compute_hazard_raw(ball_drive_loss, transition_probabilities, pass_success_probability, action_selection_pass_probability)` | Scalar drive loss, matching `(N,)` arrays and scalar P(pass) → `(hazard, drive_risk, pass_failure_expected, rppcf)`. Inputs must already be valid probabilities; this low-level helper does not validate them. [Executable mixture example](vignettes/05_composed_hazard_and_bands/05_composed_hazard_and_bands.ipynb). |
+
+Advanced physics entry points exported by `PRESS.model` (`integrate_pitch_control`, `integrate_loss_prob`) and `PRESS.physics` (`time_flight`) are documented in the [solver reference](solvers.qmd). Use the class methods for complete frame-level workflows.
+
+## Optional individual-possession continuation
+
+`PRESS.extras.compose_individual_xloss(*, p_pass, drive_loss, pass_failure, residual_loss)` combines finite probabilities in `[0,1]` into `p_pass*pass_failure + (1-p_pass)*(drive_loss + (1-drive_loss)*residual_loss)`. Inputs may be scalars or broadcastable arrays; returns a float or NumPy array. Empty/invalid probabilities or incompatible shapes raise `ValueError`. `residual_loss` is conditional on the current drive succeeding; a successful pass terminates the individual's sequence without failure. This function performs composition only, loads no booster and is not called by core methods. [Executable residual-risk and xLoss example](vignettes/05a_residual_risk/05a_residual_risk.ipynb).
+
+Carry integration uses exponential Euler by default. The shared survival mass is updated exactly for rates frozen during each step, with the lost mass split among defenders. `compute_ball_drive_loss(..., physics_kwargs={...})` records the integration method and step in its result parameters. The centripetal turning penalty `speed * angle / a_max` remains the accepted approximation, with angle in radians.
+
+
+### Conditional terminal model
+
+`PRESS.model.ResidualRiskModel.from_json(path)` loads an adjacent checksum-verified native UBJ. `pretrained()` loads the installed verified129-tree full-data refit75. Positive class is terminal individual loss. `features_from_action_record(record, *, time_since_start, action_model)` reuses the approved current-state summaries, replaces carry count by elapsed time and computes native `P(carry)` from the matched action model. `build_features(*, action_model, time_since_start, **state)` first builds the current action record. `encode(frame)` uses saved numeric/category order and explicit missing/unseen buckets; `predict_features(matrix)` returns native residual probabilities. Negative/nonfinite elapsed time and a mismatched action booster raise `ValueError`. The model is optional; core hazard calls do not automatically compute terminal xLoss.

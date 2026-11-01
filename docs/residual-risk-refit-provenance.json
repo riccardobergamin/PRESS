@@ -1,0 +1,15 @@
+{
+  "status": "installed_verified",
+  "run": "78_residual_risk_verified_full_refit_20261029_203422",
+  "n_actions": 7820,
+  "n_losses": 1423,
+  "rounds": 118,
+  "calibration": "none",
+  "model_id": "skillcorner_outfield_residual_risk_verified_v2",
+  "manifest_sha256": "3d6fcd557bf803b56dab328aaf64992aad80b472876f19d1f9b24d33d93f8053",
+  "booster_sha256": "38db08cdf20dbd7caf9a619b6e007713f3a55a706ea4c8d4b412ce529924c457",
+  "benchmark_unchanged": true,
+  "features_full_data": true,
+  "as_training_scores_crossfit": true,
+  "fixtures": 200
+}

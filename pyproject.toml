@@ -1,30 +1,40 @@
 [build-system]
-requires = ["setuptools==75.8.0"]
+requires = ["setuptools==82.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "PRESS"
 version = "0.1.0"
 description = "A physics-informed framework for possession-loss hazard in football"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.11,<3.13"
 dependencies = [
-  "jax==0.4.35",
-  "jaxopt==0.8.3",
-  "numpy==1.26.4",
-  "pandas==2.2.3",
-  "scikit-learn==1.5.2",
-  "scipy==1.14.1",
-  "matplotlib==3.10.0",
-  "mplsoccer==1.4.0",
-  "xgboost==2.1.4",
+  "jax==0.7.2",
+  "jaxopt==0.8.5",
+  "numpy==2.4.6",
+  "pandas==2.3.3",
+  "scikit-learn==1.8.0",
+  "scipy==1.17.1",
+  "matplotlib==3.10.8",
+  "mplsoccer==1.6.1",
+  "xgboost==3.2.0",
 ]
 
 [project.optional-dependencies]
+io = ["pyarrow==19.0.1"]
+dev = ["pytest==9.0.2"]
 vignettes = [
-  "ipykernel==6.29.5",
-  "ipython==8.32.0",
+  "ipykernel==7.2.0",
+  "ipython==9.10.0",
   "nbformat==5.10.4",
+  "nbconvert==7.17.0",
+  "PyYAML==6.0.3",
 ]
 
 [tool.setuptools.packages.find]
 include = ["PRESS*"]
+
+[tool.setuptools.package-data]
+"PRESS.utils" = ["data/*.json", "data/*.ubj"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

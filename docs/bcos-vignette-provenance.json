@@ -1,0 +1,127 @@
+{
+  "status": "executed_rendered_verified",
+  "experiment": "80_bcos_vignette_case_study_20261030",
+  "case_frame": 15032,
+  "match_id": "1925299",
+  "n_checkpoints": 1928,
+  "n_parents": 931,
+  "no_new_fit": true,
+  "no_model_or_cache_change": true,
+  "runtime_sha256": {
+    "PRESS/model/bcos_fine.py": "c530588146581aadd2237298867d0502130bbcd1761dfddc558958e522ccc0b6",
+    "PRESS/extras/bcos.py": "5597e2b5e92dba82aa1fd5c54270a7b1ffa57d8174f48c439b12536684364aee",
+    "PRESS/physics/times.py": "ae03562dcf208d24e43c3ce57cf63b3f80d50cd9c6b609eedb58f7abea0e4f13"
+  },
+  "source_sha256": {
+    "experiments/80_bcos_vignette_case_study_20261030/03_case_and_aggregates/metadata.json": "99f44b29eccd67e6186dde8571e62433ab1b40821409e96c0ea3d8a881d11246",
+    "experiments/80_bcos_vignette_case_study_20261030/03_case_and_aggregates/example_summary.json": "71263359600d7da36406918091e0a80c8e4102d65522df4b8b0fe57be9ee7e75",
+    "experiments/80_bcos_vignette_case_study_20261030/01_grid_support/selection.json": "6e48983cbdf8a15d3aac5498afcc707c888098fe8b607e08ab44f6896648dbae",
+    "experiments/80_bcos_vignette_case_study_20261030/02_grid_stability/verification.json": "2873abc6bee7d5d3251b0b97f26c66fa5126ab010cb7adfa0247d17ad3ff43b8"
+  },
+  "public_data_sha256": {
+    "grid_support.csv": "c0ec8142e353a417ba928b0331e99b37c45ede437c2379cfd39007180805b4f1",
+    "temporal_refinement.csv": "ce0defb6119b71908079edf6916d180a73db504f670d761070bfcb25793f954e",
+    "match_phase_summary.csv": "f0fb11d731bb8353c5508fcbe0c0b41ebca3377376208b0d85d5e1d72b21dc20",
+    "temporal_convergence.csv": "9b5cf50495539c493ea675207c0bee3889f96c7e7daac54d6fb31d2576833400",
+    "metadata.json": "1cf12f23e4164a246aa00621f2531572000ed35a0f21b120da4df7b05209e37f",
+    "feature_permutation_summary.csv": "752aa766b4fc04b2665e7d6e71deb9d0da787543de891f54560b2f033e33d9be",
+    "team_summary.csv": "b407ad1bd04f6ed2d0540ef12f6bcacf8d70db78608d13e7a7af8e21abc96300",
+    "spatial_cells.csv": "fd9f927aa2ea99ed0dd53425ef1b5e29cc4494cf2de976c4bb1f92a198bae0bd",
+    "README.md": "d72cd7b3e8c66d22ec009776f2f487fe59d8205143def94c8f73d98b2aa66d0d",
+    "feature_split_gain.csv": "43cfc34630ac3df942bbbef825ca6a9491ab73d3513810055ba6d3c3d037974b",
+    "path_convergence.csv": "3c2e0a1d2a0e47ed9db66f19792c1cf24f25f262b88d1ad54503b286471911c4",
+    "feature_permutation_by_seed.csv": "a0ac060f236da5e28992bffa15eff937666e1df59743257f8cd8f72a9c5f966e",
+    "example_summary.json": "71263359600d7da36406918091e0a80c8e4102d65522df4b8b0fe57be9ee7e75",
+    "temporal_thirds.csv": "735b10b39409c01963261790da60c7504a88a6f4b104ebd3822cd8843f70c7a9",
+    "grid_bootstrap_summary.csv": "a22d00353445757f0cd144edc2f253aca23ec996b21d215f60a3ce93849b1b03",
+    "grid_mean_stability.csv": "af139af2801f756b76a2aa1fae1c057e853f4132f577795fb08e30c05db397bf"
+  },
+  "prior_version_archive": "docs/old/bcos_before_real_case_20261030",
+  "action_selection_link_verified": true,
+  "extra_sidebar_verified": true,
+  "conceptual_mathematical_and_example_audit": [
+    {
+      "vignette": "vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb",
+      "conceptual_definition": true,
+      "mathematical_model": true,
+      "executable_example": true,
+      "example_data": "Synthetic, explicitly labelled; installed weights used. BCOS has a separately verified real case.",
+      "references_present": true
+    },
+    {
+      "vignette": "vignettes/02_pass_probability/02_pass_probability.ipynb",
+      "conceptual_definition": true,
+      "mathematical_model": true,
+      "executable_example": true,
+      "example_data": "Synthetic, explicitly labelled; installed weights used. BCOS has a separately verified real case.",
+      "references_present": true
+    },
+    {
+      "vignette": "vignettes/03_transition_model/03_transition_model.ipynb",
+      "conceptual_definition": true,
+      "mathematical_model": true,
+      "executable_example": true,
+      "example_data": "Synthetic, explicitly labelled; installed weights used. BCOS has a separately verified real case.",
+      "references_present": true
+    },
+    {
+      "vignette": "vignettes/04_action_selection/04_action_selection.ipynb",
+      "conceptual_definition": true,
+      "mathematical_model": true,
+      "executable_example": true,
+      "example_data": "Synthetic, explicitly labelled; installed weights used. BCOS has a separately verified real case.",
+      "references_present": true
+    },
+    {
+      "vignette": "vignettes/05a_residual_risk/05a_residual_risk.ipynb",
+      "conceptual_definition": true,
+      "mathematical_model": true,
+      "executable_example": true,
+      "example_data": "Synthetic, explicitly labelled; installed weights used. BCOS has a separately verified real case.",
+      "references_present": true
+    }
+  ],
+  "raw_tracking_tables_published": false,
+  "references": [
+    "bandara2025bcos",
+    "spearman2017",
+    "spearman2018beyond",
+    "pleuler2020handbook",
+    "bekkers2025",
+    "bradley2009running",
+    "carling2010ballrunning",
+    "benhassen2026dribbling",
+    "skillcorner-opendata"
+  ],
+  "real_frame_public_api_recomputed": true,
+  "source_notebook_checks": 13,
+  "source_local_links_checked": 252,
+  "rendered_pages": 22,
+  "rendered_local_links_checked": 2406,
+  "figure_files": [
+    "vignette_10_bcos.png",
+    "bcos_match_spatial.png",
+    "bcos_match_temporal.png",
+    "bcos_grid_support.png"
+  ],
+  "figure_sha256": {
+    "vignette_10_bcos.png": "3ee25d52a45713f4e43ed4e4f5770d989fda3029e83592a153695703bdd06af5",
+    "bcos_match_spatial.png": "112b91837439ae230de18cf350f02d764f57166a92aaff745dd3ced61c8f8e12",
+    "bcos_match_temporal.png": "6299d1deda83908f0c8933c8fdaf9b9705324712655ebb051129b60d8fb9f140",
+    "bcos_grid_support.png": "a85e49e50ade7ce828e70b0a8101d4a68def3f418b665bf7bb5f29d201edce61"
+  },
+  "retrospective_goal_context_verified": true,
+  "match_reading_added": true,
+  "feature_importance_diagnostic": "81_bcos_feature_importance_20261030",
+  "feature_models_refit": false,
+  "feature_importance_sections_added": true,
+  "spatial_extension_status": "Prospective and untested; final models unchanged",
+  "documentation_reorganization_20261030": {
+    "experiment": "83_bcos_and_composed_benchmark_docs_20261030",
+    "status": "executed_rendered_verified",
+    "composed_benchmark_vignette": "vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb",
+    "feature_importance_location": "Predictive model vignettes; BCOS page links to them",
+    "definition_source": "Bandara et al. 2025; PRESS arrival/competing-risk formalization distinguished",
+    "model_or_benchmark_changes": false
+  }
+}

@@ -149,3 +149,14 @@ def frame_to_long(
 
 
     return pd.DataFrame(rows)
+
+
+def resolve_pitch_size(frame_df, pitch_length=None, pitch_width=None):
+    """Resolve plot dimensions from a frame, with legacy 105×68 fallback."""
+    import numpy as np
+    row = frame_df.iloc[0]
+    length = float(row.get("pitch_length", 105) if pitch_length is None else pitch_length)
+    width = float(row.get("pitch_width", 68) if pitch_width is None else pitch_width)
+    if not np.isfinite([length, width]).all() or min(length, width) <= 0:
+        raise ValueError("Pitch dimensions must be finite and positive.")
+    return length, width

@@ -1,0 +1,305 @@
+---
+title: "Component benchmarks"
+jupyter: python3
+---
+
+The final carry component estimates **loss within one second, conditional on carrying**. It uses a physics-informed competing-risk likelihood with a shared survival probability, logistic arrival gates, and an additive tackle rate. It is separate from end-of-possession xLoss. **own derivation**
+
+## Cohort and evaluation
+
+The cohort contains **9,148 carry attempts, 476 losses (5.20%), across ten SkillCorner matches**. Goalkeeper carriers, shot-ending individual possessions and successful tails shorter than one second are excluded. Goalkeepers remain among defenders. Only the final failed section is a loss; early and zero-duration failures retain the one-second Bernoulli target. Failed passes are outside this task. This training cohort differs from the additional snapshots available for arbitrary-frame evaluation. **design choice**
+
+Five outer folds hold out two complete matches each. Spline transformations and smoothing selection use training matches and inner validation matches; the table pools the five held-out prediction sets. The null model uses each outer training set's loss frequency. Gain is `1 − CE_model / CE_null`; ECE uses ten equal-count quantile bins weighted by their observation counts. CE uses natural logarithms and a probability floor of 1e-6. No resampling or post-hoc calibration is used in the final model. These ten matches also informed model-family development: this is a development benchmark, without an untouched external evaluation. **design choice**
+
+## Log-linear proportional-hazard-inspired model and splines
+
+The starting model uses $\lambda(t)=\lambda_0\exp(\beta_v v_B+\beta_B B(t))$. The additive version replaces the linear covariate shapes with penalized splines; it preserves positive multiplicative rates, defender reachability and shared survival. Both are likelihood-based. This comparison examines functional form, not a standalone Cox proportional-hazards test. See the [ball-drive vignette](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb) for equations, references and tracking-based kinematic justification.
+
+
+| Model | Cross-entropy | Gain over null | Quantile ECE |
+|---|---:|---:|---:|
+| **Log-linear baseline**; historical TTI; Euler | **0.158336** | **22.609%** | **0.902%** |
+| Additive speed/boundary reference; historical TTI; Euler | 0.156796 | 23.361% | 0.614% |
+| Preserve defender initial speed above the cap | 0.156568 | 23.473% | 0.621% |
+| Add individual interception-angle spline | 0.155175 | 24.154% | 0.697% |
+| Use signed boundary distance | 0.153320 | 25.060% | 0.644% |
+| **Final: exponential Euler, refitted** | **0.153312** | **25.064%** | **0.642%** |
+
+The final Brier score is **0.041968**, ROC AUC **0.87246**. Mean predicted loss is **5.268%**, versus **5.203%** observed. The angle improves cross-entropy without improving pooled ECE in this comparison. The integration change has negligible predictive effect; exponential Euler is retained for probability-mass preservation. Rows describe successive changes on the same cohort, not isolated causal effects.
+
+Signed boundary distance matters mainly for unusual outside-pitch states: 210 trajectories project outside during the horizon, including 45 already outside at the initial frame. About 80.5% of its cross-entropy improvement comes from those 45 rows. This correction should not be presented as a general improvement on ordinary interior carries. Annotation and synchronization noise remain possible; no labels were changed to obtain these results.
+
+The downloadable [metric table](data/benchmarks/ball_drive/metrics.csv), [calibration bins](data/benchmarks/ball_drive/calibration_deciles.csv) and [source hashes](data/benchmarks/ball_drive/provenance.json) contain aggregate results from the outfield log-linear baseline and audited runs 14–15. The baseline and spline rows use the same 9,148 states, labels and outer match pairs; the final changes are presented separately.
+
+```{python}
+#| label: fig-carry-calibration
+#| fig-cap: "Pooled held-out calibration of the final model; ten equal-count bins."
+import pandas as pd
+import matplotlib.pyplot as plt
+
+calibration = pd.read_csv("data/benchmarks/ball_drive/calibration_deciles.csv")
+fig, ax = plt.subplots(figsize=(5.5, 4))
+ax.plot([0, .3], [0, .3], "--", color="gray", label="Perfect calibration")
+ax.plot(calibration.predicted_loss, calibration.observed_loss, "o-", label="Pooled OOF")
+ax.set(xlabel="Predicted loss probability", ylabel="Observed loss frequency",
+       xlim=(0, .3), ylim=(0, .3))
+ax.legend()
+fig.tight_layout()
+plt.show()
+```
+
+## Published ball-drive benchmarks
+
+These are numerical references on different datasets, not a common leaderboard. Gains normalize CE against the corresponding null, which helps interpretation but does not remove differences in labels, prevalence, features and splits.
+
+| Study / model | Training loss share | CE | Null CE | Gain over null | Quantile ECE |
+|---|---:|---:|---:|---:|---:|
+| Fernández et al.; neural network | 9.4% overall | 0.2803 | ≈0.311696* | ≈10.07%* | 0.51% |
+| Stalpaert; CatBoost start-only, natural | 6.1% table heading | 0.2059 | 0.2455 | 16.13% | — |
+| Stalpaert; CatBoost start-only, resampled | **10% training only** | **0.1053** | 0.2455 | **57.11%** | **1.64%** |
+| PRESS; log-linear rate | 5.20% pooled | 0.158336 | 0.204591 | 22.61% | 0.90% |
+| PRESS; final additive spline rate | 5.20% pooled | 0.153312 | 0.204591 | 25.06% | 0.64% |
+
+Fernández: Tables 3–4 and §§5.2/6.3–6.6; split by match, 633 matches, one-second sections [@fernandez2021]. *The approximate null is entropy at the published **overall** success rate of 90.6%, not a recovered test-fold null. No pass-risk numbers are mixed into this table.
+
+Stalpaert: Tables 4.4/4.7, §§4.4/4.7; test ratios remain natural. The 1.64% ECE belongs to the selected resampled start-only component, not every row. The prose says 6.3% failed sections, while the natural-training heading says 93.9% success; preserve this discrepancy. He labels the **last two seconds** of failed drives negative; PRESS labels only the terminal section [@stalpaert2022]. Brier scores are 0.0571 (natural) and 0.0251 (10% loss). Values and locators are downloadable in the [comparison table](data/benchmarks/ball_drive/literature_comparison.csv).
+
+### Exploratory CatBoost and training-only resampling
+
+We report the second, compact CatBoost experiment on the same **9,148 examples, including 476 losses, from ten matches**. Its 33 features comprise carrier speed, boundary distances, three lowest TTI at 0/0.5/1 s, an all-defender encounter curve every 0.1 s, and initial/projected carrier and goal geometry. These describe substantially overlapping physical information with Stalpaert's pitch-control, path-density and spatial features, although the transformations and TTI routines are not identical. This is a comparison of related representations, not an exact implementation replication.
+
+The experiment used native CatBoost binary Logloss and standard model selection by grouped cross-validation. Five outer folds each held out two complete matches. Within the remaining eight, four rotations of **six fit / two validation matches** selected depth 4/6/8, learning rate 0.02/0.05 and L2 3/10/30, plus the reference 6/0.03/10 configuration: **19 candidates**, with tree count selected over 25–2000 in steps of 25. This completed the specified grid on both compact representations; it was not an exhaustive search over all CatBoost options. Three-seed probability ensembles were refitted on the eight training matches. Platt calibration was fitted to their inner out-of-fold predictions, without using the two outer test matches. The native loss and validation-based parameter-selection principle follow the [CatBoost documentation](https://catboost.ai/docs/en/concepts/parameter-tuning); the particular grid and match grouping are experimental design choices.
+
+Natural training was compared with uniform undersampling of successful sections, retaining all losses and nine successes per loss to obtain **10% training loss**. Sampling affected fitting subsets only. Validation, calibration and outer test populations remained natural; analytical prior correction and Platt were evaluated as separate alternatives. The calibrated comparison below applies the same Platt procedure to both training regimes.
+
+Both compact variants set **vmax = 7 m/s** and **linear acceleration = 7 m/s²**, preserving initial overspeed. Turning acceleration was **7 m/s²** (`compact7`) or **14 m/s²** (`compact14`). For the encounter features, the deterministic TTI $\tau_i(t)$ was transformed as $F_i(t)=\operatorname{sigmoid}[\pi(t-\tau_i(t))/(\sqrt{3}s)]$, with **s = 0.45 s fixed**, and aggregated as $E(t)=1-\prod_i(1-F_i(t))$ over all valid defenders. The scale s belongs to this probability transformation, not to the deterministic TTI. It was not fitted with the physical likelihood's tackle rate. **design choice**
+
+| Compact representation | Training population | CE after Platt | Gain over null | Quantile ECE |
+|---|---|---:|---:|---:|
+| 7/7/7 | Natural | 0.153144 | 25.15% | 0.546% |
+| 7/7/7 | 10% loss, training only | 0.153194 | 25.12% | 0.420% |
+| 7/7/14 | Natural | 0.153046 | 25.19% | 0.494% |
+| 7/7/14 | 10% loss, training only | 0.152320 | 25.55% | 0.633% |
+
+We found **no substantial predictive benefit from resampling**, rather than an exactly zero effect: it did not improve CE in the 7/7/7 representation, while in 7/7/14 it added only **0.35 percentage points** of gain over null and worsened ECE. The retained physical likelihood achieved **25.06%** gain and **0.642%** ECE. The best compact arm improved CE relative to that likelihood in six of ten matches; a whole-match bootstrap interval for that difference included zero. This experiment therefore did not reproduce Stalpaert's large resampling benefit.
+
+Given the substantial overlap in the physical information represented, **limited data scale is a plausible explanation**: with only ten matches and 476 losses, there may be too few examples of particular difficult situations for flexible trees to learn reliable subgroup effects after resampling. This is a hypothesis, not a demonstrated attribution. Different labels, datasets, splits and feature implementations also prevent isolating the source of the published gap; these results do not show that useful 2D information is exhausted. These are reused development matches, so observed best arms remain exploratory. Results of both compact variants and the earlier richer-feature experiment remain available in the [aggregate results](data/benchmarks/ball_drive/catboost_exploration.csv) and [audit provenance](data/benchmarks/ball_drive/catboost_exploration_provenance.json).
+
+### Further extension motivated by the published resampling result
+
+The large within-study CatBoost gain motivates a further hybrid: use a cross-fitted physics prediction plus 2D/context features, then compare natural training with 10% loss training at fixed match folds. The tests above did not include the fitted likelihood score as an input. Tree splits can express nonlinear interactions and subgroups absent from the present additive rate. Resampling changes their training emphasis; it does not create information. Evaluate on natural held-out data and fit any calibration inside training/validation only. This hybrid is an extension to test, not an already established gain for PRESS. **design choice**
+
+The present likelihood's sampling experiments showed no convincing held-out gain after accounting for the changed class prior; raw resampling distorted calibration. Published CatBoost + sampling results therefore motivate this combination rather than replacing the TTI with a more agile routine. The sources do not isolate architecture, features and sampling across datasets. **design choice**
+
+## Closed model specification
+
+The carrier is a point moving as $x_B(t)=x_B(0)+v_B(0)t$. The defender routine retains the historical fixed-position turning delay $v\theta/a_{turn}$, followed by straight-line acceleration toward the target. Maximum linear and turning accelerations are separate user parameters; the benchmark sets both to **7 m/s²**, with **vmax = 7 m/s**. Initial speed above vmax is retained without additional acceleration. The engagement-disc experiment is not included. The runtime does not take an observed acceleration input or use future observed acceleration.
+
+At every integration step, the signed boundary margin is the minimum inward distance to the four lines of a centred **105 × 68 m** pitch. It becomes negative outside; the carrier is neither stopped nor assigned an automatic loss. The log tackle rate combines a baseline, additive speed and boundary effects, and a small individual angle spline. The angle is between carrier velocity and the defender's predicted final approach to the projected carrier position. It is a motion-based heading proxy, not observed posture. Its contribution is masked for carrier speed below 1 m/s or undefined direction. **own derivation**
+
+Speed and boundary use five-knot restricted cubic bases; angle uses four knots. There are no interactions between these effects. The selected smoothing setting was `main_1_angle_100` in all five outer fits. Exponential Euler uses dt = 0.04 s and shares remaining survival mass across defenders. It is first-order for time-varying rates; mass preservation does not establish timestep convergence. The final refit estimates all coefficients and basis transformations anew on the ten matches; fold coefficients are not averaged.
+
+## Use the fitted model on a pitch
+
+This executable example uses **synthetic tracking**, with the verified full-data model bundled in the package. The pitch is illustrative; it contributes no benchmark observations.
+
+```{python}
+#| label: fig-fitted-drive-pitch
+#| fig-cap: "Synthetic frame evaluated by the final fitted model, using the package's pitch visualization."
+from PRESS import PRESS
+from PRESS.datasets import load_demo_match
+from PRESS.model import BallDriveModel
+from PRESS.visualization.plot import plot_pi
+
+tracking, possessions, actions, _ = load_demo_match()
+model = BallDriveModel.pretrained()
+press = PRESS(tracking, possessions_data=possessions,
+              actions_data=actions, ball_drive_model=model)
+frame_id = int(press.get_frames(valid_only=True).frame.iloc[0])
+press.compute_ball_drive_loss(frame_id, t_press=1.0)
+result = press.get_ball_drive_result(frame_id)
+print("Model:", result["params"]["model_id"])
+print("One-second carry-loss probability:",
+      round(float(result["Ball drive loss probability"]), 4))
+plot_pi(press, frame_id)
+plt.show()
+```
+
+`BallDriveModel.from_json(path)` also loads an exported model. `model.predict(...)` evaluates arrays directly, including shorter horizons. Initialization performs no fit. The fitted path is selected explicitly; omitting `ball_drive_model` retains the legacy log-linear API. Short-horizon outputs are supported by integration, but independent calibration at those horizons has not been established. See the [function reference](api.qmd).
+
+## Final refit and checks
+
+Run 16 fits the fixed final specification once on all ten matches. It is **not another test fold** and produces no replacement for the OOF metrics above. Its arrival dispersion is **s = 0.352790** and baseline tackle rate **lambda0 = 0.334747 s⁻¹**; lambda0 is an intercept parameter, not an average tackle probability.
+
+The archive records successful convergence, independently recomputed objective/gradient, positive Hessian and matching covariance. Loading the exported JSON through the frozen package reproduces all 9,148 training predictions within **2.91 × 10⁻⁸** absolute probability; maximum survival-plus-cause mass error is **2.22 × 10⁻¹⁶**. Short horizons 0, 0.17, 0.4 and 1 s are monotone in the verification sample. [Refit provenance](docs/ball-drive-refit-provenance.json).
+
+## Limits and extensions
+
+The model represents average player skills and individual reachability, with limited encounter geometry. Successful and failed carries overlap substantially in available 2D features; this does not prove that all useful 2D information has been exhausted. Body orientation, ball control, contact mechanics, individual ability, annotation error and intrinsic outcome variation can contribute. Collective defensive behaviour and richer tactical context remain extensions. Tracking velocities use a centred seven-frame window: this offline benchmark is not a strictly causal live system.
+
+A more flexible tree model with contextual features, the physics likelihood as an input and training-only resampling is a separate future architecture. The resampling experiments on the present likelihood did not show a convincing held-out benefit. Published numbers above are contextual benchmarks with their definitions and sampling differences recorded, not a same-dataset ranking.
+
+## Pass-risk benchmark {#pass-risk-benchmark}
+
+The selected pass model estimates **team completion probability** from the release state and a candidate destination. Parameters are fitted along reconstructed physical trajectories and transferred to a hypothetical potential pitch control field; its final calibration is isotonic. The [pass vignette](vignettes/02_pass_probability/02_pass_probability.ipynb) derives the equations and executes trajectory and pitch-field examples. The control/flight lineage is Spearman 2017 and *Beyond Expected Goals* [@spearman2017; @spearman2018beyond].
+
+### Accepted cohort and endpoint checks
+
+The benchmark contains **6,706 passes: 5,742 completions and 964 failures (14.38%), across ten SkillCorner matches**. Passers are outfield players; goalkeepers remain in the state and can receive or intercept passes. Duration from release to matched reception/recovery is in the inclusive interval **[0.5, 10] s**, matching the temporal selection in Spearman 2017, §3.1. All valid curvature levels are retained; Spearman additionally filtered curvature below 5%, so the cohorts differ. [@spearman2017]
+
+Release and the immediate next individual-possession start must be matched in the same match/period, with positive chronology, no intervening annotated interruption and complete observed ball XY. For completed passes, the identified recipient must be the next carrier with a matched pass reception; for failures, the next endpoint is an opponent interception/recovery. The recovery location is a proxy for a failed pass's intended destination. Native-coordinate conversion, endpoint identity, tracking state and the five initial observations are checked. The passer's possession start and receiver's possession end need not both be matched.
+
+From the former 7,078-pass cohort, 267 unsupported links were excluded: 69 annotated interruptions, three additional incomplete observed flights, 190 completions without an identifiable direct reception in the next possession, and five failed-pass links attributed to the same team. The 190 exclusions establish missing/unsupported receipt links under this rule, not 190 proven wrong success labels. The duration rule excludes another 104 short passes and one 11.1 s pass. Outcomes are not relabelled and later possessions are not substituted to rescue a link. These criteria are fixed independently of model residuals.
+
+### Physics settings and initial conditions
+
+The shared reachability settings are **v_max=5.5 m/s and a=a_turn=7 m/s²**. The speed cap is motivated by the off-ball upper tail after removing speed ≤2 m/s: the current pooled player-frame 95th percentile is 5.745 m/s, or 5.656 m/s using only frames without an annotated carrier as in the historical exploration. Thus 5.5 is a nearby empirical threshold tested against 5.0, not an exact empirical percentile. [Definitions and per-match quantiles](data/benchmarks/pass_risk/offball_speed_by_match.csv). Acceleration 7 and the reference speed 5 follow Spearman 2018; a universal cap represents average ability. [@spearman2018beyond]
+
+Initial position is observed at release. Two initial-condition estimators use five observations at 0..0.4 s: mean measured velocity and a fit to observed ball positions. The position fit estimates launch speed and direction, fixes release position, and has explicit fallback if numerical fitting fails. Boundary selection uses paired free-flight forecast error after 0.6 s and before the next control, averaged equally across fitting matches. It is repeated inside every fit set. **All outer folds and the final refit selected the position fit.** Centred ball-velocity smoothing extends the mean method's support through 0.6 s; this remains an offline study.
+
+Reconstructed trajectories use gravity and constant drag (ρ=1.22, C_D=0.25, A=0.038, m=0.42, g=9.81 in SI units), without spin/Magnus. They are sampled to 10 s every 0.04 s. The historical path likelihood assigns an interval to every sample, giving 251 left steps or 10.04 s. Hypothetical PPCF uses exact target distances, a 30×30 launch grid over 5–25 m/s and 0–45°, and matches flight time to the teammate initially nearest the target, following Spearman's receiver-friendly timing construction. Target control is integrated for 15 s with 0.01 s exponential-Euler steps; the carrier is excluded before competing for mass. These numerical conventions are identical across the candidate arms. [@spearman2017; @spearman2018beyond]
+
+### Estimation, calibration and held-out evaluation
+
+λ_control and arrival dispersion s are estimated by **MLE on the natural Bernoulli trajectory likelihood**, without priors or a λ=30 cap. Positive parameters use log coordinates, three starting points check convergence, and fitting accumulates both outcomes in log space without a probability floor or parameter-dependent stopping rule. The hypothetical target PPCF is a distinct prediction problem; its transferred raw scores require calibration.
+
+Five outer folds hold out two entire matches each. Within the remaining eight, four 6-fit/2-held-out rotations generate raw PPCF scores. An isotonic map is fitted to those internally held-out scores; physical parameters are then refitted on eight matches and evaluated, with that fixed map, on the two outer test matches. Boundary selection and parameter fitting never use those test matches. Platt uses the same calibration examples. Both speed-cap arms use identical match partitions and test examples. No resampling is used.
+
+The final operational fit uses all ten matches; its isotonic map is fitted to outer cross-fitted raw PPCF scores. It is separate from the nested OOF evaluation. ECE uses ten equal-count quantile bins; gain is 1−CE/CE_null, with each null estimated from its outer training matches. Reported CE uses natural logarithms and metric clipping at 1e-6. The ten matches also informed model and calibration choices, so this is a **development benchmark**, without an untouched external test.
+
+### Results
+
+| Model / calibration | v_max (m/s) | CE ↓ | Gain over null ↑ | ECE q10 ↓ |
+|---|---:|---:|---:|---:|
+| Historical fixed λ=4.3, s=0.43 + Platt | 5.5 | 0.147006 | 64.34% | 1.144% |
+| Historical fixed λ=4.3, s=0.43 + isotonic | 5.5 | 0.149250 | 63.79% | 0.278% |
+| Trajectory MLE + Platt | 5.0 | 0.143531 | 65.18% | 0.976% |
+| Trajectory MLE + isotonic | 5.0 | 0.145850 | 64.62% | 0.400% |
+| Trajectory MLE + Platt | 5.5 | 0.140566 | 65.90% | 1.045% |
+| **Trajectory MLE + isotonic — selected** | **5.5** | **0.141912** | **65.57%** | **0.353%** |
+
+The training-fold null CE is 0.412222. At cap5.5, estimating λ and s improves CE over the fixed coefficients in all ten matches with either calibration. Isotonic is selected for the calibrated-probability objective; Platt has slightly lower CE. Exact 0/1 isotonic plateaus can yield large log-loss penalties on rare mistakes, so good ECE does not make extreme probabilities certain. [Complete aggregate metrics](data/benchmarks/pass_risk/metrics.csv).
+
+![Held-out calibration and curvature diagnostic](figures/pass_benchmark_calibration.png)
+
+All fifty inner/outer fits passed convergence, positive-Hessian and calibration-reproduction checks. The separate full-data fit has **λ_control=5.206773 s⁻¹ and s=0.330402 s**. The installed reader reproduces frozen raw scores within 1.07×10⁻⁸ and full-field probes within 9.73×10⁻⁸; maximum probability-mass excess is 2.22×10⁻¹⁶. [Refit provenance](docs/pass-risk-refit-provenance.json), [frozen specification](data/benchmarks/pass_risk/frozen_specification.json).
+
+### Comparison with published work
+
+| Study / selected model | CE | Gain over null | ECE |
+|---|---:|---:|---:|
+| PRESS trajectory MLE + isotonic | 0.141912 | 65.57% | 0.353% |
+| Fernández et al. 2021, SoccerMap pass success | 0.1900 | ≈62.40%* | 0.470% |
+| Stalpaert 2022, CatBoost comprehensive + formation | 0.2087 | 63.85% | 0.310% |
+
+These results are **in line with the available academic benchmarks** in relative loss reduction and calibration; the lower PRESS CE is not evidence of superiority across datasets. Prevalence, league, sample size, endpoint selection, features and validation protocols differ. Fernández reports validation temperature calibration for pass success; Stalpaert tests isotonic but does not retain it for the final pass-risk component. [@fernandez2021; @stalpaert2022]
+
+*Fernández does not provide the corresponding test-fold null in this table. The approximate gain uses entropy of the reported overall completion share79.64%, giving CE_null≈0.505353; it is contextual and not an exact recovered test-null comparison. Stalpaert's gain uses its reported null0.5773. [Source locators and assumptions](data/benchmarks/pass_risk/literature_comparison.csv).
+
+### Curvature and the flight-model limitation
+
+Curvature is the maximum perpendicular XY deviation from the release-to-target line divided by endpoint distance, expressed as a percentage. It is computed retrospectively and is used only for this diagnostic. **Both groups use the same all-pass-trained model and calibrator**, without curvature-specific refitting.
+
+| Held-out subset | Passes | Failure share | CE | Gain over subgroup null | ECE q10 |
+|---|---:|---:|---:|---:|---:|
+| All accepted passes | 6,706 | 14.38% | 0.141912 | 65.57% | 0.353% |
+| Curvature <10% | 5,211 | 12.36% | 0.107061 | 71.41% | 0.223% |
+| Curvature ≥10% | 1,495 | 21.40% | 0.263390 | 49.46% | 1.321% |
+
+Subgroup nulls are estimated within the corresponding outer training subgroup. [Curvature metrics](data/benchmarks/pass_risk/curvature_metrics.csv).
+
+The degradation on non-straight passes is consistent with **remaining headroom in the simplified flight model and its initial-condition estimation**. Missing spin/Magnus is a plausible contributor, because this model cannot generate lateral curvature. It is not isolated causally by this comparison: curved passes also differ in geometry, difficulty, prevalence and tracking quality. Better supported flight/boundary models are a natural extension; the accepted benchmark retains all valid curved passes rather than selecting an easier training population.
+
+Other limitations are destination-based interception as a proxy for early blocks, average player capabilities, uncertain intended destinations for failures, endpoint annotation noise, ten-match development data and centred smoothing. Shorter passes need a boundary estimator restricted to their observed free-flight support; they remain outside this accepted cohort. The archived historical curvature split and earlier runs remain available under `data/benchmarks/pass_risk/old/`, separate from these final results.
+
+## Pass selection: planned fixed-configuration comparison
+
+**Protocol specification; the new comparison has not yet produced benchmark results.**
+The experiment compares a shared XGBoost destination utility with and without
+teammate cross-nesting. It uses 6,810 choices from ten matches, with six fit,
+two validation and two test matches per outer fold. There are 19 original
+variables, represented by 48 columns after one-hot encoding start type and
+previous action. Candidate-cell rows within a choice are dependent; the large
+matrix does not constitute millions of independent decisions.
+
+Before freezing the final configuration, a single-split capacity pilot is
+planned with the following four settings, each fitted both flat and with
+cross-nesting: depth6/child5, depth3/child5, depth4/child20 and depth4/child1.
+Learning rate remains 0.05, L2 remains 1 and all other settings are unchanged.
+The depth3 versus depth6 pair probes whether more complex interactions can
+extract additional signal from the same features at the same child threshold;
+the two depth4 fits vary the minimum curvature support at fixed interaction
+depth. Every fit uses validation early stopping rather than screening at an
+early tree count. The pilot never scores the two test matches. Its validation
+ranking is descriptive and does not automatically select a final model for
+small gains. Similar results would establish limited sensitivity to these
+four probes, not separate the effects of data scale and feature information.
+
+If the curves motivate it, a subsequent L2=3 or 10 probe may be considered
+only for depth6/child5 and depth4/child1; it is not in the eight current fits.
+A low best iteration alone is not evidence of overfitting. Small differences
+lead to retaining the depth4/child5 reference below and moving to the separate
+v>vmax check. Since that reference is not among the four pilot settings,
+a subsequent five-fold comparison at the reference configuration would need
+ten additional fits; choosing one of the pilot settings would allow reusing
+its two selected checkpoints and require eight additional fits. Global pilot
+selection would make the subsequent five-fold evaluation exploratory rather
+than independently nested hyperparameter selection.
+
+The reference configuration below is specified to compare model structures
+within a bounded compute budget. The following rationales are project design choices, informed
+by the [XGBoost tuning guidance](https://xgboost.readthedocs.io/en/release_3.2.0/tutorials/param_tuning.html),
+not claims that the exact values are universally recommended or optimal.
+
+| Setting | Value | Rationale for this comparison |
+|---|---|---|
+| `max_depth` | 4 | At most 16 leaves per tree: allow geometry/context interactions while containing fragmentation of a few thousand fit choices. Feature count alone does not determine depth. |
+| `eta` | 0.05 | Apply small utility corrections while the nested model also updates its scale. Smaller steps would require more tree updates; this is an explicit speed/update-size compromise. |
+| `reg_lambda` | 1 | Quadratic leaf regularization with the unit default scale, without imposing a large additional penalty that has not been calibrated. |
+| `min_child_weight` | 5 | Require positive aggregate curvature support for child nodes, with a stricter threshold than the default 1. This discourages weakly supported partitions; the threshold is a conservative design choice, not five observations or an estimated optimum. |
+| `subsample` | 0.8 | Moderate randomization of per-tree contributions, retaining their majority to avoid aggressive data reduction. |
+| `colsample_bytree` | 0.8 | Vary the available predictors across trees when spatial and contextual predictors are correlated, while retaining most encoded columns. |
+| `gamma` / `reg_alpha` | 0 / 0 | Avoid introducing an additional split-gain threshold or L1 leaf sparsity on top of depth, L2 and curvature constraints. |
+| `tree_method` / `max_bin` | `hist` / 256 | Bound split-search cost on the large candidate matrix using native histogram training and its default resolution. |
+| Maximum trees | 2,000 | Explicit compute ceiling that allows gradual learning; reaching it is reported as budget exhaustion, not convergence. |
+| Early stopping | 100 rounds | Select the minimum validation choice NLL with patience for gradual improvement; the RUMBoost case study uses this patience. |
+| Initial utilities / nesting | 0 / ρ=1 | Uniform destination probabilities and the flat-limit nesting initialization, without imposing an initial destination preference or within-nest correlation. |
+| Randomness | One fixed seed per fold, common across families; `seed_per_iteration=True` | Reproducible stochastic policy without seed selection. This policy is not claimed to improve accuracy; run30 used a different RNG policy. |
+
+Parameter definitions and software defaults are documented by
+[XGBoost](https://xgboost.readthedocs.io/en/release_3.2.0/parameter.html).
+The regularized leaf update is $w^*=-G/(H+\lambda)$, before learning-rate
+shrinkage, with $G$ and $H$ the gradient and curvature sums supplied to the
+booster ([Chen and Guestrin, §2.2](https://arxiv.org/html/1603.02754v3)).
+Consequently L2 and the minimum child threshold depend on the numerical scale
+of the supplied curvature. Matching their values is a matched training recipe,
+not proof of identical effective regularization between MNL and CNL.
+Subsampling occurs in native tree construction after derivatives have been
+computed using every candidate in each choice; the categorical denominator
+is not approximated by a sampled choice set.
+
+The derivative and curvature rules follow the archived CPU RUMBoost source,
+including its CNL second-order approximation rather than an asserted exact
+Hessian diagonal. Its additive case study uses depth 1 to disallow interactions;
+that constraint is not transferred to this interaction-capable task.
+[RUMBoost manuscript, §§3.1–3.2](https://arxiv.org/html/2401.11954v1).
+
+For nesting, the shared parameter is optimized by fit-only SLSQP every 20
+tree updates, initialized at its current value, with relaxation 0.1 in
+ρ=1/μ. The interval and relaxation reproduce the current
+[RUMBoost implementation](https://github.com/big-ucl/rumboost/blob/main/rumboost/rumboost.py),
+which is distinct from the parameter-search protocol in its early manuscript.
+One common parameter avoids assigning a persistent meaning to changing
+teammate slots. Fixed memberships from individual raw pitch control connect
+destinations to potential receivers without observing the future receiver.
+The project uses ρ∈[1,10] (μ∈[0.1,1]), a numerical bound permitting stronger
+nesting than the upstream default [1,2.5]; boundary fits will be identified.
+Failed, nonfinite or uphill relaxed scale updates are rejected. These are
+explicit task adaptations, not a full replication of RUMBoost's LightGBM
+architecture. A single conditional start limits cost without a claim of
+global joint optimality.
+
+Ten fits are planned. Validation selects the joint tree-prefix/scale
+checkpoint before test evaluation. Fit NLL is logged every 50 trees alongside
+per-tree validation NLL to diagnose learning behavior. These matches have
+already informed model development, so results will remain exploratory.

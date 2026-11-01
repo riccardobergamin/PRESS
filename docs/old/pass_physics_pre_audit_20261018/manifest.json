@@ -1,0 +1,17 @@
+{
+  "reason": "Before user-authorized exponential pitch control, exact flight lookup and isotonic transfer update",
+  "files": {
+    "PRESS/physics/arrival_probabilities.py": "48558174335ed60a0c5a70418362d5043b9f521c29e5c096cad74a112e827a49",
+    "PRESS/physics/flight_ball.py": "39c85bb8f45ab94842843983fea7ce1ee0c50ddf1b77e44dce3d56ae1eedf216",
+    "PRESS/physics/hazard_rates_bcos.py": "2a252f3f4e7188e28b6fdfd8dc756e2cea0bcb186127f28d6676edaeb7a93b8c",
+    "PRESS/physics/__init__.py": "1c7f403fbb37784d42a5322fd80d8a6a662643cabdd42c8f5d0468ccd954636b",
+    "PRESS/physics/angles.py": "e3922a4eb51764f2a8211927a0e117cad0d72e788b6ee912963f273fe4bae468",
+    "PRESS/physics/times.py": "ae03562dcf208d24e43c3ce57cf63b3f80d50cd9c6b609eedb58f7abea0e4f13",
+    "PRESS/physics/bcos_path.py": "c4094925b66b05ebad4f2c57ff676d2d19adf87459c85bd1d7004bcffe310712",
+    "PRESS/model/solver_pitch_control.py": "d5c67f8b2f4ff0c4c03394bc4828cab5a8ad411e437bbc08d6529db6cf921868",
+    "PRESS/utils/grid.py": "6db3eff8e07f0db6dace00107bfec090de2a087120d76d2ec9ec02ab48271686",
+    "PRESS/core/press.py": "29d3861c1341985064900494a3e9f4f23c04d839173a72d36dda6d6885c07bdb",
+    "benchmark.qmd": "bda4cf92da92589269e13baa244dec90d7d6360ab52a629b9464431239e27cf6",
+    "vignettes/02_pass_probability/02_pass_probability.ipynb": "a34c9f4d8784360e108bb49972f1a10f62148a06b5a4302f1e79e05aff8c33aa"
+  }
+}

@@ -40,6 +40,9 @@ def validate_tracking_data(
         )
 
     # Frame integrity
+    frame_values = pd.to_numeric(tracking_data["frame"], errors="coerce")
+    if not pd.api.types.is_numeric_dtype(tracking_data["frame"]) or frame_values.isna().any() or not ((frame_values % 1) == 0).all():
+        raise ValueError("frame must contain finite integer frame IDs.")
     if tracking_data["frame"].duplicated().any():
         raise ValueError(
             "Frame column contains duplicates."

@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "comparison_key": [
+    "match_id",
+    "frame_start",
+    "action"
+  ],
+  "historical_n": 17677,
+  "current_n": 16918,
+  "common": 16583,
+  "removed_goalkeeper_decisions": 1094,
+  "removed_by_action": {
+    "ball_drive": 679,
+    "pass": 415
+  },
+  "added_unknown_context_decisions": 335,
+  "added_by_action": {
+    "pass": 200,
+    "ball_drive": 135
+  },
+  "all_removed_are_goalkeepers": true,
+  "all_added_raw_start_unknown": true,
+  "cohort_unchanged_from_prepared_AS58": true,
+  "note": "Historical comparison includes a cohort change; score difference cannot be attributed solely to feature improvements."
+}

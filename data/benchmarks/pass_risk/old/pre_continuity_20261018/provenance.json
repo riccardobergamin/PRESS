@@ -1,0 +1,16 @@
+{
+  "source_run": "19_pass_trajectory_transfer_20261018_173941",
+  "sources": {
+    "results/pass_risk_review/13_trajectory_transfer_results_20261018/audit.json": "7dc8ca5cfbf4468457c86b926b145e04cbf7cd4f7c7b4ad281602ef952cbb958",
+    "results/pass_risk_review/13_trajectory_transfer_results_20261018/protocol.json": "38574b435194fc9692133db2da21741d3728ba6c26eb6b8bd538fa4cbfca7ebc",
+    "results/pass_risk_review/13_trajectory_transfer_results_20261018/run/report/01_vmax_5_oof.parquet": "7e194184b383d26aad9bf0d4bad37fa413d2d0ebe04d5c233d2626af553a049f",
+    "results/pass_risk_review/13_trajectory_transfer_results_20261018/run/report/02_vmax_5_5_oof.parquet": "e7d905503c706fd3a2e3f104463268007a3c6889c2396af77cbb71c5d1444e47",
+    "scripts/analysis/43_freeze_pass_risk_benchmark.py": "2a00cde4f23b3159c1a08c9c2a82223a39a65658cb6e4a693850bc81e1bd4bb1",
+    "scripts/utils/base_pipeline.py": "26fc885128c0e29babdfd3675f2ac1c39a6a67f752eb107559c2fd7928b727ea"
+  },
+  "curvature": "100 * maximum perpendicular deviation from release-target line / release-target distance",
+  "diagnostic": "Same all-pass trained models and calibrators; no refit, no filtering during training or calibration",
+  "missing_curvature": "49 missing values kept in main cohort and reported separately, never labelled curved",
+  "null": "Subgroup-specific null uses only other outer folds of the same subgroup; global-null gain also exported",
+  "publication": "Aggregates only; no raw tracking or per-pass data copied into the portfolio"
+}

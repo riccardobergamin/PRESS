@@ -1,0 +1,105 @@
+---
+title: "Pass-probability benchmark"
+jupyter: python3
+---
+
+[Model and example](../vignettes/02_pass_probability/02_pass_probability.ipynb) · [All benchmarks](../benchmark.qmd)
+
+The selected pass model estimates **team completion probability** from the release state and a candidate destination. Parameters are fitted along reconstructed physical trajectories and transferred to a hypothetical potential pitch control field; its final calibration is isotonic. The [pass vignette](../vignettes/02_pass_probability/02_pass_probability.ipynb) derives the equations and executes trajectory and pitch-field examples. The control/flight lineage is Spearman 2017 and *Beyond Expected Goals* [@spearman2017; @spearman2018beyond].
+
+## Accepted cohort and endpoint checks
+
+The benchmark contains **6,706 passes: 5,742 completions and 964 failures (14.38%), across ten SkillCorner matches**. Passers are outfield players; goalkeepers remain in the state and can receive or intercept passes. Duration from release to matched reception/recovery is in the inclusive interval **[0.5, 10] s**, matching the temporal selection in Spearman 2017, §3.1. All valid curvature levels are retained; Spearman additionally filtered curvature below 5%, so the cohorts differ. [@spearman2017]
+
+Release and the immediate next individual-possession start must be matched in the same match/period, with positive chronology, no intervening annotated interruption and complete observed ball XY. For completed passes, the identified recipient must be the next carrier with a matched pass reception; for failures, the next endpoint is an opponent interception/recovery. The recovery location is a proxy for a failed pass's intended destination. Native-coordinate conversion, endpoint identity, tracking state and the five initial observations are checked. The passer's possession start and receiver's possession end need not both be matched.
+
+From the former 7,078-pass cohort, 267 unsupported links were excluded: 69 annotated interruptions, three additional incomplete observed flights, 190 completions without an identifiable direct reception in the next possession, and five failed-pass links attributed to the same team. The 190 exclusions establish missing/unsupported receipt links under this rule, not 190 proven wrong success labels. The duration rule excludes another 104 short passes and one 11.1 s pass. Outcomes are not relabelled and later possessions are not substituted to rescue a link. These criteria are fixed independently of model residuals.
+
+## Physics settings and initial conditions
+
+The shared reachability settings are **v_max=5.5 m/s and a=a_turn=7 m/s²**. The speed cap is motivated by the off-ball upper tail after removing speed ≤2 m/s: the current pooled player-frame 95th percentile is 5.745 m/s, or 5.656 m/s using only frames without an annotated carrier as in the historical exploration. Thus 5.5 is a nearby empirical threshold tested against 5.0, not an exact empirical percentile. [Definitions and per-match quantiles](../data/benchmarks/pass_risk/offball_speed_by_match.csv). With acceleration magnitude >3 m/s² in the same current off-ball population, Q99 is **7.013 m/s²**, supporting the rounded linear acceleration of 7. The [kinematic conventions](../docs/kinematic-parameter-conventions.md) document Q95/Q99, population sensitivity and the separate turning assumption. Acceleration 7 and the reference speed 5 follow Spearman 2018; common constants represent effective average capabilities. Our audit thresholds and quantile choices are project conventions, not rules stated by Spearman. [@spearman2018beyond]
+
+The final TTI preserves the observed initial speed when it exceeds v_max: movement then uses that speed without additional acceleration. This **same TTI and settings are used along reconstructed paths for fitting, at candidate PPCF destinations, and for receiver arrival when selecting hypothetical flight time**. Below v_max, acceleration and cruise are unchanged. This is the only physical change from run22; trajectory construction, flight library, likelihood and integration remain fixed.
+
+Initial position is observed at release. Two initial-condition estimators use five observations at 0..0.4 s: mean measured velocity and a fit to observed ball positions. The position fit estimates launch speed and direction, fixes release position, and has explicit fallback if numerical fitting fails. Boundary selection uses paired free-flight forecast error after 0.6 s and before the next control, averaged equally across fitting matches. It is repeated inside every fit set. **All outer folds and the final refit selected the position fit.** Centred ball-velocity smoothing extends the mean method's support through 0.6 s; this remains an offline study.
+
+Reconstructed trajectories use gravity and constant drag (ρ=1.22, C_D=0.25, A=0.038, m=0.42, g=9.81 in SI units), without spin/Magnus. They are sampled to 10 s every 0.04 s. The historical path likelihood assigns an interval to every sample, giving 251 left steps or 10.04 s. Hypothetical PPCF uses exact target distances, a 30×30 launch grid over 5–25 m/s and 0–45°, and matches flight time to the teammate initially nearest the target, following Spearman's receiver-friendly timing construction. Target control is integrated for 15 s with 0.01 s exponential-Euler steps; the carrier is excluded before competing for mass. These numerical conventions are identical across the candidate arms. [@spearman2017; @spearman2018beyond]
+
+## Numerical time-step check
+
+Tracking frequency determines the observed release state; it does not constrain
+the integration step of the continuous prediction model. A separate numerical
+check used 20 fixed pass destinations from ten matches, including contested
+arrivals. All physical coefficients, TTI, ball-arrival times, calibration knots
+and the 15 s horizon were held fixed. Only PPCF integration dt varied.
+An independent DOP853 reference started at the exact frozen ball-arrival time.
+At the retained dt=0.01 s, maximum raw probability error was **0.043695 percentage
+points**, mean **0.010003 points**. At dt=0.04 s those errors were 0.180356 and
+0.033883 points; smaller steps continued convergence. Applying the same isotonic
+map gave identical outputs for dt=0.01, 0.005 and 0.0025 s in these 20 cases,
+while coarser changes could be amplified near steep calibration knots.
+This supports retaining dt=0.01 s; it is not a new CE/ECE result or proof for
+all field cells. No model or calibration was refitted.
+[Aggregate numerical results](../data/benchmarks/pass_risk/numerical_time_step_check.csv).
+
+## Estimation, calibration and held-out evaluation
+
+λ_control and arrival dispersion s are estimated by **MLE on the natural Bernoulli trajectory likelihood**, without priors or a λ=30 cap. Positive parameters use log coordinates, BFGS with automatic gradients and line search starts from (λ,s)=(4.3,0.43),(3,0.3),(5,0.5), and fitting accumulates both outcomes in log space without a probability floor or parameter-dependent stopping rule. The hypothetical target PPCF is a distinct prediction problem; its transferred raw scores require calibration.
+
+Five outer folds hold out two entire matches each. Within the remaining eight, four 6-fit/2-held-out rotations generate raw PPCF scores. An isotonic map is fitted to those internally held-out scores; physical parameters are then refitted on eight matches and evaluated, with that fixed map, on the two outer test matches. Boundary selection and parameter fitting never use those test matches. Platt uses the same calibration examples. The final run fixes v_max=5.5 and uses exactly the run22 match partitions and test examples. Its comparison with run22 is paired; the earlier v_max=5.0 sensitivity remains archived. No resampling is used.
+
+The final operational fit uses all ten matches; its isotonic map is fitted to outer cross-fitted raw PPCF scores. It is separate from the nested OOF evaluation. ECE uses ten equal-count quantile bins; gain is 1−CE/CE_null, with each null estimated from its outer training matches. Reported CE uses natural logarithms and metric clipping at 1e-6. The ten matches also informed model and calibration choices, so this is a **development benchmark**, without an untouched external test.
+
+## Results
+
+| Model / calibration | TTI | CE ↓ | Gain over null ↑ | ECE q10 ↓ |
+|---|---|---:|---:|---:|
+| Trajectory MLE + isotonic, historical run22 | Cruise at cap | 0.141912 | 65.57% | 0.353% |
+| Fixed λ=4.3,s=0.43 + isotonic | Preserve initial overspeed | 0.140562 | 65.90% | 0.289% |
+| Trajectory MLE, raw | Preserve initial overspeed | 0.150555 | 63.48% | 4.040% |
+| Trajectory MLE + Platt | Preserve initial overspeed | 0.130010 | 68.46% | 0.814% |
+| **Trajectory MLE + isotonic — final run41** | **Preserve initial overspeed** | **0.131121** | **68.19%** | **0.183%** |
+
+The training-fold null CE is 0.412222. The final isotonic model reduces CE by 0.010791 against run22, or **2.618 percentage points of gain over the null**. CE improves in eight of ten matches after isotonic and in all ten before calibration. Isotonic remains selected for calibrated probabilities; Platt has slightly lower CE. The fixed-coefficient row retains the historical code's s=0.43, rather than claiming it is Spearman's fitted s. [Current metrics](../data/benchmarks/pass_risk/metrics.csv), [paired comparisons](../data/benchmarks/pass_risk/paired_comparisons.csv), [archived run22](../data/benchmarks/pass_risk/old/run22_pre_uniform_tti_20261022/metrics.csv).
+
+![Full pooled out-of-fold pass-risk calibration on the same 6,706 passes and 964 failures from ten matches, before and after isotonic calibration. Previous and updated models use identical test observations; each fold's isotonic map is fitted without its test matches.](../figures/pass_risk_physical_pooled_calibration.png){#fig-pass-risk-physical-calibration}
+
+The raw transferred PPCF retains visible curvature: quantile ECE changes from **4.358%** to **4.040%**. With isotonic, the updated curve is close to the diagonal across the occupied probability range and ECE falls from **0.353%** to **0.183%**. The raw field is the input used by pass selection; the isotonic output is the final pass-risk probability. Both panels pool all five outer test folds and do not use the full-data deployment model to score its own training rows. [Aggregate bins and counts](../data/benchmarks/calibration/pooled_bins.csv), [pooled metrics](../data/benchmarks/calibration/pooled_metrics.csv), [provenance](../docs/physical-calibration-provenance.json), [vector figure](../figures/pass_risk_physical_pooled_calibration.svg).
+
+Each curve reproduces its frozen benchmark's quantile grouping and ECE calculation, including stable handling of tied isotonic scores. Every point therefore represents an aggregate of roughly a tenth of the corresponding held-out cohort. Per-match curves have fewer observations and rare losses in each bin; their ECE values are not averaged to obtain these pooled values.
+
+![Held-out calibration and curvature diagnostic](../figures/pass_benchmark_calibration.png)
+
+All 25 inner/outer MLE fits passed the gradient checks. All 75 optimizer starts reached the same NLL within 7.28×10⁻¹²; the maximum selected absolute gradient was 2.80×10⁻⁵ and no weak identification was flagged. Outer-fold estimates are λ_control=5.164–5.930 s⁻¹ and s=0.2842–0.3004 s. The corresponding run22 ranges were 4.942–5.540 and 0.3223–0.3400. These are fold-specific estimates, not the deployed weights.
+
+The **installed full-data model** refits the same trajectory likelihood on all ten matches, using the run41 TTI and a final isotonic map fitted to its outer cross-fitted raw PPCF scores. It has **λ_control=5.437830 s⁻¹ and s=0.294560 s**. It is not an additional test fold or an average of fold parameters. The public reader reproduces all 6,706 raw scores within 1.02e-08; field probes include initial overspeed cases. [Refit provenance](../docs/pass-risk-refit-provenance.json), [benchmark provenance](../docs/pass-risk-benchmark-provenance.json), [frozen specification](../data/benchmarks/pass_risk/frozen_specification.json).
+
+For context, Spearman 2017 §4 reports λ=4.30 s⁻¹ and temporal dispersion σ=0.45 s, whereas the historical code used s=0.43. Our λ remains of the same order and s is smaller. These effective parameters depend on tracking, movement/flight approximations and the fitting cohort; the comparison does not establish numerical equality or physiological constants. [@spearman2017]
+
+## Comparison with published work
+
+| Study / selected model | CE | Gain over null | ECE |
+|---|---:|---:|---:|
+| PRESS trajectory MLE + isotonic, final uniform TTI | 0.131121 | 68.19% | 0.183% |
+| Fernández et al. 2021, SoccerMap pass success | 0.1900 | ≈62.40%* | 0.470% |
+| Stalpaert 2022, CatBoost comprehensive + formation | 0.2087 | 63.85% | 0.310% |
+
+These results are **in line with the available academic benchmarks** in relative loss reduction and calibration; the lower PRESS CE is not evidence of superiority across datasets. Prevalence, league, sample size, endpoint selection, features and validation protocols differ. Fernández reports validation temperature calibration for pass success; Stalpaert tests isotonic but does not retain it for the final pass-risk component. [@fernandez2021; @stalpaert2022]
+
+*Fernández does not provide the corresponding test-fold null in this table. The approximate gain uses entropy of the reported overall completion share79.64%, giving CE_null≈0.505353; it is contextual and not an exact recovered test-null comparison. Stalpaert's gain uses its reported null0.5773. [Source locators and assumptions](../data/benchmarks/pass_risk/literature_comparison.csv).
+
+## Curvature and the flight-model limitation
+
+Curvature is the maximum perpendicular XY deviation from the release-to-target line divided by endpoint distance, expressed as a percentage. It is computed retrospectively and is used only for this diagnostic. **Both groups use the same all-pass-trained model and calibrator**, without curvature-specific refitting.
+
+| Held-out subset | Passes | Failure share | CE | Gain over subgroup null | ECE q10 |
+|---|---:|---:|---:|---:|---:|
+| All accepted passes | 6,706 | 14.38% | 0.131121 | 68.19% | 0.183% |
+| Curvature <10% | 5,211 | 12.36% | 0.097953 | 73.84% | 0.227% |
+| Curvature ≥10% | 1,495 | 21.40% | 0.246731 | 52.65% | 1.170% |
+
+Subgroup nulls are estimated within the corresponding outer training subgroup. Quantile bins use stable score sorting after canonical match/pass/frame ordering, including tied isotonic plateaus. Gains against the all-pass training null are exported separately; they are not the subgroup-null gains in this table. [Curvature metrics](../data/benchmarks/pass_risk/curvature_metrics.csv).
+
+The degradation on non-straight passes is consistent with **remaining headroom in the simplified flight model and its initial-condition estimation**. Missing spin/Magnus is a plausible contributor, because this model cannot generate lateral curvature. It is not isolated causally by this comparison: curved passes also differ in geometry, difficulty, prevalence and tracking quality. Better supported flight/boundary models are a natural extension; the accepted benchmark retains all valid curved passes rather than selecting an easier training population.
+
+Other limitations are destination-based interception as a proxy for early blocks, average player capabilities, uncertain intended destinations for failures, endpoint annotation noise, ten-match development data and centred smoothing. Shorter passes need a boundary estimator restricted to their observed free-flight support; they remain outside this accepted cohort. The archived historical curvature split and earlier runs remain available under `data/benchmarks/pass_risk/old/`, separate from these final results.

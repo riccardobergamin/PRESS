@@ -1,0 +1,19 @@
+{
+  "status": "reference_equations_archived",
+  "fetched_date": "2026-10-20",
+  "released_reference": "https://github.com/big-ucl/rumboost/tree/v1.0.2",
+  "current_reference": "https://github.com/big-ucl/rumboost/blob/main/rumboost/rumboost.py",
+  "current_identity": "Exact excerpt SHA256; mutable upstream branch is not a commit pin.",
+  "paper": "https://doi.org/10.1016/j.trc.2024.104897",
+  "cnl_equations": "https://transp-or.epfl.ch/heart/2024/abstracts/hEART_2024_paper_8384.pdf",
+  "upstream_license": "MIT, as stated by upstream repository; no claim that excerpts are complete source distributions.",
+  "files": {
+    "main_bounds.web.txt": "2a224f9073864d3f0ed0b5bc968f1279dcddb2367c1d3410bd611c347e6f2fda",
+    "main_cross_nested_excerpt.py": "3755e3a79f2c91f2556ce5e5c9482de1eb057f9c9193bfb8047d09cc14ce1b5e",
+    "main_objective_and_training.web.txt": "626a277f5fc7377a2b5b78c662454f0428f3ea17f5dbbd2f913d69f628fc3fcb",
+    "v1.0.2_cross_nested_excerpt.py": "61bf882c62e4e6f961ed678fcf66eaba3b2208c6c9d08ba0dd0e8173793cfc76",
+    "v1.0.2_objective.web.txt": "5f589ce5d78e60d2fb744b1d8cea51625eb8b412fffe69c02a02183b4a4bd3d3",
+    "v1.0.2_training.web.txt": "ed218d055d45a74f4c808e117b90b6b3ca12f659b082297c600f5b86c477835b",
+    "main_damping.web.txt": "4f23b6fbe409b85beb93f202eee1568e622493b9ff0de46f2b93e52d5bb92407"
+  }
+}

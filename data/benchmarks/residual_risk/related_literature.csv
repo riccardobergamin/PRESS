@@ -1,0 +1,4 @@
+study,target,reported_metric,reported_value,locator,url,direct_rr_benchmark
+"Gu et al. (2024), Player Pressure Map",Team retention/loss at a four-second horizon from sequences; not conditional successful individual carry,Accuracy,Tracking 55.8%; 2D PPM 75.2%; 3D PPM 78.7%,Sections 2.5 and 3; Table 1,https://arxiv.org/pdf/2401.16235,False
+"Dick and Brefeld (2023; online 2022), Action Rate Models","Next pass recipient, time to action and direct turnover before the pass",Turnover top-1/top-3 hit rate one second before observed turnover,75% / 95%; mean predicted turnover probability 0.45,Section 4.1; Figures 3–4,https://doi.org/10.1007/s10182-022-00435-x,False
+"Le Coz et al. (2026), Semi-Markov temporal xT","Team scoring probability within a fixed horizon, event streams","Goal-target AUC/Brier/log-loss, not conditional individual-loss CE",Not imported as a residual-risk benchmark,Expected threat and evaluation sections,https://doi.org/10.1038/s41598-026-52938-1,False

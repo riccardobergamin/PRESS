@@ -1,0 +1,13 @@
+sampling,block,importance
+loss10,BC_speed,2.2981191980682247
+loss10,TTI,17.677389275092082
+loss10,boundary,7.412408028516271
+loss10,encounter,28.757723336597632
+loss10,extra_defender_geometry,36.22823490528241
+loss10,position_goal_context,7.626125256443383
+natural,BC_speed,2.38450386370818
+natural,TTI,17.302990331159062
+natural,boundary,6.802403299197777
+natural,encounter,27.36615851796418
+natural,extra_defender_geometry,38.278707314460284
+natural,position_goal_context,7.86523667351052

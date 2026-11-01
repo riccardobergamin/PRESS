@@ -4,14 +4,14 @@ from scipy.interpolate import griddata
 from matplotlib.lines import Line2D
 from mplsoccer import Pitch
 from matplotlib.colors import LinearSegmentedColormap
-from PRESS.utils.frame import frame_to_long
+from PRESS.utils.frame import frame_to_long, resolve_pitch_size
 
 
 def plot_frame(
     press,
     frame_id,
-    pitch_length=105,
-    pitch_width=68,
+    pitch_length=None,
+    pitch_width=None,
     figsize=(12, 8),
     title_fontsize=9,
     legend_fontsize=8,
@@ -39,6 +39,7 @@ def plot_frame(
         )
 
 
+    pitch_length, pitch_width = resolve_pitch_size(frame_df, pitch_length, pitch_width)
     frame_df = frame_to_long(
         frame_df
     )
@@ -241,21 +242,22 @@ def plot_frame(
     plt.show()
     
 def plot_bcos(
-    press,
+    bcos,
     frame_id,
-    pitch_length=105,
-    pitch_width=68,
+    pitch_length=None,
+    pitch_width=None,
     figsize=(12, 8),
     title_fontsize=9,
     legend_fontsize=8,
 ):
-    if frame_id not in press.results["BCOS"]:
+    if frame_id not in bcos.results:
         raise ValueError(f"BCOS frame {frame_id} not found.")
 
-    frame_df = press.tracking_data[press.tracking_data["frame"] == frame_id].copy()
+    frame_df = bcos.tracking_data[bcos.tracking_data["frame"] == frame_id].copy()
     if frame_df.empty:
         raise ValueError(f"Frame {frame_id} not found.")
 
+    pitch_length, pitch_width = resolve_pitch_size(frame_df, pitch_length, pitch_width)
     frame_df = frame_to_long(frame_df)
 
     pitch = Pitch(
@@ -270,7 +272,7 @@ def plot_bcos(
     fig, ax = plt.subplots(figsize=figsize)
     pitch.draw(ax=ax)
 
-    result = press.results["BCOS"][frame_id]
+    result = bcos.results[frame_id]
     grid = result["grid"]
     values = result["Ball carrier open space"]
 
@@ -447,12 +449,21 @@ def plot_bcos(
 def plot_ppcf(
     press,
     frame_id,
-    pitch_length=105,
-    pitch_width=68,
+    pitch_length=None,
+    pitch_width=None,
     figsize=(12, 8),
     title_fontsize=9,
     legend_fontsize=8,
+    *,
+    field="pitch_control",
 ):
+    """Plot stored attacking control or calibrated pass success on the pitch.
+
+    field is 'pitch_control' (default) or 'pass_success'; compute_ppcf must
+    have been run first. Interpolation is for display only. Returns None.
+    """
+    if field not in ("pitch_control", "pass_success"):
+        raise ValueError("field must be pitch_control or pass_success.")
     if frame_id not in press.results["PPCF"]:
         raise ValueError(f"PPCF frame {frame_id} not found.")
 
@@ -460,6 +471,7 @@ def plot_ppcf(
     if frame_df.empty:
         raise ValueError(f"Frame {frame_id} not found.")
 
+    pitch_length, pitch_width = resolve_pitch_size(frame_df, pitch_length, pitch_width)
     frame_df = frame_to_long(frame_df)
 
     pitch = Pitch(
@@ -476,7 +488,7 @@ def plot_ppcf(
 
     result = press.results["PPCF"][frame_id]
     grid = result["grid"]
-    values = result['Attacking pitch control field']
+    values = result["Pass probability" if field == "pass_success" else "Attacking pitch control field"]
 
     xi = np.linspace(grid[:, 0].min(), grid[:, 0].max(), 120)
     yi = np.linspace(grid[:, 1].min(), grid[:, 1].max(), 120)
@@ -512,7 +524,8 @@ def plot_ppcf(
         fraction=0.03,  
         pad=0.02,       
     )
-    cbar.set_label(f"Pitch control ({t1} vs {t2})", fontsize=legend_fontsize)
+    field_label = "Pass-success probability" if field == "pass_success" else "Attacking pitch-control probability"
+    cbar.set_label(field_label, fontsize=legend_fontsize)
     cbar.ax.tick_params(labelsize=legend_fontsize)
 
     team_colors = {"home": "steelblue", "away": "indianred"}
@@ -541,7 +554,7 @@ def plot_ppcf(
                 alpha=0.55, zorder=4
             )
 
-    ax.set_title(f"PPCF frame {frame_id}", fontsize=title_fontsize, fontweight="bold", pad=12)
+    ax.set_title(f"{field_label} · frame {frame_id}", fontsize=title_fontsize, fontweight="bold", pad=12)
 
     legend_elements = [
         Line2D([0], [0], marker="o", color="w", markerfacecolor=team_colors[t1], markeredgecolor="white", markersize=9, label=f"Team {t1}"),
@@ -566,23 +579,17 @@ def plot_ppcf(
 def plot_pi(
     press,
     frame_id,
-    pitch_length=105,
-    pitch_width=68,
+    pitch_length=None,
+    pitch_width=None,
     figsize=(12, 8),
     title_fontsize=9,
     legend_fontsize=8,
 ):
     """
-    Plot pressing intensity.
+    Plot stored defender-specific tackle probabilities on the pitch.
 
-    Defender color represents pressing intensity.
-
-    The intensity values are taken from:
-        press.results["PI"][frame_id]
-        ["Individual interception probabilities"]
-
-    The colormap uses the possession team color:
-        white -> possession team color
+    Colors and annotations show probabilities, rather than rate parameters.
+    The title reports the total drive-loss probability. Returns None.
     """
 
     if frame_id not in press.results["PI"]:
@@ -602,6 +609,7 @@ def plot_pi(
         )
 
 
+    pitch_length, pitch_width = resolve_pitch_size(frame_df, pitch_length, pitch_width)
     frame_df = frame_to_long(
         frame_df
     )
@@ -719,6 +727,10 @@ def plot_pi(
             zorder=3,
         )
 
+        ax.annotate(f"{int(player.shirt_num)}: {intensity:.3f}",
+                    (player.x, player.y), xytext=(5, 5),
+                    textcoords="offset points", fontsize=legend_fontsize, zorder=5)
+
 
     # ----------------------------------
     # Attacking team
@@ -811,7 +823,7 @@ def plot_pi(
 
 
     cbar.set_label(
-        "Pressing intensity",
+        "Defender-specific tackle probability",
         fontsize=legend_fontsize,
     )
 
@@ -826,7 +838,7 @@ def plot_pi(
     # ----------------------------------
 
     ax.set_title(
-        f"Pressing intensity frame {frame_id}",
+        f"Ball-drive loss · frame {frame_id} · P(loss)={float(press.results['PI'][frame_id]['Ball drive loss probability']):.3f}",
         fontsize=title_fontsize,
         fontweight="bold",
         pad=12,

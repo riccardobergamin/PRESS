@@ -1,0 +1,33 @@
+{
+  "status": "rendered_verified",
+  "experiment": "82_model_feature_importance_vignettes_20261030",
+  "models_changed": false,
+  "models_trained": 0,
+  "n_frozen_models": 18,
+  "method": "Conceptual total split gain, separately normalized per ensemble.",
+  "source_verification_sha256": "41f375225a58a329af42c4dec960661da24d7ae4902bbcf4fedb8bd519c3df87",
+  "input_sha256": {
+    "importance_summary.csv": "173a3134212cb35b1bbd2130e506b241477bf1819d8f1c33bd8ed8352608fe86",
+    "README.md": "1dc9d0ca989e9bbf10f5815d3901fb958c9cf5ca46cc17b89f96413ff7146518",
+    "conceptual_split_gain.csv": "301c461a22b069466967085b50606e9f1a422f26c35e1652297c35e3dc6af567"
+  },
+  "archive": "docs/old/task_vignettes_before_feature_importance_20261030",
+  "extension_status": "Prospective untested spatial-summary block; no current model changes.",
+  "source_notebooks_checked": 13,
+  "source_links_checked": 264,
+  "rendered_pages": 22,
+  "site_links_checked": 2406,
+  "figure_sha256": {
+    "pass_selection": "481d59c0c79dfcb4b560d52a7e808c48c982d48b10308e8af2818503badca9c6",
+    "action_selection": "14a570f91f036fed3d594ce70836e6c625fcfc40e370e78f15ce27775d6be52d",
+    "residual_risk": "c74053161845620ebcb2a50ab98801bbfe0bf7faf97b1a6c320bfccda074f2c4"
+  },
+  "documentation_reorganization_20261030": {
+    "experiment": "83_bcos_and_composed_benchmark_docs_20261030",
+    "status": "executed_rendered_verified",
+    "composed_benchmark_vignette": "vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb",
+    "feature_importance_location": "Predictive model vignettes; BCOS page links to them",
+    "definition_source": "Bandara et al. 2025; PRESS arrival/competing-risk formalization distinguished",
+    "model_or_benchmark_changes": false
+  }
+}

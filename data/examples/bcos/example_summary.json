@@ -1,0 +1,36 @@
+{
+  "match_id": "1925299",
+  "frame_id": 15032,
+  "timestamp": "00:25:02.20",
+  "period": 1,
+  "carrier_team": "home",
+  "carrier_team_name": "Brisbane FC",
+  "carrier_id": "home_17",
+  "selection": "First eligible production checkpoint at or after match minute25; no outcome or area selection.",
+  "bcos_area_m2": 46.44508164148423,
+  "cached_area_m2": 46.445072572212936,
+  "raw_vs_float32_cache_difference_m2": 9.069271293071779e-06,
+  "n_targets": 1721,
+  "max_probability_mass_error": 1.3322676295501878e-15,
+  "maximum_unresolved_probability": 9.995373262852255e-10,
+  "model_id": "skillcorner_outfield_ball_drive_obe_v2",
+  "params": {
+    "r_max": 40.0,
+    "step": 1.0,
+    "dx": 0.03125,
+    "dt": 0.04,
+    "T_max": 15.0,
+    "stop_eps": 1e-09,
+    "configuration": [
+      0.2996318904783872,
+      6.6,
+      7.0,
+      7.0,
+      7.0,
+      7.0,
+      7.0
+    ],
+    "integration": "exponential",
+    "preserve_initial_overspeed": true
+  }
+}

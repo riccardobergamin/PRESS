@@ -1,0 +1,13 @@
+{
+  "role": "pooled_out_of_fold_summary",
+  "source_files": {
+    "results/ball_drive_review/27_final_angle_results_20261016/report/metrics_pooled.csv": "6f65cbd47c4fd5dbde368932b2fbce381153421ecf7e654b178a42e0b2fd9182",
+    "results/ball_drive_review/28_exponential_euler_results_20261017/report/metrics_pooled.csv": "8546f68d5a949d02b5a7ab481c5049ca8ae8ae50edd7343b2b328189ab436e19",
+    "results/ball_drive_review/28_exponential_euler_results_20261017/report/calibration_deciles.csv": "c4e636f1db001f06018fdc9cd7888091bf1584132a0719692e2e10521b3b9d5b",
+    "results/ball_drive_review/04_outfield_baseline_20261015/run_20261015_122540/report/summary.json": "0ec5e49b82a844329589b0a1288cf52d664b76f1bf8df42681bdfaef2748ec21",
+    "results/ball_drive_review/2026-10-14_speed_checked/quantiles.csv": "ae8f57fcf13cf9cff71962cf46600e00fecd58ee23fc40c41ddcc614a3759665"
+  },
+  "note": "Aggregate metrics only; no raw tracking or per-event predictions. Model-family development used these ten matches.",
+  "literature": "Transcribed published values with locators; derived gains use the null_basis column. Stalpaert states 6.3% failed sections in prose but 93.9% success in the table headings: preserve this discrepancy, not an inferred test prevalence.",
+  "quantile_scope": "Engagement peaks or event frames, with stated conditional filters; acceleration is vector magnitude, not directly measured tangential/centripetal capability. Overlapping events may repeat frames."
+}

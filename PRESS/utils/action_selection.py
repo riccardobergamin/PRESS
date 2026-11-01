@@ -72,6 +72,9 @@ def get_action_selection_booster():
 
     global _action_selection_booster, _action_selection_feature_cols
 
+    modern=load_current_action_selection_model()
+    if modern is not None:return modern.booster,modern.feature_names
+
     if _action_selection_booster is None:
         _action_selection_booster = xgb.Booster()
         _action_selection_booster.load_model(
@@ -108,6 +111,8 @@ def build_action_selection_features(
     xT_grid,
     start_type,
     previous_action,
+    *, pitch_length=105.0, pitch_width=68.0, match_clock_min=np.nan,
+    score_difference_prefix=np.nan,completed_canonical_drives=np.nan,
 ):
     """
     x_bc, v_bc, r_defs, r_atts, attacking_side  : from PRESS.get_state()
@@ -116,17 +121,19 @@ def build_action_selection_features(
     transition_probabilities                     : (N,) softmax choice
                                                      probabilities,
                                                      self.results["PPCF"][frame_id]["Transition probabilities"]
-    pass_success_probability                     : (N,) Platt-scaled,
+    pass_success_probability                     : (N,) calibrated pass success,
                                                      self.results["PPCF"][frame_id]["Pass probability"]
-    bcos                                         : scalar,
-                                                     self.results["BCOS"][frame_id]["Ball carrier open space"].sum()
+    bcos                                         : scalar supplied from
+                                                     PRESS.extras.BCOS;
+                                                     feature retained from
+                                                     the trained model
     ball_drive_loss                              : scalar,
                                                      self.results["PI"][frame_id]["Ball drive loss probability"]
                                                      (NOTE: this is P(loss). The model feature is
                                                      P(success) = 1 - ball_drive_loss -- inverted here,
                                                      matching the offline feature-engineering script.
-                                                     compute_transition_probabilities() in the PRESS class
-                                                     currently does NOT invert this -- flagged separately.)
+                                                     The destination-choice feature uses loss directly;
+                                                     the two saved model schemas have different aliases.)
     xT_grid                                      : xT grid array
     start_type, previous_action                  : raw category strings for this action
                                                      (e.g. "reception_open_play", "ball_drive"),
@@ -137,6 +144,15 @@ def build_action_selection_features(
     Returns X, shape (1, n_features), columns in the exact order saved
     in action_selection_feature_columns.json.
     """
+
+    modern=load_current_action_selection_model()
+    if modern is not None:
+        return modern.build_features(x_bc=x_bc,v_bc=v_bc,r_defs=r_defs,r_atts=r_atts,
+            attacking_side=attacking_side,targets=targets,transition_probabilities=transition_probabilities,
+            pass_success_probability=pass_success_probability,bcos=bcos,ball_drive_loss=ball_drive_loss,
+            start_type_raw=start_type,previous_action_raw=previous_action,match_clock_min=match_clock_min,
+            score_difference_prefix=score_difference_prefix,completed_canonical_drives=completed_canonical_drives,
+            pitch_length=pitch_length,pitch_width=pitch_width)
 
     from PRESS.utils.state import (
         get_xt_values,
@@ -173,7 +189,8 @@ def build_action_selection_features(
     # xT / pressure lines at destinations
     # --------------------------------------------------------
 
-    xT_team, xT_opp = get_xt_values(targets, attacking_side, xT_grid)
+    xT_team, xT_opp = get_xt_values(targets, attacking_side, xT_grid,
+                                 pitch_length=pitch_length, pitch_width=pitch_width)
 
     pressure_lines = compute_dynamic_pressure_lines(
         r_defs=r_defs, attacking_side=attacking_side, n_lines=3,
@@ -223,7 +240,7 @@ def build_action_selection_features(
     x_bc_exp = x_bc + v_bc * 1.0
 
     xT_team_drive, xT_opp_drive = get_xt_values(
-        x_bc_exp[None, :], attacking_side, xT_grid,
+        x_bc_exp[None, :], attacking_side, xT_grid, pitch_length=pitch_length, pitch_width=pitch_width,
     )
     xT_team_drive = float(np.asarray(xT_team_drive).squeeze())
     xT_opp_drive = float(np.asarray(xT_opp_drive).squeeze())
@@ -326,3 +343,13 @@ def predict_action_selection_probability(X):
     scores = booster.predict(xgb.DMatrix(X, feature_names=feature_cols))
 
     return float(scores[0])
+
+
+from functools import lru_cache
+@lru_cache(maxsize=1)
+def load_current_action_selection_model():
+    """Return the versioned refit reader; None preserves historical artifacts."""
+    artifact=json.loads(_ACTION_SELECTION_MODEL_PATH.read_text())
+    if artifact.get('model_type')!='binary_action_choice':return None
+    from PRESS.model.action_selection import ActionSelectionModel
+    return ActionSelectionModel.from_json(_ACTION_SELECTION_MODEL_PATH)

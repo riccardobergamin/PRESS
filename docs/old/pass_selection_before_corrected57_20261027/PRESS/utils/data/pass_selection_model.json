@@ -1,0 +1,1122 @@
+{
+  "schema_version": 1,
+  "model_type": "pass_destination_choice",
+  "model_id": "skillcorner_outfield_pass_selection_flat_v2",
+  "family": "flat",
+  "booster_file": "pass_selection_model.ubj",
+  "booster_sha256": "e65b41e1e3e1982ac5fb6c78b21f73eb352f1b9f9d3bbfc7168ee3caa35a2835",
+  "rho": 1.0,
+  "mu": 1.0,
+  "feature_names": [
+    "pass_distance",
+    "pass_angle",
+    "passer_speed",
+    "target_pitch_control",
+    "target_xt_team",
+    "target_xt_opp",
+    "opp_pressure_line_index",
+    "team_pressure_line_index",
+    "ball_drive_prob",
+    "xt_team_bc",
+    "xt_opp_bc",
+    "opp_pressure_index_bc",
+    "team_pressure_index_bc",
+    "start_type_raw=corner_interception",
+    "start_type_raw=corner_reception",
+    "start_type_raw=free_kick_interception",
+    "start_type_raw=free_kick_reception",
+    "start_type_raw=goal_kick_interception",
+    "start_type_raw=goal_kick_reception",
+    "start_type_raw=keep_possession",
+    "start_type_raw=pass_interception",
+    "start_type_raw=pass_reception",
+    "start_type_raw=recovery",
+    "start_type_raw=throw_in_interception",
+    "start_type_raw=throw_in_reception",
+    "start_type_raw=unknown",
+    "start_type_raw=__missing__",
+    "start_type_raw=__unseen__",
+    "previous_action_raw=ball_drive",
+    "previous_action_raw=corner_interception",
+    "previous_action_raw=corner_reception",
+    "previous_action_raw=free_kick_interception",
+    "previous_action_raw=free_kick_reception",
+    "previous_action_raw=goal_kick_interception",
+    "previous_action_raw=goal_kick_reception",
+    "previous_action_raw=keep_possession",
+    "previous_action_raw=pass_interception",
+    "previous_action_raw=pass_reception",
+    "previous_action_raw=recovery",
+    "previous_action_raw=throw_in_interception",
+    "previous_action_raw=throw_in_reception",
+    "previous_action_raw=unknown",
+    "previous_action_raw=__missing__",
+    "previous_action_raw=__unseen__",
+    "match_clock_min",
+    "score_difference_prefix",
+    "opponents_bypassed",
+    "teammates_bypassed"
+  ],
+  "vocabulary": {
+    "start_type_raw": [
+      "corner_interception",
+      "corner_reception",
+      "free_kick_interception",
+      "free_kick_reception",
+      "goal_kick_interception",
+      "goal_kick_reception",
+      "keep_possession",
+      "pass_interception",
+      "pass_reception",
+      "recovery",
+      "throw_in_interception",
+      "throw_in_reception",
+      "unknown",
+      "__missing__",
+      "__unseen__"
+    ],
+    "previous_action_raw": [
+      "ball_drive",
+      "corner_interception",
+      "corner_reception",
+      "free_kick_interception",
+      "free_kick_reception",
+      "goal_kick_interception",
+      "goal_kick_reception",
+      "keep_possession",
+      "pass_interception",
+      "pass_reception",
+      "recovery",
+      "throw_in_interception",
+      "throw_in_reception",
+      "unknown",
+      "__missing__",
+      "__unseen__"
+    ]
+  },
+  "xt_grid": [
+    [
+      0.00219074409215372,
+      0.0029080006019016847,
+      0.002741451138245335,
+      0.0027372353190173596,
+      0.0027176311452268573,
+      0.0024671254625413057
+    ],
+    [
+      0.0032439293748223463,
+      0.0035090473171308367,
+      0.003956364154177674,
+      0.00395060660934358,
+      0.003977190297660268,
+      0.003397383252331107
+    ],
+    [
+      0.0037426482236688195,
+      0.0052712503541786394,
+      0.005450562159604563,
+      0.0056199214326671035,
+      0.0054189104761354825,
+      0.004786561487006194
+    ],
+    [
+      0.005548325920160955,
+      0.007097772559732452,
+      0.0077947266137610915,
+      0.008022638585100876,
+      0.007086143536518727,
+      0.006550294818957699
+    ],
+    [
+      0.007937711561476775,
+      0.009170522012460627,
+      0.009943707832907855,
+      0.00998411804609245,
+      0.009267567325562586,
+      0.008286123985551487
+    ],
+    [
+      0.010859506458007926,
+      0.012314413387716674,
+      0.012766394665340249,
+      0.013139870732171419,
+      0.013228266168787427,
+      0.01088076160606133
+    ],
+    [
+      0.014758014190226891,
+      0.017009848079048054,
+      0.018243528041548406,
+      0.017473224015905325,
+      0.0176815142790783,
+      0.014041111875017472
+    ],
+    [
+      0.02020253549256573,
+      0.02329120745142379,
+      0.026587428360570844,
+      0.02988551984098049,
+      0.022399104074902334,
+      0.019831041574113275
+    ],
+    [
+      0.022680255121832662,
+      0.02891890749012733,
+      0.06775862711476842,
+      0.07916745930165564,
+      0.029932784453187714,
+      0.025047549293533308
+    ],
+    [
+      0.024265514397964323,
+      0.0535648631614395,
+      0.15080736407124756,
+      0.14702774824212209,
+      0.039767354052534246,
+      0.019204726100985163
+    ]
+  ],
+  "calibration": {
+    "method": "Temperature on final choice distribution",
+    "inverse_temperature": 0.978476223127723,
+    "temperature": 1.0219972405701139,
+    "uniform_limit": false,
+    "initial_inverse_temperature": 1.0,
+    "bounds": "beta>=0; no finite upper bound",
+    "validation_ce_before": null,
+    "validation_ce_after": null,
+    "projected_gradient": 5.32976429588412e-09,
+    "success": true,
+    "iterations": 3,
+    "message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL",
+    "trees_refitted": false,
+    "rho_refitted": false,
+    "test_labels_used": true,
+    "calibration_fit_ce_before": 5.867930827319193,
+    "calibration_fit_ce_after": 5.867136933511218,
+    "role": "Full-data deployment calibration only; do not report its apparent OOF NLL as an independent test score.",
+    "source": "Raw frozen run50 outer-test distributions",
+    "n_choices": 6810,
+    "fit_matches": [
+      "1886347",
+      "1899585",
+      "1925299",
+      "1953632",
+      "1996435",
+      "2006229",
+      "2011166",
+      "2013725",
+      "2015213",
+      "2017461"
+    ],
+    "oof_labels_used": true,
+    "held_out_performance_estimate": false,
+    "replay_audit": {
+      "status": "passed",
+      "comparison": "Saved source NLL vs fresh inference only; saved benchmark scores are never replaced.",
+      "per_row_limit": 0.0001,
+      "per_fold_mean_absolute_limit": 1e-06,
+      "pointwise_exception": "Only if fixed weights/other features and adjacent float32 angles reproduce BOTH saved raw and saved-temperature NLL within2e-9; no predictions corrected for calibration.",
+      "folds": [
+        {
+          "fold": 0,
+          "raw": {
+            "n": 1377,
+            "mean_delta": 3.846783381335955e-08,
+            "mean_absolute_delta": 7.027270827664302e-08,
+            "max_absolute_delta": 4.657659831597272e-05,
+            "above_old_2e6_tolerance": 7,
+            "compatible": true
+          },
+          "temperature": {
+            "n": 1377,
+            "mean_delta": 4.0294738042159894e-08,
+            "mean_absolute_delta": 7.257328955396816e-08,
+            "max_absolute_delta": 4.731507299737814e-05,
+            "above_old_2e6_tolerance": 7,
+            "compatible": true
+          },
+          "rounding_proofs": [],
+          "compatible": true
+        },
+        {
+          "fold": 1,
+          "raw": {
+            "n": 1260,
+            "mean_delta": 0.0,
+            "mean_absolute_delta": 0.0,
+            "max_absolute_delta": 0.0,
+            "above_old_2e6_tolerance": 0,
+            "compatible": true
+          },
+          "temperature": {
+            "n": 1260,
+            "mean_delta": 0.0,
+            "mean_absolute_delta": 0.0,
+            "max_absolute_delta": 0.0,
+            "above_old_2e6_tolerance": 0,
+            "compatible": true
+          },
+          "rounding_proofs": [],
+          "compatible": true
+        },
+        {
+          "fold": 2,
+          "raw": {
+            "n": 1379,
+            "mean_delta": 2.7298812040764733e-07,
+            "mean_absolute_delta": 2.7504029259601395e-07,
+            "max_absolute_delta": 0.00034356150324388324,
+            "above_old_2e6_tolerance": 3,
+            "compatible": false
+          },
+          "temperature": {
+            "n": 1379,
+            "mean_delta": 2.7350413791692707e-07,
+            "mean_absolute_delta": 2.7553654596878954e-07,
+            "max_absolute_delta": 0.0003444835542669722,
+            "above_old_2e6_tolerance": 3,
+            "compatible": false
+          },
+          "rounding_proofs": [
+            {
+              "accepted": true,
+              "reason": "Saved raw and calibrated NLL reproduced with adjacent float32 angles only.",
+              "sensitive_cells": 2,
+              "combinations": 4,
+              "combinations_examined": 3,
+              "changes": [
+                {
+                  "cell": 3513,
+                  "angle_current": -1.764662742614746,
+                  "angle_adjacent": -1.7646628618240356,
+                  "angle_change": -1.1920928955078125e-07,
+                  "margin_current": 2.324025869369507,
+                  "margin_adjacent": 2.0371570587158203
+                }
+              ],
+              "raw_nll": 4.424019583536282,
+              "temperature_nll": 4.416076105131052,
+              "maximum_nll_error": 8.881784197001252e-16,
+              "baseline_raw_nll": 4.424363145039525,
+              "predictions_modified_for_calibration": false,
+              "choice_index": 587,
+              "match_id": "1899585",
+              "pass_id": "8821",
+              "frame_end": 53715
+            }
+          ],
+          "compatible": true
+        },
+        {
+          "fold": 3,
+          "raw": {
+            "n": 1425,
+            "mean_delta": 0.0,
+            "mean_absolute_delta": 0.0,
+            "max_absolute_delta": 0.0,
+            "above_old_2e6_tolerance": 0,
+            "compatible": true
+          },
+          "temperature": {
+            "n": 1425,
+            "mean_delta": 0.0,
+            "mean_absolute_delta": 0.0,
+            "max_absolute_delta": 0.0,
+            "above_old_2e6_tolerance": 0,
+            "compatible": true
+          },
+          "rounding_proofs": [],
+          "compatible": true
+        },
+        {
+          "fold": 4,
+          "raw": {
+            "n": 1369,
+            "mean_delta": 7.016177360710424e-09,
+            "mean_absolute_delta": 1.962739199445044e-08,
+            "max_absolute_delta": 1.5226184508776441e-05,
+            "above_old_2e6_tolerance": 4,
+            "compatible": true
+          },
+          "temperature": {
+            "n": 1369,
+            "mean_delta": 7.259737635004964e-09,
+            "mean_absolute_delta": 2.091027861015401e-08,
+            "max_absolute_delta": 1.592721978482814e-05,
+            "above_old_2e6_tolerance": 4,
+            "compatible": true
+          },
+          "rounding_proofs": [],
+          "compatible": true
+        }
+      ],
+      "n_choices": 6810,
+      "original_benchmark_unchanged": true
+    }
+  },
+  "training": {
+    "role": "full_ten_match_deployment_refit",
+    "smoke": false,
+    "match_ids": [
+      "1886347",
+      "1899585",
+      "1925299",
+      "1953632",
+      "1996435",
+      "2006229",
+      "2011166",
+      "2013725",
+      "2015213",
+      "2017461"
+    ],
+    "n_choices": 6810,
+    "rounds": 1420,
+    "tree_count_rule": "Median of the five validation-selected prefixes, separately by family. Fixed before full-data refit.",
+    "parameters": {
+      "max_depth": 4,
+      "eta": 0.05,
+      "reg_lambda": 1.0,
+      "min_child_weight": 5.0,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "max_bin": 256,
+      "tree_method": "hist",
+      "device": "cpu",
+      "base_score": 0.0,
+      "nthread": 8,
+      "seed": 20261019,
+      "seed_per_iteration": true,
+      "disable_default_eval_metric": 1
+    },
+    "initial_rho": 1.0,
+    "initial_utilities": 0.0,
+    "joint_scale_updates": false,
+    "post_training_rho_refit": false,
+    "protocol_sha256": "0a4a23cf1d1080beec26d784c6ca177e73544e19e43e7cb62295747d661b084d"
+  },
+  "physics": {
+    "pass_risk": {
+      "schema_version": 1,
+      "model_type": "pass_risk_trajectory_isotonic",
+      "model_id": "skillcorner_outfield_pass_risk_uniform_tti_v4",
+      "lambda_control": 5.437829752595985,
+      "s": 0.29455974908543886,
+      "physics": {
+        "v_max": 5.5,
+        "a_max": 7.0,
+        "a_turn": 7.0,
+        "preserve_initial_overspeed": true,
+        "dt_ball": 0.04,
+        "dt_pc": 0.01,
+        "t_max_flight": 10.0,
+        "t_max_pc": 15.0,
+        "rho": 1.22,
+        "Cd": 0.25,
+        "A": 0.038,
+        "m": 0.42,
+        "g": 9.81,
+        "z_max": 2.0,
+        "distance_mode": "exact",
+        "integration_method": "exponential",
+        "speed_range": [
+          5.0,
+          25.0
+        ],
+        "speed_candidates": 30,
+        "elevation_degrees": [
+          0.0,
+          45.0
+        ],
+        "elevation_candidates": 30
+      },
+      "calibration": {
+        "method": "isotonic",
+        "x": [
+          1.9423014747684613e-07,
+          0.004959092416215512,
+          0.005040612789132291,
+          0.16766299108144275,
+          0.16779464321797222,
+          0.24420977281252823,
+          0.24437116189011665,
+          0.27640388437298835,
+          0.27649520655009496,
+          0.39567491057749704,
+          0.3959703123007905,
+          0.3987835902646344,
+          0.39892101614897924,
+          0.4072324065188828,
+          0.40753802614723306,
+          0.428891452644126,
+          0.42914163477977085,
+          0.4321001049928112,
+          0.4321734621969156,
+          0.49753512862714944,
+          0.4976566436054568,
+          0.5298717777186099,
+          0.5305187493711409,
+          0.596954241950751,
+          0.5976289616329596,
+          0.6184245489470273,
+          0.6192326222804009,
+          0.6352842137219151,
+          0.6352924188649665,
+          0.6498752050107157,
+          0.6500301200490717,
+          0.6557785300966084,
+          0.6573273882420491,
+          0.6583260060373687,
+          0.6590778102206678,
+          0.7011261677944305,
+          0.7019407277923255,
+          0.714168743954448,
+          0.7147949409321119,
+          0.7499522895314106,
+          0.7500269803880459,
+          0.8087843189374742,
+          0.8090261375300737,
+          0.8670713117446898,
+          0.8675122263445469,
+          0.9572293709658762,
+          0.9573678210457844,
+          0.9650408769662892,
+          0.9650442470317002,
+          0.9728933621529904,
+          0.9729407643545606,
+          0.9932186307222203,
+          0.993220759371841,
+          0.9998004375094303,
+          0.9998014815181903,
+          0.9999999999989595
+        ],
+        "y": [
+          0.0,
+          0.0,
+          0.03278688524590164,
+          0.03278688524590164,
+          0.056338028169014086,
+          0.056338028169014086,
+          0.12658227848101267,
+          0.12658227848101267,
+          0.15938303341902313,
+          0.15938303341902313,
+          0.19047619047619047,
+          0.19047619047619047,
+          0.20930232558139536,
+          0.20930232558139536,
+          0.21212121212121213,
+          0.21212121212121213,
+          0.3333333333333333,
+          0.3333333333333333,
+          0.35714285714285715,
+          0.35714285714285715,
+          0.5,
+          0.5,
+          0.6517857142857143,
+          0.6517857142857143,
+          0.6666666666666666,
+          0.6666666666666666,
+          0.7096774193548387,
+          0.7096774193548387,
+          0.7241379310344828,
+          0.7241379310344828,
+          0.7272727272727273,
+          0.7272727272727273,
+          0.75,
+          0.75,
+          0.8712871287128713,
+          0.8712871287128713,
+          0.8888888888888888,
+          0.8888888888888888,
+          0.918918918918919,
+          0.918918918918919,
+          0.96875,
+          0.96875,
+          0.9822222222222222,
+          0.9822222222222222,
+          0.9885714285714285,
+          0.9885714285714285,
+          0.9924242424242424,
+          0.9924242424242424,
+          0.9935064935064936,
+          0.9935064935064936,
+          0.9973333333333333,
+          0.9973333333333333,
+          0.9986586183769283,
+          0.9986586183769283,
+          1.0,
+          1.0
+        ],
+        "fitted_on": "Run41 outer cross-fitted raw PPCF scores; natural outcomes; no trajectory-score calibration"
+      },
+      "trajectory_boundary": "fit_positions",
+      "boundary_selection": {
+        "selection_matches": [
+          "1886347",
+          "1899585",
+          "1925299",
+          "1953632",
+          "1996435",
+          "2006229",
+          "2011166",
+          "2013725",
+          "2015213",
+          "2017461"
+        ],
+        "paired_passes": 6235,
+        "match_weighted_mae": {
+          "mean_velocity": 1.7625928811591762,
+          "fit_positions": 1.7250400568252782
+        },
+        "criterion": "Mean 3D error from .7s until before next controlled touch, equal match weights"
+      },
+      "fit": {
+        "initial": [
+          5.0,
+          0.5
+        ],
+        "objective": 2476.1169485671335,
+        "log_parameters": [
+          1.6933800387316036,
+          -1.2222734133260902
+        ],
+        "success": true,
+        "message": "Optimization terminated successfully.",
+        "iterations": 11,
+        "gradient_max": 2.243463850959415e-05,
+        "lambda_control": 5.437829752595985,
+        "s": 0.29455974908543886,
+        "estimator": "MLE, natural Bernoulli likelihood; unconstrained positive parameters via log",
+        "hessian_eigenvalues": [
+          658.7777633116399,
+          4189.128134894801
+        ],
+        "weak_identification": false,
+        "attempts": [
+          {
+            "initial": [
+              4.3,
+              0.43
+            ],
+            "objective": 2476.1169485671344,
+            "log_parameters": [
+              1.6933800119706592,
+              -1.2222734013183254
+            ],
+            "success": true,
+            "message": "Optimization terminated successfully.",
+            "iterations": 6,
+            "gradient_max": 1.7332123388058562e-05
+          },
+          {
+            "initial": [
+              3.0,
+              0.3
+            ],
+            "objective": 2476.1169485671344,
+            "log_parameters": [
+              1.6933800384906077,
+              -1.222273413448421
+            ],
+            "success": true,
+            "message": "Optimization terminated successfully.",
+            "iterations": 6,
+            "gradient_max": 2.3130564009932186e-05
+          },
+          {
+            "initial": [
+              5.0,
+              0.5
+            ],
+            "objective": 2476.1169485671335,
+            "log_parameters": [
+              1.6933800387316036,
+              -1.2222734133260902
+            ],
+            "success": true,
+            "message": "Optimization terminated successfully.",
+            "iterations": 11,
+            "gradient_max": 2.243463850959415e-05
+          }
+        ]
+      },
+      "provenance": {
+        "protocol_sha256": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
+        "oof_sha256": "d9a931017bbb52eae3e4b56f855c8f5eee3def9a041c069b5127967ba14fa444",
+        "source_benchmark_run": "41_pass_risk_uniform_tti_20261022",
+        "source_benchmark_result": "41_pass_risk_uniform_tti_20261022_004650",
+        "n": 6706,
+        "losses": 964,
+        "matches": [
+          "1886347",
+          "1899585",
+          "1925299",
+          "1953632",
+          "1996435",
+          "2006229",
+          "2011166",
+          "2013725",
+          "2015213",
+          "2017461"
+        ],
+        "cohort_policy": "continuous_direct_receipt_duration_0p5_to_10_v3",
+        "role": "Full-data operational MLE with final OOF-fitted isotonic; no new evaluation and no replacement for nested OOF metrics",
+        "benchmark": {
+          "subset": "all",
+          "arm": "new",
+          "model": "trajectory_isotonic",
+          "n": 6706,
+          "losses": 964,
+          "cross_entropy": 0.1311207716650746,
+          "null_cross_entropy": 0.4122219986247193,
+          "gain_ce": 0.6819170929680417,
+          "brier": 0.0369246146682417,
+          "ECE_quantile": 0.0018331187967812,
+          "mean_predicted_success": 0.8562252355100581,
+          "observed_success": 0.8562481359976141,
+          "ROC_AUC": 0.9772028122113972
+        }
+      }
+    },
+    "ball_drive": {
+      "schema_version": 1,
+      "model_type": "ball_drive_additive",
+      "model_id": "skillcorner_outfield_ball_drive_obe_v2",
+      "theta": [
+        -1.0654794921496504,
+        0.20703506294047924,
+        -0.014526830557874957,
+        -1.2052005894844657,
+        -0.06053766442028816,
+        -0.07114015653535113,
+        0.004004538179930786,
+        -0.09802525397313974,
+        -0.15997599245505364,
+        -0.2067156199690025,
+        0.41636237073058296,
+        -0.0763278332815949,
+        -0.021829098015850996
+      ],
+      "design": {
+        "variant": "additive",
+        "speed_basis": {
+          "offset": 0.005050762556493282,
+          "scale": 10.17734803352505,
+          "knots": [
+            0.0,
+            0.15042231539434694,
+            0.2750844963292518,
+            0.4278406062431358,
+            1.0
+          ],
+          "projection": [
+            [
+              -0.06549424572589743,
+              -0.030591660679264648,
+              -0.011137858863394386
+            ],
+            [
+              0.40932228824020156,
+              0.16615884216005794,
+              0.05613437525318692
+            ]
+          ],
+          "transform": [
+            [
+              -27.41079244963076,
+              -159.60975737668863,
+              -788.1795435164933
+            ],
+            [
+              -52.643915479218684,
+              114.95291767317559,
+              2398.7235749684455
+            ],
+            [
+              117.16645892344654,
+              411.8786409986435,
+              -2291.7213457284615
+            ]
+          ],
+          "penalty": [
+            1.0,
+            6.429305327344332,
+            33.60360892903915
+          ],
+          "linear_mean": 0.3012858382256075,
+          "linear_sd": 0.18216251847234752
+        },
+        "boundary_basis": {
+          "offset": -5.449140972290721,
+          "scale": 39.44871253008502,
+          "knots": [
+            0.0,
+            0.28268255080988935,
+            0.45103586141128377,
+            0.656206407657341,
+            1.0
+          ],
+          "projection": [
+            [
+              -0.2439117421499671,
+              -0.0809064180228242,
+              -0.025898249961828875
+            ],
+            [
+              0.8970937823442708,
+              0.2528434978288723,
+              0.07661094300080962
+            ]
+          ],
+          "transform": [
+            [
+              -7.632804894426174,
+              -52.774281965404796,
+              -262.46901476660906
+            ],
+            [
+              -34.2010355700669,
+              15.706621276442844,
+              1028.658541595162
+            ],
+            [
+              54.288568746037065,
+              264.44298828628416,
+              -1145.7196366688804
+            ]
+          ],
+          "penalty": [
+            1.0,
+            7.675719032773263,
+            39.98664495085938
+          ],
+          "linear_mean": 0.4813199006930087,
+          "linear_sd": 0.2308711076068519
+        },
+        "interaction_projection": null,
+        "names": [
+          "speed_nonlinear_0",
+          "speed_nonlinear_1",
+          "speed_nonlinear_2",
+          "boundary_nonlinear_0",
+          "boundary_nonlinear_1",
+          "boundary_nonlinear_2"
+        ],
+        "main_count": 6,
+        "penalty": [
+          1.0,
+          6.429305327344332,
+          33.60360892903915,
+          1.0,
+          7.675719032773263,
+          39.98664495085938
+        ],
+        "interaction_rank": 3
+      },
+      "angle_design": {
+        "offset": 6.263459699589038e-05,
+        "scale": 3.1415013888127934,
+        "knots": [
+          0.0,
+          0.28305770417401044,
+          0.5745297440426883,
+          1.0
+        ],
+        "projection": [
+          [
+            -0.15062465300633188,
+            -0.046336574319014494
+          ],
+          [
+            0.7416252070652664,
+            0.18898590125858802
+          ]
+        ],
+        "transform": [
+          [
+            16.18678799298727,
+            -77.10774813862967
+          ],
+          [
+            -11.542865649461643,
+            205.1861396407912
+          ]
+        ],
+        "penalty": [
+          1.0,
+          7.678614950750033
+        ],
+        "linear_mean": 0.44382260790315914,
+        "linear_sd": 0.2725884965400684
+      },
+      "active_spline_columns": 6,
+      "kind": "individual_angle",
+      "candidate": {
+        "name": "main_1_angle_100",
+        "main": 1.0,
+        "interaction": null,
+        "angle": 100.0
+      },
+      "physics": {
+        "v_max": 7.0,
+        "a_linear": 7.0,
+        "a_turn": 7.0,
+        "preserve_initial_overspeed": true,
+        "pitch_length": 105.0,
+        "pitch_width": 68.0,
+        "dt": 0.04,
+        "integration_method": "exponential",
+        "boundary_mode": "signed"
+      },
+      "training": {
+        "role": "full_data_refit",
+        "observations": 9114,
+        "losses": 456,
+        "match_ids": [
+          "1886347",
+          "1899585",
+          "1925299",
+          "1953632",
+          "1996435",
+          "2006229",
+          "2011166",
+          "2013725",
+          "2015213",
+          "2017461"
+        ],
+        "cohort_policy": "outfield_no_shot_obe_verified_loss_parents_v1",
+        "selection": "Fixed main_1_angle_100 selected in all5run44outer training folds; no new tuning.",
+        "source_protocol_sha256": "ea3c97b10ac379d7f20c7f593be8bdc1b0c7c731a6136ce0ee44850e3091c256",
+        "source_cache_sha256": "c8457733cbed2d834a7971b8ab3496d3682a4717c53435e532e26d83d03611cb",
+        "target": "Bernoulli loss within one second",
+        "probability_floor": 1e-06,
+        "velocity_convention": "offline centred seven-frame tracking velocities"
+      },
+      "benchmark": {
+        "role": "pooled_out_of_fold",
+        "model": "refitted_filtered_model",
+        "n": 9114,
+        "losses": 456,
+        "loss_share": 0.050032916392363395,
+        "cross_entropy": 0.14348251851222715,
+        "null_cross_entropy": 0.1987224858511752,
+        "gain_ce": 0.2779754243831153,
+        "ECE_quantile": 0.0047499045111117815,
+        "brier_score": 0.04006830657308241,
+        "ROC_AUC": 0.8854659315185632,
+        "PR_AUC_loss": 0.3083655794540082,
+        "mean_predicted_loss": 0.050593672234582394,
+        "source_run": "44_ball_drive_obe_filtered_20261022_231807"
+      },
+      "fit_diagnostics": {
+        "objective": 1299.5898673840268,
+        "gradient_max": 0.0037839191655972843,
+        "converged": true,
+        "laplace_valid": true
+      },
+      "posterior_covariance": [
+        [
+          0.01457262605720135,
+          -0.0020688513279955257,
+          -0.00032723325236045004,
+          -0.0017763844003160592,
+          -0.0004486997799238557,
+          8.532825689524032e-05,
+          0.00033349956169762923,
+          0.001642486484957804,
+          0.0007729213274866644,
+          0.0005727017276177435,
+          -0.0005837528231235057,
+          0.00024561735559527236,
+          -5.136117929834748e-05
+        ],
+        [
+          -0.002068851327995524,
+          0.0008603474395536007,
+          -2.2291600277020796e-05,
+          -0.0002608503660678366,
+          0.00010914237404938767,
+          4.1535810906743095e-05,
+          -0.00010815070234978102,
+          -0.0002091988979053311,
+          -9.908419791359361e-05,
+          4.985294934604651e-05,
+          0.0009750530889535069,
+          -0.0002746819359155791,
+          -6.368919432300859e-06
+        ],
+        [
+          -0.00032723325236045053,
+          -2.2291600277020704e-05,
+          3.477279409106499e-05,
+          -1.942992860147845e-05,
+          -7.82418916703183e-06,
+          -3.414674529031986e-06,
+          1.2421698789752517e-06,
+          -8.119200995446563e-05,
+          -1.9273168342509424e-05,
+          -3.282771346578325e-05,
+          -5.905499837055475e-05,
+          -5.27567620790294e-07,
+          2.1522742392279187e-06
+        ],
+        [
+          -0.0017763844003160598,
+          -0.00026085036606783644,
+          -1.942992860147845e-05,
+          0.0033788858291551155,
+          0.00013716580282984776,
+          -2.9681902863687848e-05,
+          -8.35742937576447e-06,
+          -2.1219501041404758e-05,
+          -5.552452983531074e-05,
+          -7.740299414414071e-05,
+          -3.16177431848001e-05,
+          0.0003188668310620266,
+          -3.893152858429362e-05
+        ],
+        [
+          -0.0004486997799238557,
+          0.00010914237404938772,
+          -7.824189167031841e-06,
+          0.00013716580282984776,
+          0.002232050825397477,
+          0.0002103452526267323,
+          2.2973717737195854e-05,
+          -8.712736301001798e-05,
+          -9.482907977002538e-05,
+          -8.735937630908987e-05,
+          7.523548508592841e-05,
+          6.58440142754897e-05,
+          -5.0962372000384365e-05
+        ],
+        [
+          8.532825689524029e-05,
+          4.153581090674313e-05,
+          -3.4146745290319864e-06,
+          -2.9681902863687865e-05,
+          0.00021034525262673235,
+          0.0021908442883350377,
+          0.0002055000786261723,
+          -6.924466505109642e-05,
+          1.0620787430368444e-05,
+          -5.3576749815502755e-05,
+          -9.943227570420016e-05,
+          3.509971485712904e-05,
+          8.053457695487248e-06
+        ],
+        [
+          0.0003334995616976292,
+          -0.00010815070234978101,
+          1.2421698789752544e-06,
+          -8.35742937576445e-06,
+          2.2973717737195857e-05,
+          0.00020550007862617237,
+          0.00229980638496305,
+          4.4540314167512796e-05,
+          1.600999037368173e-05,
+          -3.662771904909996e-05,
+          -4.633638266289605e-05,
+          7.649442255028711e-05,
+          -6.564904159231544e-06
+        ],
+        [
+          0.001642486484957804,
+          -0.00020919889790533115,
+          -8.119200995446559e-05,
+          -2.12195010414047e-05,
+          -8.7127363010018e-05,
+          -6.924466505109644e-05,
+          4.454031416751281e-05,
+          0.002645416842654307,
+          -0.0007166046158310906,
+          -0.00024257775268612697,
+          -0.0005262689224177463,
+          5.7575134607347184e-05,
+          -1.787023386246116e-06
+        ],
+        [
+          0.0007729213274866649,
+          -9.908419791359377e-05,
+          -1.927316834250943e-05,
+          -5.552452983531089e-05,
+          -9.482907977002545e-05,
+          1.0620787430368477e-05,
+          1.600999037368175e-05,
+          -0.0007166046158310906,
+          0.002666299782967303,
+          -0.0006668901650626394,
+          -0.00016379339476231997,
+          1.9812741419047185e-06,
+          -2.739264210337272e-06
+        ],
+        [
+          0.0005727017276177431,
+          4.9852949346046595e-05,
+          -3.282771346578324e-05,
+          -7.740299414414061e-05,
+          -8.735937630908985e-05,
+          -5.357674981550276e-05,
+          -3.6627719049099966e-05,
+          -0.00024257775268612695,
+          -0.0006668901650626394,
+          0.0014548251769935512,
+          -4.027558542723041e-05,
+          1.3386092265187517e-05,
+          5.682545298694553e-06
+        ],
+        [
+          -0.000583752823123503,
+          0.0009750530889535064,
+          -5.905499837055475e-05,
+          -3.1617743184800436e-05,
+          7.523548508592833e-05,
+          -9.943227570420016e-05,
+          -4.633638266289603e-05,
+          -0.0005262689224177463,
+          -0.0001637933947623195,
+          -4.027558542723051e-05,
+          0.005902437819697757,
+          0.0008302012997931789,
+          -0.00017021252716981267
+        ],
+        [
+          0.0002456173555952729,
+          -0.0002746819359155792,
+          -5.275676207903056e-07,
+          0.00031886683106202655,
+          6.58440142754897e-05,
+          3.509971485712906e-05,
+          7.649442255028711e-05,
+          5.757513460734726e-05,
+          1.981274141904739e-06,
+          1.3386092265187497e-05,
+          0.0008302012997931787,
+          0.0034542599327303165,
+          0.00022479853474138497
+        ],
+        [
+          -5.136117929834753e-05,
+          -6.368919432300841e-06,
+          2.152274239227919e-06,
+          -3.893152858429361e-05,
+          -5.096237200038436e-05,
+          8.053457695487246e-06,
+          -6.5649041592315474e-06,
+          -1.7870233862461244e-06,
+          -2.739264210337277e-06,
+          5.682545298694554e-06,
+          -0.00017021252716981262,
+          0.000224798534741385,
+          0.001042668248170792
+        ]
+      ]
+    }
+  },
+  "benchmark": {
+    "source_result": "50_pass_selection_final_20261025_003557",
+    "not_full_fit_scores": true
+  },
+  "preferred_for_package": true
+}

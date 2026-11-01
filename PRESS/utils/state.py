@@ -8,7 +8,7 @@ def get_pv_players(
     tracking_df,
 ):
     """
-    Extract BCOS players from wide tracking format.
+    Extract player positions and velocities from canonical wide tracking data.
 
     Parameters
     ----------
@@ -30,6 +30,9 @@ def get_pv_players(
         vels,
         n_required,
     ):
+
+        coords = np.asarray(coords, dtype=float).reshape(-1, 2)
+        vels = np.asarray(vels, dtype=float).reshape(-1, 2)
 
         if len(coords) < n_required:
 
@@ -74,6 +77,10 @@ def get_pv_players(
         )
 
     df = frame_df.iloc[0]
+    pitch_length = float(df.get("pitch_length", 105.0))
+    pitch_width = float(df.get("pitch_width", 68.0))
+    if not np.isfinite([pitch_length, pitch_width]).all() or min(pitch_length, pitch_width) <= 0:
+        raise ValueError("Pitch dimensions must be finite and positive.")
 
 
     # --------------------
@@ -115,6 +122,11 @@ def get_pv_players(
             df[bc_prefix + "vy"],
         ]
     )
+
+    if attacking_side not in ("left_to_right", "right_to_left"):
+        raise ValueError("Missing or invalid attacking direction.")
+    if not np.all(np.isfinite(x_bc)) or not np.all(np.isfinite(v_bc)):
+        raise ValueError("Ball carrier position and velocity must be finite.")
 
 
     # --------------------
@@ -256,6 +268,8 @@ def get_pv_players(
     return {
 
         "frame_df": frame_df,
+        "pitch_length": pitch_length,
+        "pitch_width": pitch_width,
 
         "player": player,
 
@@ -290,6 +304,7 @@ def get_xt_values(
     targets,
     attacking_side,
     xt_grid,
+    *, pitch_length=105.0, pitch_width=68.0,
 ):
     """
     Get attacking-team and opponent xT
@@ -335,8 +350,10 @@ def get_xt_values(
     x_opp = -x_att
     y_opp = -y_att
     
-    PITCH_LENGTH = 105.0
-    PITCH_WIDTH = 68.0
+    PITCH_LENGTH = float(pitch_length)
+    PITCH_WIDTH = float(pitch_width)
+    if not np.isfinite([PITCH_LENGTH, PITCH_WIDTH]).all() or min(PITCH_LENGTH, PITCH_WIDTH) <= 0:
+        raise ValueError("Pitch dimensions must be finite and positive.")
 
     x_cell_att = np.clip(
         (

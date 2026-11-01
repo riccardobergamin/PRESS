@@ -26,6 +26,11 @@ where:
                        sum(tr*(1-pass_prob)) = 1 - rppcf, no need to
                        recompute the per-cell arrays)
 
+Terminology: Spearman's source calls the underlying control model PPCF
+(Potential Pitch Control Field). The lowercase variable ``rppcf`` here is
+the repository's transition-weighted pass-success aggregate, not a term
+claimed to be named that way in the paper.
+
 NOTE (25/9): NO post-hoc calibration here. An isotonic calibrator was
 fitted and validated out-of-fold (ECE 0.0201 -> 0.0032), but the four
 components feeding h(s_t) are all PRODUCTION models (fit on all 10

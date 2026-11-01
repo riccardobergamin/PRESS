@@ -1,0 +1,51 @@
+{
+  "status": "verified_aggregate_export",
+  "source_run": "70_action_selection_fine_bcos_20261029_102502",
+  "n_actions": 16918,
+  "n_pass": 7770,
+  "n_carry": 9148,
+  "primary_metrics": {
+    "n": 16918,
+    "pass_share": 0.45927414588012766,
+    "cross_entropy": 0.5685917101697102,
+    "null_cross_entropy": 0.6900528420835639,
+    "gain_on_null": 0.17601714608856722,
+    "brier": 0.19397548178891372,
+    "auc": 0.7708340578694755,
+    "ece_quantile10": 0.010260051295670116
+  },
+  "outer_folds": 5,
+  "split": "6 fitting + 2 validation + 2 held-out matches",
+  "calibration": "Primary AS probabilities are native. Separate temperature diagnostic fits only the existing validation pair; it does not alter primary scores.",
+  "package_action_model_updated": true,
+  "full_data_refit_performed": true,
+  "deployment_status": "Verified full-ten-match native277-tree AS73 model is installed; AS70 remains the held-out benchmark.",
+  "public_data": "Only aggregate metrics, bins, configuration/schema and provenance; no raw tracking or individual prediction arrays exported.",
+  "development_caveat": "Ten matches were used in prior model development. Upstream fitting-state scores are in-sample; same validation pair supports upstream calibration and action-model tuning.",
+  "source_sha256": {
+    "experiments/70_action_selection_fine_bcos_20261029/results_review/70_action_selection_fine_bcos_20261029_102502/verification.json": "b0e2909c92c80eab2cfe6bd37ce4c751c2b2c07475f9761b16f59302a064cd86",
+    "experiments/70_action_selection_fine_bcos_20261029/results_review/70_action_selection_fine_bcos_20261029_102502/report/summary.json": "6a86675b5c5374f0eea679e819246b8c7856938b996fd9b7441b6e3a49daaffd",
+    "experiments/70_action_selection_fine_bcos_20261029/results_review/70_action_selection_fine_bcos_20261029_102502/report/pooled_oof.parquet": "9445f0663592ccb052f8a250a8d097f3868758ecb21703e17ae22a8aae09c3f0",
+    "experiments/70_action_selection_fine_bcos_20261029/results_review/70_action_selection_fine_bcos_20261029_102502/historical_cohort_comparison.json": "713587ab5fe119a31075e33e3e49f7be62b7a793c29af16fbc343eb481f6c164",
+    "experiments/70_action_selection_fine_bcos_20261029/bundle/data/protocol.json": "c4f008ca86c3ad8d47842cde4e85bb5f1c8bf6d181f120328f6dc6631af4f8de",
+    "experiments/71_action_selection_team_context_probe_20261029/conclusion.json": "957e7ec599e7dbb70adbb80dcaf26f3228b33f30ea7cbd532feb2da11f4cbfa7",
+    "experiments/71_action_selection_team_context_probe_20261029/three_seed_summary.csv": "130f9bea93733f910df8a03849e5a690d4b29e2e6e612a35942dcd9f20aeeab1",
+    "experiments/72_action_selection_temperature_check_20261029/results/summary.json": "9b92dddf88945697758b432519213ef79f518552c6b99de301a071b6773bc4ad",
+    "experiments/72_action_selection_temperature_check_20261029/results/diagnostic_oof.parquet": "a111d0630bfdd7fa73150388d6004310a17e3b98b34faf29e983837ba4088beb",
+    "tmp/pdfs/counterrisk.txt": "d8af5f226c8e8b3a0fa39d8e00133e638978e01a17cda9f6d946e8ffd973c813"
+  },
+  "export_sha256": {
+    "historical_cohort_comparison.json": "713587ab5fe119a31075e33e3e49f7be62b7a793c29af16fbc343eb481f6c164",
+    "metrics_by_match.csv": "06d5c886569b4360d3754b1409b5f6ce0179c43677fe2fd13f15a4a07a6802ba",
+    "summary.json": "6a86675b5c5374f0eea679e819246b8c7856938b996fd9b7441b6e3a49daaffd",
+    "metrics_by_fold.csv": "fbeb8788894055974fa3e7ac40e0d68b540998395979cacca3678095e0e04e04",
+    "selected_configurations.csv": "949214c70b33aceb4fda6d26396df3212058432f567d1eb2926455bd2874b53a",
+    "context_probe_summary.csv": "130f9bea93733f910df8a03849e5a690d4b29e2e6e612a35942dcd9f20aeeab1",
+    "literature_comparison.csv": "7eaeb0fe3363cb657861e841e01d352a317d34f6b88e564e94559ec6bd80dc6e",
+    "metrics.csv": "22d5a16c32398d0c30a1f809f613d3422774a732e879772d82563429ad96911a",
+    "feature_schemas.json": "0a8b2da703ad87c1facb86bedc3d01238e97191722cb017761ec1f1a04250ecf",
+    "temperature_diagnostic.csv": "a94313ca0c2547da2fe04575dfcce354ed464778e4b324affd22108e82810bd6",
+    "calibration_deciles.csv": "c2a8b3b2a7089f7fc02446d619c304014005ebdcd00bd2458fefa518172952fa",
+    "context_probe_by_seed.csv": "5ee24265f73dc1f8590d01a833c744f1afd22a25bc2d45d2919a8dae6cbdeceb"
+  }
+}
