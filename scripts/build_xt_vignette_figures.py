@@ -14,7 +14,14 @@ def plot_xt_surface(grid):
     """Return a conventional pitch heatmap without interpolating the cells."""
     grid = np.asarray(grid, float)
     fig, ax = plt.subplots(figsize=(10.5, 7), layout='constrained')
-    mesh = draw_cell_map(ax, grid, norm=Normalize(0, float(grid.max())), cmap='magma')
+    norm = Normalize(0, float(grid.max()))
+    mesh = draw_cell_map(ax, grid, norm=norm, cmap='magma')
+    nx, ny = grid.shape
+    for ix, iy in np.ndindex(grid.shape):
+        ax.text(-52.5 + (ix + .5) * 105 / nx,
+                -34 + (iy + .5) * 68 / ny, f'{grid[ix, iy]:.2%}',
+                ha='center', va='center', fontsize=9, zorder=5,
+                color='white' if norm(grid[ix, iy]) < .65 else '#17212b')
     ax.set_title('Expected Threat · production fit on ten matches\n10 × 6 cells · attack →',
                  fontsize=13, pad=12)
     cb = fig.colorbar(mesh, ax=ax, shrink=.8, pad=.025,
