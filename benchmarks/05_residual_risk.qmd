@@ -23,16 +23,22 @@ The cohort contains **7,820 successful one-second carry states**, of which **1,4
 | Clearance | 27 | 14 | 1 |
 | Foul suffered | 139 | 64 | 0 |
 
+### Effective task-specific exclusions
+
+The conditional target starts from **8,672 successful canonical one-second carry states** in the broad action cohort. Terminal-outcome verification removes **14 states from 10 loss-ending parents without a valid associated OBE**, and **838 states from 452 parents whose terminal pass is absent from the verified continuous direct-receipt cohort**. All eligible states belonging to an affected parent are removed together. The two groups do not overlap, leaving **7,820 states** from **3,975 individual possessions**.
+
+This target requires an observed successful full second, so failed carries and short noncanonical tails do not enter the conditional training set. Completed passes, failed passes, clearances and fouls retain the labels shown above; no 0.5 s flight-duration or curvature restriction is added to the terminal pass. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
+
 ## Features
 
 The model uses **31 features**: the action-selection feature family with two changes. The number of completed carries is replaced by the elapsed time since individual control began, and the action-selection probability of carrying is added. The shared feature definitions are in the [action-selection vignette](../vignettes/04_action_selection/04_action_selection.ipynb).
 
-The action-selection probability of carrying is cross-fitted so that no state is scored by a model that was trained on it. Training states are scored by three action-selection refits, each fitted on four of the six training matches and omitting the other two, and validation and test states are scored by the action-selection model of the same outer fold.
+The action-selection probability of carrying is cross-fitted at the action-classifier layer: the action classifier that scores a fitting state omitted its match. Training states are scored by three action-selection refits, each fitted on four of the six training matches and omitting the other two, and validation and test states are scored by the action-selection model of the same outer fold. These inner refits change the action-classifier weights only. Their physical, pass-choice, xT and BCOS inputs remain frozen from the outer six-match feature stack; the entire upstream chain is not re-estimated on each four-match subset.
 ## Model selection and validation
 
-The evaluation uses five match-disjoint outer folds with **6 fitting + 2 validation + 2 test** matches. The validation matches support upstream calibration and the selection of the downstream model, and the test matches are used only for evaluation.
+The evaluation uses five match-disjoint outer folds with **6 fitting + 2 validation + 2 test** matches. The two validation matches remain fixed throughout each outer fold. They support upstream calibration and downstream grid/early-stopping selection, and the test matches are used only for evaluation. There is no four-rotation residual-risk search and no eight-match residual-risk refit before testing.
 
-The XGBoost grid covers maximum depth (3, 4, 6, 8), minimum child weight (1, 5, 20), L2 regularization (0.1, 1, 3, 10) and learning rate (0.03, 0.05, 0.10), giving **144 configurations × 5 folds = 720 fits**. Row and column subsampling are 0.8, training allows at most 2,000 trees, and early-stopping patience is 100. Validation cross entropy selects the configuration and the tree prefix before testing. There is no resampling, class weighting or custom derivative. A single positive temperature can be fitted on the validation matches with the trees held fixed ([Guo et al., 2017](https://arxiv.org/abs/1706.04599)), and test scores are not used to select it.
+The XGBoost grid covers maximum depth (3, 4, 6, 8), minimum child weight (1, 5, 20), L2 regularization (0.1, 1, 3, 10) and learning rate (0.03, 0.05, 0.10), giving **720 fits per feature variant**. Two variants, with and without the action-choice probability, were evaluated on the same cohort, for **1,440 fits** in total; the displayed primary model includes the action-choice probability. Row and column subsampling are 0.8, training allows at most 2,000 trees, and early-stopping patience is 100. Validation cross entropy selects the configuration and the tree prefix before testing. There is no resampling, class weighting or custom derivative. After selecting configuration and tree prefix by native validation CE, a diagnostic fits one positive temperature on the same validation pair with the ensemble held fixed ([Guo et al., 2017](https://arxiv.org/abs/1706.04599)), and test scores are not used to estimate it. This calibration does not feed back into hyperparameter selection or early stopping, and no independent calibration pair is reserved.
 
 ## Predictive performance
 
@@ -43,7 +49,7 @@ The XGBoost grid covers maximum depth (3, 4, 6, 8), minimum child weight (1, 5, 
 
 The native model is retained, since temperature scaling does not improve cross entropy or ECE here. In each fold the null model predicts the terminal-loss frequency of the fitting matches. Metrics pool the held-out states, and ECE uses ten equal-count pooled bins weighted by their counts.
 
-![Five-fold pooled conditional residual-risk calibration.](../figures/residual_risk_pooled_calibration.png){#fig-residual-risk-calibration}
+![Five-fold pooled calibration of the native residual-risk model including P(carry). Points represent ten quantile bins.](../figures/residual_risk_pooled_calibration.png){#fig-residual-risk-calibration}
 
 Remaining possession time is retrospective and is not a predictor. A diagnostic on the verified cohort reports four remaining-time groups and an equal-possession weighting sensitivity.
 

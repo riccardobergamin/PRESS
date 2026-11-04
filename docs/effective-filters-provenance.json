@@ -1,0 +1,21 @@
+{
+  "only_nonzero_exclusions": true,
+  "source_hashes": {
+    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/43_ball_drive_catboost_final_20261022/01_dataset_audit/raw_possessions.parquet": "22bb258d4d7a89ba9239de9e0b61220431802092196d0ea9c32ac95961c8d027",
+    "/Users/riccardobergamin/Documents/GitHub/opendata/data/processed/2026-10-15_training_v5_outfield/actions.parquet": "20072262481496b796da56855e04cfb1858536b04ec9cc862a110758337f2b2d",
+    "/Users/riccardobergamin/Documents/GitHub/opendata/data/processed/2026-10-18_pass_boundaries_duration_v4/association_audit.parquet": "dc2ea476441f34f851915e15f7f54f775fee30ade348c9df4edbd16316de7b8f",
+    "/Users/riccardobergamin/Documents/GitHub/opendata/data/processed/2026-10-18_pass_boundaries_duration_v4/excluded_duration.csv": "e221dd811d8ca1b3a931a9fdae71ab241c1d13f23fe4fd0b8ef158460b91e560",
+    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/28_pass_selection_review_20261019/02_cohort_proposal/excluded_by_existing_association_audit.csv": "14efee1d3fd992524f620cff73e44a2a9de6833064f2860d0e350375ce05b3e9",
+    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/76_composed_h_xloss_oof_diagnostic_20261029/01_cohort_audit/checkpoint_quality_flags.parquet": "1efebb2501582b930429a69cbe378e3d888785b07f23740603c4fe1886a47c56"
+  },
+  "parent_preparation_scope": "Ball-drive, action-selection and residual-risk parent branch; pass tasks have a release-to-next-start branch.",
+  "excluded_training_snapshots": {
+    "short_control_tail": 4952,
+    "terminal_clearance": 107,
+    "terminal_foul_suffered": 98
+  },
+  "action_training_states": 16918,
+  "action_unknown_context_retained": 335,
+  "raw_aggregate_tables_only": true,
+  "no_new_filter_or_relabel": true
+}

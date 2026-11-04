@@ -21,9 +21,17 @@ $$
 
 A completed pass ends the carrier's individual possession without an individual loss event. Each prediction is evaluated against its own observed target: $h$ against the failure of the current action (a failed pass, or a loss during the one-second carry), and xLoss against the terminal individual loss.
 
+## Evaluation procedure
+
+No additional predictor, hyperparameter search or calibrator is fitted for $h$ or xLoss. At each eligible outer-test checkpoint, their terms are composed from the matching six-fitting/two-validation model stack, using native action-selection and residual-risk outputs, calibrated pass-completion probabilities, and the temperature-calibrated flat pass-selection distribution. The same fold-specific upstream quantities are used in every term; full-ten-match deployment fits are excluded. Metrics are then recomputed on the pooled composed predictions against each target.
+
+### Effective outcome-verification exclusions
+
+Starting from the **16,918 canonical action-selection checkpoints**, verification removes **34 checkpoints from 20 loss-ending parents without a valid associated OBE**, and **1,799 checkpoints from 961 parents with an unverified terminal pass**. These disjoint, whole-parent exclusions leave the **15,085 checkpoints** evaluated below. The verification concerns each parent's terminal outcome, so earlier checkpoints of the affected possession are removed as well. The stricter observed-flight duration filter is not applied to this composed-outcome cohort. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
+
 ## Predictive performance
 
-The evaluation uses **15,085 held-out decision checkpoints** with a validated outcome, of which **1,465 are current-action failures** and **2,888 are terminal individual losses**. This set is smaller than the action selection training set, since player choices are evaluated on every checkpoint regardless of the outcome, whereas the composed predictions also require a validated outcome, as discussed in pass and ball drive probabilities benchmarks. The one-second segmentation of individual possessions is described in [Possessions and checkpoints](../vignettes/06_possession_and_checkpoint_setup/06_possession_and_checkpoint_setup.ipynb). The table reports pooled out-of-fold scores for each target.
+The evaluation uses **15,085 held-out decision checkpoints** with a validated outcome, of which **1,465 are current-action failures** and **2,888 are terminal individual losses**. This set is smaller than the action selection training set, since player choices are evaluated on every checkpoint regardless of the outcome, whereas the composed predictions also require a validated outcome, as discussed in pass and ball drive probabilities benchmarks. The one-second segmentation of individual possessions is described in [Possessions and checkpoints](../vignettes/setup/possession_and_checkpoint_setup.ipynb). The table reports pooled out-of-fold scores for each target.
 
 | Target | Checkpoints | Events | Cross-entropy | Null cross-entropy | Gain over null | AUC | ECE |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -32,6 +40,6 @@ The evaluation uses **15,085 held-out decision checkpoints** with a validated ou
 
 Relative to the null models, cross-entropy is lower by **14.8%** for $h$ and **13.8%** for xLoss, with AUC of **0.782** and **0.756** and ECE below **1%** for both targets. The null cross-entropy uses the event frequencies of the corresponding fitting data, and ECE is computed on ten equal-count bins of the pooled predictions.
 
-![Pooled calibration of the composed hazard and individual xLoss against their respective observed targets.](../../figures/composed_risk_pooled_calibration.png)
+![Pooled calibration of the main composed hazard and individual xLoss models against their respective observed targets. Points represent ten quantile bins.](../figures/composed_risk_pooled_calibration.png)
 
-The underlying results are available as [pooled metrics](../../data/benchmarks/composed_risk/pooled_metrics.csv), [calibration bins](../../data/benchmarks/composed_risk/calibration_quantile10.csv), [fold-level metrics](../../data/benchmarks/composed_risk/metrics_by_fold.csv) and [match-level metrics](../../data/benchmarks/composed_risk/metrics_by_match.csv).
+The underlying results are available as [pooled metrics](../data/benchmarks/composed_risk/pooled_metrics.csv), [calibration bins](../data/benchmarks/composed_risk/calibration_quantile10.csv), [fold-level metrics](../data/benchmarks/composed_risk/metrics_by_fold.csv) and [match-level metrics](../data/benchmarks/composed_risk/metrics_by_match.csv).

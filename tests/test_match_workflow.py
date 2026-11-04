@@ -267,18 +267,29 @@ def test_pitch_choice_plots_use_stored_probabilities_and_return_figures(match):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from PRESS.visualization import plot_transition, plot_action_selection, plot_ppcf, plot_pi
+    from PRESS.visualization import plot_transition, plot_action_selection, plot_ppcf, plot_pi, plot_pass_map
     model, xt = match
     result = model.compute_frame(5, xt, ppcf_kwargs={"r_max": 12, "step": 6},
                                  bcos_kwargs={"r_max": 8, "step": 4})
-    fig, ax = plot_transition(model, 5)
+    original = result["PPCF"]["Transition probabilities"].copy()
+    fig, ax = plot_transition(model, 5, pass_target=(4., 3.))
     fields = [c for c in ax.collections if c.get_array() is not None]
-    assert any(np.allclose(c.get_array(), result["PPCF"]["Transition probabilities"]) for c in fields)
+    assert any(c.norm.vmin == 0 and c.norm.vmax == 100 for c in fields)
+    assert "Relative pass preference" in fig.axes[1].get_ylabel()
+    np.testing.assert_array_equal(result["PPCF"]["Transition probabilities"], original)
+    line = next(line for line in ax.lines if line.get_label() == "Observed pass")
+    row = model.get_frame(5).iloc[0]
+    np.testing.assert_allclose(line.get_xdata(), [row.ball_x, 4.])
+    np.testing.assert_allclose(line.get_ydata(), [row.ball_y, 3.])
+    assert line.get_linestyle() == "--"
     plt.close(fig)
     fig, ax = plot_action_selection(model, 5)
-    widths = [p.get_width() for p in ax.child_axes[0].patches]
-    assert np.allclose(widths, [result["ACTION_SELECTION"]["Pass probability"],
-                              result["ACTION_SELECTION"]["Ball drive probability"]])
+    expected = result["ACTION_SELECTION"]["Pass probability"]
+    assert f"P(pass)={expected:.1%}" in ax.get_title()
+    plt.close(fig)
+    fig, ax = plot_pass_map(model, 5, field="pass_success")
+    assert fig.axes[1].get_ylabel() == "Pass-success probability"
+    assert any(c.norm.vmax == 1 for c in ax.collections if c.get_array() is not None)
     plt.close(fig)
     plot_ppcf(model, 5, field="pass_success")
     plt.close("all")

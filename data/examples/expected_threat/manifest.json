@@ -1,0 +1,36 @@
+{
+  "grid": [
+    10,
+    6
+  ],
+  "bandwidth_m": {
+    "passes": 8.0,
+    "carries": 5.0,
+    "shots": 5.0
+  },
+  "iterations": 139,
+  "bellman_residual": 7.71216424055865e-13,
+  "source": "Archived event tables, same cohort across grids; all ten matches for final descriptive map",
+  "selected_by": "LOMO component likelihood and strongest smoothing within one paired-match SE",
+  "not_for_outer_test_features": true,
+  "status": "selected_reference",
+  "selection_reason": "10x6 has lowest goal OOF CE among tested smoothed grids and lower mean map variability; prefer parsimonious resolution with 212 shots/23 goals.",
+  "source_audit": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/results/xt_review/01_grid_stability_20261015",
+  "downstream_models_updated": false,
+  "grid_orientation": "(n_x,n_y), attacking team left-to-right, fixed105x68 pitch",
+  "feature_policy": "Final descriptive all-ten-match fit; for predictive CV build xT only from each inner/outer training set.",
+  "sha256": {
+    "T_carry.npy": "d1e1483748327574937afc250385c3a14af08ef4dcc75b0e1a6299cb90b3d2ff",
+    "shots.parquet": "c766406dd6e5f10b589479135b49a1c72c687933ae75c2c090958279fc8c08e2",
+    "p_pass.npy": "4f01f188d6e4ec5b2c4ae0f3416b7fe66b7b23b0715dc7cb1c3260bb8313f633",
+    "p_carry.npy": "beacb040ff04625b665f3ae4a131245bc80d6531efad12d4af1bebc101babcc5",
+    "passes.parquet": "c57f58ed6df5cf12dcc81cc8092307dd7a1fff4d85bf195af7229b1eb0487034",
+    "carries.parquet": "45cd3399a44158ab89b768cdb70fcaeb478e5aaaa0db085f60dd191e7681bab2",
+    "p_goal.npy": "ce67b63e323cf00f0967c348d24cef518c8b4e459ead024e77fda762108e11b9",
+    "xt_grid.npy": "932583702d18d952b8c8f19907013e104fdeacf512b9a5e6d94d1c50137e89c2",
+    "losses.parquet": "5881a83c06dff22f16c860e46c836c99373a70d0899ecb0d277fdeddfc74d6c2",
+    "T_pass.npy": "45b0f7e5d7d1c3964ec851b2fd627176d7f544e1ca5e695964dd2c353be6ffff",
+    "p_shot.npy": "f5d595782661e688b0f36384c7eb71c2d2f80d92ce03e4abdc4fd1dadeaf0ad0",
+    "p_loss.npy": "a20d8efd358a1b149726392c1a803228fe45e2f8ebab2e394c161b67e7849c15"
+  }
+}

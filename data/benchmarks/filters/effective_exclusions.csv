@@ -1,0 +1,20 @@
+task,stage,unit,before,excluded,after,reason
+shared_parent_preparation,1,individual possessions,9566,427,9139,unmatched start/end boundary
+shared_parent_preparation,2,individual possessions,9139,33,9106,unsupported terminal/outcome coding
+shared_parent_preparation,3,individual possessions,9106,443,8663,goalkeeper carrier
+shared_parent_preparation,4,individual possessions,8663,212,8451,shot ending
+ball_drive,1,canonical carry states,9148,34,9114,whole loss-ending parent has no valid associated overlapping OBE (20 parents; 20 losses and 14 preceding successes)
+pass_probability_association,1,pass attempts,7078,136,6942,outcome_receipt_team_mismatch
+pass_probability_association,2,pass attempts,6942,59,6883,completed_pass_receipt_identity_mismatch
+pass_probability_association,3,pass attempts,6883,46,6837,annotated_interruption;incomplete_observed_flight_xy
+pass_probability_association,4,pass attempts,6837,23,6814,annotated_interruption
+pass_probability_association,5,pass attempts,6814,3,6811,incomplete_observed_flight_xy
+pass_probability_duration,1,verified passes,6811,104,6707,duration 0.1-0.4 s: insufficient five-point initial-flight window
+pass_probability_duration,2,verified passes,6707,1,6706,duration 11.1 s exceeds ten-second flight horizon
+pass_selection_association,1,pass attempts,7010,136,6874,outcome_receipt_team_mismatch
+pass_selection_association,2,pass attempts,6874,59,6815,completed_pass_receipt_identity_mismatch
+pass_selection_association,3,pass attempts,6815,5,6810,annotated_interruption
+composed_risk,1,checkpoint states,16918,34,16884,whole loss-ending parent lacks a valid associated OBE
+composed_risk,2,checkpoint states,16884,1799,15085,whole terminal-pass parent absent from verified continuous direct-receipt cohort
+residual_risk,1,checkpoint states,8672,14,8658,whole loss-ending parent lacks a valid associated OBE
+residual_risk,2,checkpoint states,8658,838,7820,whole terminal-pass parent absent from verified continuous direct-receipt cohort

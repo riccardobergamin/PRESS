@@ -13,7 +13,7 @@ The expected local outputs are:
 - `opendata/data/actions.csv`: action intervals across matches; the adapter filters this file to the selected match.
 - `skillcorner-analysis/results/xt/xt_grid.npy`: event-derived value surface, stored in `(n_x, n_y)` order.
 
-The existing xT pipeline computes the surface from event probabilities and smoothed transitions; the [xT extra](vignettes/extras/expected_threat/11_expected_threat.ipynb) explains the iteration and its reference. PRESS loads that surface as an input to the learned choice models. The sibling preprocessing/training scripts are source references and are not shipped as a portable raw-data pipeline in this package. If you use another tracking provider, construct the canonical tables documented in the [API reference](api.qmd), then initialize `PRESS` directly.
+The existing xT pipeline computes the surface from event probabilities and smoothed transitions; the [xT extra](vignettes/extras/expected_threat/11.expected_threat.ipynb) explains the iteration and its reference. PRESS loads that surface as an input to the learned choice models. The sibling preprocessing/training scripts are source references and are not shipped as a portable raw-data pipeline in this package. If you use another tracking provider, construct the canonical tables documented in the [API reference](api.qmd), then initialize `PRESS` directly.
 
 The website vignettes use deterministic synthetic examples. They rebuild without the raw match files.
 

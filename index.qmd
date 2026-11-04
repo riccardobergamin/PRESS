@@ -15,18 +15,18 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 
 1. [Ball-drive risk](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb)
 2. [Pass probability](vignettes/02_pass_probability/02_pass_probability.ipynb)
-3. [Pass selection](vignettes/03_transition_model/03_transition_model.ipynb)
+3. [Pass selection](vignettes/03_transition_model/03_pass_selection.ipynb)
 4. [Action selection](vignettes/04_action_selection/04_action_selection.ipynb)
-5. [Residual risk](vignettes/05a_residual_risk/05a_residual_risk.ipynb)
+5. [Residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb)
 :::
 
 ::: {.directory-section}
 ### Risk profiles and reports {#risk-and-reports}
 
-- [hazard and risk bands](vignettes/05_composed_hazard_and_bands/05_composed_hazard_and_bands.ipynb)
-- [Possession difficulty](vignettes/07_survival_curve/07_survival_curve.ipynb)
-- [Pressure patterns and cases](vignettes/08_possession_typologies/08_possession_typologies.ipynb)
-- [Team and player report](vignettes/09_league_level_report/09_league_level_report.ipynb)
+- [hazard and risk bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb)
+- [Possession difficulty](vignettes/07_case_studies/07_case_studies.ipynb)
+- [Pressure patterns and cases](vignettes/07_case_studies/07_case_studies.ipynb)
+- [Team and player report](vignettes/07_case_studies/07_case_studies.ipynb)
 :::
 
 ::: {.directory-section}
@@ -34,7 +34,7 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 
 - [Using the package](usage.qmd)
 - [Match → possession → frame](vignettes/00_match_workflow/00_match_workflow.ipynb)
-- [Possessions and checkpoints](vignettes/06_possession_and_checkpoint_setup/06_possession_and_checkpoint_setup.ipynb)
+- [Possessions and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb)
 - [Data setup](data.qmd)
 :::
 
@@ -46,14 +46,14 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 - [Pass selection](benchmarks/03_pass_selection.qmd)
 - [Action selection](benchmarks/04_action_selection.qmd)
 - [Residual risk](benchmarks/05_residual_risk.qmd)
-- [Composed hazard and xLoss](vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb)
+- [Composed hazard and xLoss](benchmarks/06_composed_risk.qmd)
 :::
 
 ::: {.directory-section}
 ### Extras {#extras}
 
 - [Ball Carrier Open Space](vignettes/extras/bcos/10_bcos.ipynb)
-- [Expected Threat](vignettes/extras/expected_threat/11_expected_threat.ipynb)
+- [Expected Threat](vignettes/extras/expected_threat/11.expected_threat.ipynb)
 :::
 
 ::: {.directory-section}

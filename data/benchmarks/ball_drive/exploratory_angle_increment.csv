@@ -1,0 +1,2 @@
+domain,reference,candidate,n,ce_reference,ce_candidate,delta_ce,relative_ce_gain_percent,improving_matches,n_matches,delta_ce_bootstrap_low,delta_ce_bootstrap_high
+all,kinematics,angle_only,9148,0.1562743782621503,0.1557589012677691,-0.0005154769943811,0.3298538123226002,7,10,-0.0012708533762535,0.0003496629721041

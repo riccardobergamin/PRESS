@@ -11,7 +11,7 @@ The selected pass model estimates **team completion probability** from the relea
 
 The benchmark contains **6,706 passes: 5,742 completions and 964 failures (14.38%), across ten SkillCorner matches**. Passers are outfield players; goalkeepers remain in the state and can receive or intercept passes. Passes are retained when the duration from release to matched reception or recovery lies within the inclusive interval **[0.5, 10] s**. The lower bound ensures sufficient tracking observations to estimate the ball-flight initial conditions, whereas the upper bound limits the trajectory integration horizon. This interval is also consistent with the temporal selection adopted by Spearman [@spearman2017]. Unlike the original paper, we did not exclude passes with curvature above 5%.
 
-Release and the immediate next individual-possession start must be matched in the same match/period, with positive chronology, no intervening annotated interruption and complete observed ball XY. For completed passes, the identified recipient must be the next carrier with a matched pass reception; for failures, the next endpoint is an opponent interception/recovery. The recovery location is a proxy for a failed pass's intended destination. Native-coordinate conversion, endpoint identity, tracking state and the five initial observations are checked. The passer's possession start and receiver's possession end need not both be matched.
+Release and the immediate next individual-possession start must be matched in the same match/period, with positive chronology, no intervening annotated interruption and complete observed ball XY. For completed passes, the identified recipient must be the next carrier with a matched pass reception; for failures, the next endpoint is an opponent interception/recovery. The recovery location is a proxy for a failed pass's intended destination. Native-coordinate conversion, endpoint identity, tracking state and the five initial observations are checked. The passer's possession start and receiver's possession end need not both be matched. Applied to **7,078 outfield pass candidates**, these criteria and the duration interval leave the **6,706 passes** of the cohort. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
 
 ## Ball-flight initial conditions
 
@@ -21,16 +21,42 @@ For each pass, the release position is observed and the first five ball position
 
 The two estimators were compared by their free-flight position-prediction error **after 0.6 s and before the next ball control**. Errors were averaged equally across matches, and the choice was made separately within each training partition, without using held-out matches. **Position-based fitting was selected in every outer fold and in the final fit.** This reconstruction uses observations after release and is therefore an offline estimation procedure, not a real-time ball-flight predictor.
 
-The selected player-speed setting is $v_{\max}=5.5$ m/s. A value of 5.0 m/s was also examined in sensitivity analysis; the adopted value is retained for the final model. The rationale for the kinetic constants is given in the vignette.
+The selected player-speed setting is $v_{\max}=5.5$ m/s. The rationale for the kinetic constants is given in the vignette.
 
 ## Parameter fitting and calibration
 
-The control rate $\lambda_{\mathrm{control}}$ and arrival-time dispersion $s$ are estimated by **maximum likelihood**, maximizing the Bernoulli log-likelihood defined in the [pass vignette](../vignettes/02_pass_probability/02_pass_probability.ipynb). Optimization is performed in log-transformed parameter space using BFGS, with gradients computed by automatic differentiation and multiple initializations to assess convergence robustness.
-The resulting parameters are then applied to hypothetical passes towards candidate destinations. Because these predictions use a destination-based control calculation rather than the observed-flight calculation used for fitting, the raw potential pitch control field (PPCF) scores are calibrated against pass outcomes.
+The control rate $\lambda_{\mathrm{control}}$ and arrival-time dispersion $s$ are estimated by **maximum likelihood**, maximizing the Bernoulli log-likelihood defined in the [pass vignette](../vignettes/02_pass_probability/02_pass_probability.ipynb).
 
-Evaluation is **match-wise**, with five outer folds of two held-out matches each. Within each outer training set of eight matches, four rotations train the physical model on six matches and generate predictions for the remaining two. These out-of-fold predictions are used to fit an isotonic calibration map. The physical parameters are then re-estimated on all eight outer-training matches, and the fitted calibration map is applied to predictions for the two outer-test matches. The initial-condition estimator is selected using training data only. A Platt calibrator is evaluated using the same calibration examples.
+The resulting parameters are then applied to hypothetical passes towards candidate destinations. Because these predictions use a destination-based control calculation, which differs from the observed-flight calculation used for fitting, the raw potential pitch control field (PPCF) scores are calibrated against pass outcomes.
 
-For deployment, the physical parameters are refitted on all ten matches. The final isotonic map is trained on predictions obtained by cross-fitting across the five outer folds, rather than on in-sample predictions from the full-data fit. This deployment procedure is distinct from the nested held-out evaluation. Because these ten matches also informed methodological choices, the reported performance is a **development benchmark**, not an independent external validation.
+### Optimization
+
+The negative Bernoulli log-likelihood of the passes on the reconstructed trajectories is minimized without priors, and only $\lambda_{\mathrm{control}}$ and $s$ are estimated. The optimization is carried out in the coordinates $\theta=(\log\lambda_{\mathrm{control}},\log s)$, so that both parameters remain positive without upper bounds.
+
+Three complete and independent optimizations are run, starting from the following points:
+
+| Start | $\lambda_{\mathrm{control}}$ | $s$ |
+|---|---:|---:|
+| 1 | 4.3 | 0.43 |
+| 2 | 3.0 | 0.30 |
+| 3 | 5.0 | 0.50 |
+
+Each optimization uses BFGS, with gradients obtained by automatic differentiation. There is no fixed learning rate: BFGS determines the step by line search, with a maximum of 500 iterations and a gradient tolerance of $10^{-4}$. A solution is admissible when its parameters and objective are finite and the maximum absolute gradient is below 0.01, and among the admissible solutions the one with the lowest final negative log-likelihood is retained. The procedure uses only the fitting data and is the same for the fits on six, eight and ten matches. The isotonic map is estimated separately and does not enter the physical optimization.
+
+In the fit on the ten matches, the three starts converge to practically the same solution ($\lambda_{\mathrm{control}}=5.437830$ s$^{-1}$, $s=0.294560$ s) in 6, 6 and 11 iterations. The third start is retained, with an objective difference of the order of numerical precision.
+
+### Evaluation and calibration
+
+Evaluation is **match-wise**, with five outer folds of two held-out matches each. Within each fold the procedure is the following.
+
+1. **Inner rotations.** Within the eight outer-training matches, four rotations train the physical model on six matches and generate predictions for the remaining two. The four held-out pairs are disjoint within the development set, so each development pass supplies one raw PPCF calibration score from a physical fit that omitted its match.
+2. **Calibration map.** These out-of-fold predictions are used to fit an isotonic calibration map. A Platt calibrator is evaluated using the same calibration examples.
+3. **Refit.** The physical parameters are re-estimated on all eight outer-training matches.
+4. **Test.** The fitted calibration map is applied to the predictions for the two outer-test matches.
+
+The initial-condition estimator is selected using training data only. The physical trajectory MLE, the initial-condition estimator choice and the isotonic/Platt fitting are separate operations: calibration never re-estimates $\lambda_{\mathrm{control}}$ or $s$. There is no tree hyperparameter search or validation early stopping in this physical model. The retained calibration method is chosen as a development decision from the reported comparison, not through a second independent outer test.
+
+For deployment, the physical parameters are refitted on all ten matches. The final isotonic map is trained on predictions obtained by cross-fitting across the five outer folds, and not on in-sample predictions from the full-data fit. This deployment procedure is distinct from the nested held-out evaluation.
 
 ## Predictive performance
 
@@ -40,9 +66,9 @@ For deployment, the physical parameters are refitted on all ten matches. The fin
 | Physical model + Platt calibration | **0.130010** | **68.46%** | 0.814% |
 | **Physical model + isotonic calibration** | 0.131121 | 68.19% | **0.183%** |
 
-Metrics are pooled over the 6,706 held-out pass predictions from the five outer folds. ECE uses ten equal-count probability bins; the null baseline is estimated within the corresponding training matches. Although Platt calibration gives a slightly lower cross-entropy, **isotonic calibration is selected for its substantially lower ECE**. This choice reflects the emphasis on calibrated completion probabilities rather than cross-entropy alone.
+Metrics are pooled over the 6,706 held-out pass predictions from the five outer folds. ECE uses ten equal-count probability bins; the null baseline is estimated within the corresponding training matches. Although Platt calibration gives a slightly lower cross-entropy, **isotonic calibration is selected for its substantially lower ECE**. This choice reflects the emphasis on calibrated completion probabilities and not on cross-entropy alone.
 
-![Held-out pass-probability calibration and curvature diagnostic](../figures/pass_benchmark_calibration.png)
+![Pooled held-out calibration of the selected isotonic pass-probability model. Points represent ten quantile bins.](../figures/pass_benchmark_calibration.png)
 
 The final full-data physical fit yields **$\hat\lambda_{\mathrm{control}}=5.437830$ s$^{-1}$** and **$\hat s=0.294560$ s**. Estimates across the five outer training sets are:
 
@@ -61,7 +87,7 @@ These ranges describe variation between training partitions, not confidence or c
 | Fernández et al. (2021), SoccerMap | 0.1900 | ≈62.40% | 0.470% |
 | Stalpaert et al. (2022), CatBoost | 0.2087 | 63.85% | 0.310% |
 
-The studies differ in dataset, completion prevalence, pass selection, available features and validation protocol; their metrics are therefore **contextual comparisons, not a like-for-like ranking**. Fernández et al.'s gain is approximate, calculated using the reported overall completion share rather than a published test-fold null. [@fernandez2021; @stalpaert2022]
+The studies differ in dataset, completion prevalence, pass selection, available features and validation protocol; their metrics are therefore **contextual comparisons, not a like-for-like ranking**. Fernández et al.'s gain is approximate, calculated using the reported overall completion share and not a published test-fold null. [@fernandez2021; @stalpaert2022]
 
 ## Curvature and limitations
 
@@ -75,4 +101,4 @@ All accepted curvature levels are included in model fitting and evaluation. To a
 
 Curvature is measured as maximum perpendicular deviation from the release-to-endpoint line, relative to endpoint distance. Performance is substantially weaker for more curved passes. The absence of spin and Magnus effects is one plausible explanation, but this diagnostic does not isolate its causal contribution: the subsets also differ in difficulty, geometry and failure prevalence.
 
-Further limitations include the use of the observed recovery location as a proxy for the intended destination of failed passes, uncertainty in endpoint annotations, simplified player motion, and the modest ten-match development cohort. The initial-condition reconstruction requires at least 0.5 s of observed flight; shorter passes are outside the evaluated population.
+Further limitations include the use of the observed recovery location as a proxy for the intended destination of failed passes, uncertainty in endpoint annotations, and simplified player motion. The initial-condition reconstruction requires at least 0.5 s of observed flight; shorter passes are outside the evaluated population.

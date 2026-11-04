@@ -1,0 +1,63 @@
+---
+title: "Appendix: construction of the spline bases of the ball-drive risk model"
+---
+
+This appendix describes how the nonlinear terms of the tackle-rate model are built. The model and the role of the smoothing strengths are in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb), and the selection procedure is in the [benchmark](../benchmarks/01_ball_drive_risk.qmd).
+
+## 1. Effects
+
+For each covariate $j\in\{v,B,\phi\}$, with $v$ the carrier speed, $B$ the signed distance to the pitch boundary and $\phi$ the approach angle, the effect combines a linear term and a nonlinear spline component,
+
+$$g_v(v)=\beta_v v+\sum_{k=1}^{3}\gamma_{vk}b_{vk}(v),\qquad
+g_B(B)=\beta_B B+\sum_{k=1}^{3}\gamma_{Bk}b_{Bk}(B),$$
+
+$$g_\phi(\phi)=\beta_\phi z_\phi(\phi)+\sum_{k=1}^{2}\gamma_{\phi k}b_{\phi k}(\phi),\qquad z_\phi(\phi)=\frac{\phi-\mu_\phi}{\sigma_\phi},$$
+
+where $\mu_\phi$ and $\sigma_\phi$ are the mean and standard deviation of the angle in the fitting data (valid directions only). Speed and boundary distance keep their original units. The speed and boundary effects have three nonlinear basis components each, and the angle has two. This appendix concerns the nonlinear basis functions $b_{jk}$.
+
+All basis transformations, knot locations, means and scales are learned from the fitting data only and reused for validation, test and prediction.
+
+## 2. Rescaling and knots
+
+For the construction of each nonlinear basis, the covariate is first rescaled to its fitting-data range,
+
+$$\tilde x=\frac{x-x_{\min,\mathrm{train}}}{x_{\max,\mathrm{train}}-x_{\min,\mathrm{train}}}.$$
+
+The bases are restricted cubic splines with five knots for carrier speed and boundary distance, and four knots for the approach angle. Knots are placed at equally spaced empirical quantiles: 0, 25, 50, 75 and 100% for the five-knot bases, and 0, one-third, two-thirds and 100% for the four-knot basis. Restricted cubic splines have linear tails beyond the boundary knots, and they do not impose monotonicity.
+
+## 3. Removal of the constant and linear part
+
+Let $\mathbf C_j$ be the raw nonlinear basis matrix and $\mathbf L_j=[\mathbf 1,\tilde x]$ the constant and linear design. The fitted projection $\mathbf A_j$ is removed,
+
+$$\mathbf H_j=\mathbf C_j-\mathbf L_j\mathbf A_j.$$
+
+## 4. Normalization, orthogonalization and rotation
+
+The remaining nonlinear columns are normalized to unit empirical variance, made mutually orthogonal and rotated to diagonalize the curvature penalty. For the resulting training design matrix $\mathbf B_j$,
+
+$$\frac1n\mathbf B_j^\top\mathbf B_j=I.$$
+
+The positive curvature eigenvalues $\eta_{jk}$ are divided by their minimum, giving the normalized penalty
+
+$$\Omega_j=\operatorname{diag}\!\left(\frac{\eta_{j1}}{\eta_{j,\min}},\ldots,\frac{\eta_{jK_j}}{\eta_{j,\min}}\right).$$
+
+## 5. Curvature penalty and smoothing multipliers
+
+Let $\boldsymbol\gamma_j$ denote the nonlinear coefficients of covariate $j$. The quadratic curvature penalty is
+
+$$\frac{\rho_j}{2}\boldsymbol\gamma_j^\top\Omega_j\boldsymbol\gamma_j,$$
+
+where $\Omega_j$ is the normalized curvature penalty matrix associated with the basis and $\rho_j$ controls the regularization. The penalty applies only to the nonlinear coefficients, and the linear coefficients have their own priors, defined in the model vignette.
+
+Speed and boundary distance share one smoothing multiplier, and the angle has a separate one,
+
+$$\rho_v=\rho_B=\rho_{\mathrm{bc}},\qquad \rho_\phi\ \text{separate}.$$
+
+The complete nonlinear penalty is
+
+$$\frac{\rho_{\mathrm{bc}}}{2}\left(
+\boldsymbol\gamma_v^\top\Omega_v\boldsymbol\gamma_v+
+\boldsymbol\gamma_B^\top\Omega_B\boldsymbol\gamma_B\right)
++\frac{\rho_\phi}{2}\boldsymbol\gamma_\phi^\top\Omega_\phi\boldsymbol\gamma_\phi.$$
+
+The basis functions, curvature matrices and fitted coefficients of speed and boundary remain distinct, so the shared multiplier does not force the two effects to have the same shape. The deployed model uses $\rho_{\mathrm{bc}}=1$ and $\rho_\phi=100$, selected by the validation procedure of the benchmark. The multipliers refer to different basis-specific penalties, and their magnitudes are not used to compare covariate importance.

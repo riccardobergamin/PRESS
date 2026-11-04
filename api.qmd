@@ -140,7 +140,7 @@ Requires pitch control and one-second drive loss. Returns a normalized destinati
 
 `model.build_features(**state)` constructs one complete choice set. Arguments are `x_bc`, `v_bc`, `r_atts` (excluding carrier), `r_defs`, `targets`, `attacking_side`, `target_pitch_control`, `ball_drive_prob`; optional raw context, minute, score and pitch dimensions match the method above. The installed reader uses `ahead_of_carrier_and_target_v1`: four counts of teammates/opponents beyond the transverse carrier/candidate line, always along the carrier team’s attacking direction. Backward targets may increase counts; equality is excluded and tracked goalkeepers are included. Older manifests retain their explicitly supported legacy schema. `model.predict_features(X, *, log_membership=None, calibrated=True)` returns cell probabilities. A secondary CNL export requires per-cell teammate log memberships; its calibration tempers the final distribution. `to_dict()` returns a copy of its manifest. `pretrained()` loads the installed operational flat export: 1,444 trees, μ=1 and T=1.0132954379. The secondary CNL refit remains only in the research history.
 
-[Executable pitch example](vignettes/03_transition_model/03_transition_model.ipynb) · [Features, likelihoods, screening and both final runs](benchmarks/03_pass_selection.qmd).
+[Executable pitch example](vignettes/03_transition_model/03_pass_selection.ipynb) · [Features, likelihoods, screening and both final runs](benchmarks/03_pass_selection.qmd).
 
 ### Action selection
 
@@ -176,7 +176,7 @@ artifacts remain available in the recorded archive.
 compute_hazard(frame_id)
 ```
 
-Requires all four upstream outputs for this frame (`ValueError` otherwise). Returns raw scalar hazard. Stores `Hazard`, `Drive risk`, `Pass failure expected`, and `rppcf` (transition-weighted pass success). No post-hoc calibration is applied. [Executable hazard/band example](vignettes/05_composed_hazard_and_bands/05_composed_hazard_and_bands.ipynb).
+Requires all four upstream outputs for this frame (`ValueError` otherwise). Returns raw scalar hazard. Stores `Hazard`, `Drive risk`, `Pass failure expected`, and `rppcf` (transition-weighted pass success). No post-hoc calibration is applied. [Executable hazard/band example](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb).
 
 ## Result getters
 
@@ -214,13 +214,17 @@ before computation. [BCOS example](vignettes/extras/bcos/10_bcos.ipynb).
 
 ## Plot functions
 
-Import from `PRESS.visualization`. `plot_frame(press, frame_id, ...)`, `plot_ppcf(press, frame_id, ...)`, `plot_pi(press, frame_id, ...)`, and `plot_bcos(bcos, frame_id, ...)` draw Matplotlib figures and return **`None`**. Use `plt.gcf()` to save the created figure. Compute the matching output first; `plot_frame` only requires a tracked carrier and both teams.
+Import from `PRESS.visualization`. Compute the matching results before plotting.
 
-Pitch dimensions default to tracking metadata, with 105×68 fallback; explicit `pitch_length` and `pitch_width` override the display. All share `figsize=(12, 8)`, `title_fontsize=9`, `legend_fontsize=8`. `plot_bcos` receives the separate BCOS object. `plot_ppcf` adds keyword-only `field="pitch_control"` (raw attacking control) or `field="pass_success"` (calibrated pass success). `plot_pi` colors each defender by their share of total loss risk on a fixed 0–100% scale and reports the absolute carry-loss probability in the title. Field interpolation is for display; plots do not recompute model probabilities. [Plotting example](vignettes/00_match_workflow/00_match_workflow.ipynb).
+`plot_pass_map(press, frame_id, *, field="pass_success", pass_target=None, ...)` is the shared map function. Select `field="pass_success"` for isotonic-calibrated pass completion, `field="pitch_control"` for raw attacking control, or `field="pass_selection"` for destination choice. The optional `pass_target=(x, y)` draws the observed pass as a dashed line from the tracked ball to the matched destination. It returns `(figure, axes)`.
 
-`plot_transition(press, frame_id, pitch_length=105, pitch_width=68, figsize=(12,8), title_fontsize=11, legend_fontsize=8)` plots the stored destination-choice mass on the original candidate grid with tracked players and the carrier. It requires transition probabilities and returns `(figure, pitch_axes)`. Candidate values are not interpolated or renormalized. [Pitch example](vignettes/03_transition_model/03_transition_model.ipynb).
+Pass-success and pitch-control colors use their absolute 0–1 probabilities. Choice colors show `100 * cell_probability / maximum_cell_probability`, labelled **Relative pass preference (% of maximum)**. This changes only the display; stored destination probabilities still sum to one. Interpolation is for display and never reruns inference. [Pass probability example](vignettes/02_pass_probability/02_pass_probability.ipynb) · [Pass selection example](vignettes/03_transition_model/03_pass_selection.ipynb).
 
-`plot_action_selection(press, frame_id, pitch_length=105, pitch_width=68, figsize=(12,8), title_fontsize=11, legend_fontsize=8)` plots the frame and an inset of its scalar pass/carry probabilities. It requires action-selection results and returns `(figure, pitch_axes)`; those scalar weights are not a spatial field. [Pitch example](vignettes/04_action_selection/04_action_selection.ipynb).
+`plot_frame(press, frame_id, ..., title=None)` draws a tracking frame; `title` can show a predicted scalar above the pitch. `plot_action_selection(press, frame_id, ...)` shows the stored P(pass) in that title and returns `(figure, axes)`. [Action selection example](vignettes/04_action_selection/04_action_selection.ipynb).
+
+`plot_ppcf(...)` is a compatibility entry point for the shared map function, with `field="pitch_control"` by default; it returns `None`. `plot_transition(...)` selects the shared `pass_selection` display and returns `(figure, axes)`. Both accept `pass_target`.
+
+`plot_frame`, `plot_pi` and `plot_bcos` return `None`; use `plt.gcf()` to save the created figure. `plot_pi` colors defenders by their share of total loss risk and reports the absolute carry-loss probability in its title. `plot_bcos` receives the separate BCOS object. Pitch dimensions default to tracking metadata; explicit `pitch_length` and `pitch_width` override the display.
 
 ## Possession summaries
 
@@ -233,7 +237,7 @@ Import from `PRESS.utils.possession`.
 | `possession_survival(hazards)` | Nonempty one-dimensional hazards in `[0,1]`; returns arrays `difficulty_increment`, `cumulative_difficulty`, `survival`, `bands`. At hazard=1, cumulative difficulty becomes infinite and survival stays zero. Invalid inputs: `ValueError`. |
 | `classify_possession_typology(bands, lost, has_engagement=False)` | Nonempty sequence of the four band strings, observed terminal boolean and optional engagement context; returns `category`, `has_engagement`. Invalid band sequence: `ValueError`. |
 
-These functions summarize supplied checkpoint data retrospectively; they do not load matches or infer observed loss. See [survival](vignettes/07_survival_curve/07_survival_curve.ipynb), [typologies](vignettes/08_possession_typologies/08_possession_typologies.ipynb), and [league reporting](vignettes/09_league_level_report/09_league_level_report.ipynb).
+These functions summarize supplied checkpoint data retrospectively; they do not load matches or infer observed loss. See [survival](vignettes/07_case_studies/07_case_studies.ipynb), [typologies](vignettes/07_case_studies/07_case_studies.ipynb), and [league reporting](vignettes/07_case_studies/07_case_studies.ipynb).
 
 ## Data helpers and low-level utilities
 
@@ -242,16 +246,16 @@ These functions summarize supplied checkpoint data retrospectively; they do not 
 | `PRESS.datasets.load_demo_match()` | Returns fresh `(tracking, possessions, actions, xT_grid)`; all inputs are deterministic and synthetic. [Workflow example](vignettes/00_match_workflow/00_match_workflow.ipynb). |
 | `PRESS.utils.match.link_team_possessions(player_possessions)` | Requires `player_id`, `frame_start`, `frame_end`, `end_type`, `pass_outcome`, `target_pass`, `frame_receipt`, boolean `loss`; optional `game_interruption_after`, `period`. Returns `(team_intervals, annotated_player_intervals)`. Malformed IDs, loss types, reversed/overlapping intervals: `ValueError`. Links only successful, matching same-team receptions without an interruption or period change. |
 | `PRESS.utils.match.standardize_action_context(value, *, previous=False)` | Maps the original training categories to standardized labels. `unknown`, missing and unsupported categories return `None`; `ball_drive` is allowed only with `previous=True`. |
-| `PRESS.utils.state.get_xt_values(targets, attacking_side, xt_grid)` | Targets `(N,2)`, direction string and `(n_x,n_y)` grid → attacking/opponent xT arrays. Coordinates are mirrored for attack direction and clipped to pitch bins. [Executable xT example](vignettes/extras/expected_threat/11_expected_threat.ipynb). |
+| `PRESS.utils.state.get_xt_values(targets, attacking_side, xt_grid)` | Targets `(N,2)`, direction string and `(n_x,n_y)` grid → attacking/opponent xT arrays. Coordinates are mirrored for attack direction and clipped to pitch bins. [Executable xT example](vignettes/extras/expected_threat/11.expected_threat.ipynb). |
 | `PRESS.utils.get_pv_players(frame, tracking_df)` | Same state extraction as `get_state`; padded teammates/defenders. Prefer the object method for match use. |
 | `PRESS.utils.generate_circular_grid(r_max, step)` | Returns circular relative target coordinates around `(0,0)`; both parameters are metres. The class then translates and clips to pitch bounds. |
-| `PRESS.utils.hazard.compute_hazard_raw(ball_drive_loss, transition_probabilities, pass_success_probability, action_selection_pass_probability)` | Scalar drive loss, matching `(N,)` arrays and scalar P(pass) → `(hazard, drive_risk, pass_failure_expected, rppcf)`. Inputs must already be valid probabilities; this low-level helper does not validate them. [Executable mixture example](vignettes/05_composed_hazard_and_bands/05_composed_hazard_and_bands.ipynb). |
+| `PRESS.utils.hazard.compute_hazard_raw(ball_drive_loss, transition_probabilities, pass_success_probability, action_selection_pass_probability)` | Scalar drive loss, matching `(N,)` arrays and scalar P(pass) → `(hazard, drive_risk, pass_failure_expected, rppcf)`. Inputs must already be valid probabilities; this low-level helper does not validate them. [Executable mixture example](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb). |
 
 Advanced physics entry points exported by `PRESS.model` (`integrate_pitch_control`, `integrate_loss_prob`) and `PRESS.physics` (`time_flight`) are documented in the [solver reference](solvers.qmd). Use the class methods for complete frame-level workflows.
 
 ## Optional individual-possession continuation
 
-`PRESS.extras.compose_individual_xloss(*, p_pass, drive_loss, pass_failure, residual_loss)` combines finite probabilities in `[0,1]` into `p_pass*pass_failure + (1-p_pass)*(drive_loss + (1-drive_loss)*residual_loss)`. Inputs may be scalars or broadcastable arrays; returns a float or NumPy array. Empty/invalid probabilities or incompatible shapes raise `ValueError`. `residual_loss` is conditional on the current drive succeeding; a successful pass terminates the individual's sequence without failure. This function performs composition only, loads no booster and is not called by core methods. [Executable residual-risk and xLoss example](vignettes/05a_residual_risk/05a_residual_risk.ipynb).
+`PRESS.extras.compose_individual_xloss(*, p_pass, drive_loss, pass_failure, residual_loss)` combines finite probabilities in `[0,1]` into `p_pass*pass_failure + (1-p_pass)*(drive_loss + (1-drive_loss)*residual_loss)`. Inputs may be scalars or broadcastable arrays; returns a float or NumPy array. Empty/invalid probabilities or incompatible shapes raise `ValueError`. `residual_loss` is conditional on the current drive succeeding; a successful pass terminates the individual's sequence without failure. This function performs composition only, loads no booster and is not called by core methods. [Executable residual-risk and xLoss example](vignettes/05_residual_risk/05_residual_risk.ipynb).
 
 Carry integration uses exponential Euler by default. The shared survival mass is updated exactly for rates frozen during each step, with the lost mass split among defenders. `compute_ball_drive_loss(..., physics_kwargs={...})` records the integration method and step in its result parameters. The centripetal turning penalty `speed * angle / a_max` remains the accepted approximation, with angle in radians.
 

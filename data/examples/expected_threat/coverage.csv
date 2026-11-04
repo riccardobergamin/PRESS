@@ -1,0 +1,5 @@
+grid,cells,no_shots,fewer_than_5_shots,goal_cells,occupied_shot_cells
+8x5,40,30,34,7,10
+10x6,60,47,50,6,13
+12x8,96,76,84,10,20
+16x12,192,159,174,15,33

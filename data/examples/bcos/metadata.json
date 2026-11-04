@@ -15,17 +15,17 @@
   "n_checkpoints": 1928,
   "n_individual_possessions": 931,
   "grid": [
-    8,
-    5
+    10,
+    6
   ],
-  "minimum_distinct_parents_to_display": 5,
+  "minimum_distinct_parents_to_display": 1,
   "heatmap_inside_count": 1921,
   "heatmap_outside_count": 7,
   "outside_coordinates_clipped": false,
   "sampling": "Exact1928canonical AS73 training-cohort checkpoints; not uniform10Hz, all-match time or a time-weighted estimate.",
   "model_parameters": "Full-data production carry dispersion; no folded-mixture values.",
   "aggregation": "Checkpoint-weighted means; parent counts and medians accompany them. Whole-team-possession bootstrap uncertainty.",
-  "temporal": "Mean scalar BCOS conditional on carrier third, not open-space probability mass lying in each third. Five-minute bins separately by half.",
+  "temporal": "Actual checkpoint BCOS by team, half and carrier-origin third; centred 5-minute means for descriptive smoothing.",
   "half_durations_minutes": {
     "1": 50.38333333333333,
     "2": 51.75
@@ -39,17 +39,8 @@
   "no_new_fit": true,
   "no_match_prediction": true,
   "raw_tables_published": false,
-  "temporal_windows": "Five equal windows per half (ten total); means conditional on carrier third; gaps if fewer than5individual parents.",
-  "grid_selection": "Pragmatic8x5display compromise after sample-support audit, grouped-bootstrap and heldout spatial-mean stability checks; not an optimality claim or solver-error estimate.",
-  "goals": [
-    {
-      "team": "away",
-      "team_name": "Perth Glory",
-      "period": 2,
-      "frame_id": 44300,
-      "period_minute": 23.416666666666668,
-      "clock": "68:25",
-      "source": "Matched player_possession shot with lead_to_goal=True; retrospective context only."
-    }
-  ]
+  "temporal_windows": "Raw checkpoints retained; rolling means use all available checkpoints in a centred five-minute window.",
+  "grid_selection": "Same 10x6 display cells as production xT; every occupied cell is shown, including low-support cells.",
+  "descriptive_only": true,
+  "no_goal_association": true
 }

@@ -1,0 +1,3 @@
+domain,feature,n,losses,auc_increasing,rank_biserial,matches_auc_above_half,matches_with_both_classes,match_auc_min,match_auc_max,auc_decreasing
+nearest_initial_obe,separation_start,4963,437,0.2891531360630822,-0.4216937278738355,0,10,0.2115384615384615,0.3473145071982281,0.7108468639369179
+nearest_initial_obe,bearing_degrees,4432,384,0.4414744421113307,-0.1170511157773386,1,10,0.3225095785440613,0.5739910313901345,0.5585255578886693

@@ -10,7 +10,7 @@ The motivating question is: given the current game state and the player in posse
 
 The model style is hybrid: pass and carry outcomes use physics-inspired motion and arrival probabilities; action selection and pass destination use tree models. The risk unit is team possession, represented as a sequence of canonical actions across successive carriers. A successful pass is nonterminal: it continues team possession with the receiver. It ends only the passer's individual control, which is the separate endpoint used by xLoss. The current-action hazard can be evaluated at any usable tracking frame attributable to the current carrier. Canonical action starts define the benchmark; separately marked snapshots can enrich a descriptive trajectory. [@fernandez2019] **design choice** [@singer2003] **own derivation**
 
-Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking; the observed-possession summary is retrospective. See [interpretation and action units](vignettes/05_composed_hazard_and_bands/05_composed_hazard_and_bands.ipynb) for the verified Fernandez convention and the separate individual-possession endpoint. **design choice**
+Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking; the observed-possession summary is retrospective. See [interpretation and action units](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) for the verified Fernandez convention and the separate individual-possession endpoint. **design choice**
 
 ## Model overview
 
@@ -43,17 +43,17 @@ Every vignette starts with the idea and a code-generated visual. All examples us
 - [00 · Match, possession and frame workflow](vignettes/00_match_workflow/00_match_workflow.ipynb) — initialize one match, select a frame, compute and retrieve its components.
 - [01 · Ball-drive risk](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb) — geometry, carrier speed, boundary distance, and competing defender causes.
 - [02 · Pass probability](vignettes/02_pass_probability/02_pass_probability.ipynb) — simplified flight path and Spearman-style arrival/control accumulation.
-- [03 · Transition model](vignettes/03_transition_model/03_transition_model.ipynb) — destination choice across candidate receivers.
+- [03 · Transition model](vignettes/03_transition_model/03_pass_selection.ipynb) — destination choice across candidate receivers.
 - [04 · Action selection](vignettes/04_action_selection/04_action_selection.ipynb) — pass-versus-carry likelihood, all 30 benchmark inputs, 4+4 option summaries, package pitch example and held-out calibration. Fractional possession age is excluded; completed whole carries are included.
-- [05a · Residual risk](vignettes/05a_residual_risk/05a_residual_risk.ipynb) — conditional terminal outcome, all 31 inputs, model use and feature importance.
-- [05 · Composed hazard and pressure bands](vignettes/05_composed_hazard_and_bands/05_composed_hazard_and_bands.ipynb) — canonical-action hazard, absolute half-life bands, held-out validation and contextual pitch examples.
-- [05b · Composed h and xLoss benchmark](vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb) — distinct targets, held-out protocol, scores and pooled calibration.
-- [06 · Possession and checkpoints](vignettes/06_possession_and_checkpoint_setup/06_possession_and_checkpoint_setup.ipynb) — team possession construction and the configurable default sampling of a trajectory.
-- [07 · Survival curve](vignettes/07_survival_curve/07_survival_curve.ipynb) — retrospective cumulative possession difficulty and band trajectory.
-- [08 · Possession typologies](vignettes/08_possession_typologies/08_possession_typologies.ipynb) — three pressure behaviours, eligibility denominators and a close-engagement case; historical helper distinguished.
-- [09 · League-level report](vignettes/09_league_level_report/09_league_level_report.ipynb) — real ten-match A-League exposure and player/team retention percentages, with denominators and uncertainty.
+- [05a · Residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb) — conditional terminal outcome, all 31 inputs, model use and feature importance.
+- [05 · Composed hazard and pressure bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) — canonical-action hazard, absolute half-life bands, held-out validation and contextual pitch examples.
+- [05b · Composed h and xLoss benchmark](benchmarks/06_composed_risk.qmd) — distinct targets, held-out protocol, scores and pooled calibration.
+- [06 · Possession and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb) — team possession construction and the configurable default sampling of a trajectory.
+- [07 · Survival curve](vignettes/07_case_studies/07_case_studies.ipynb) — retrospective cumulative possession difficulty and band trajectory.
+- [08 · Possession typologies](vignettes/07_case_studies/07_case_studies.ipynb) — three pressure behaviours, eligibility denominators and a close-engagement case; historical helper distinguished.
+- [09 · League-level report](vignettes/07_case_studies/07_case_studies.ipynb) — real ten-match A-League exposure and player/team retention percentages, with denominators and uncertainty.
 - [Extra · Ball Carrier Open Space](vignettes/extras/bcos/10_bcos.ipynb) — concept, conditional-hazard mathematics, real-frame calculation and one-match spatial/temporal summaries; its scalar area is used by action selection.
-- [Extra · Expected Threat](vignettes/extras/expected_threat/11_expected_threat.ipynb) — xT value iteration on a toy grid and the match-derived grid consumed by PRESS [@singh2018xt].
+- [Extra · Expected Threat](vignettes/extras/expected_threat/11.expected_threat.ipynb) — xT value iteration on a toy grid and the match-derived grid consumed by PRESS [@singh2018xt].
 
 
 
@@ -90,7 +90,7 @@ Raw SkillCorner tracking/event files and match-level derived tables are not incl
 
 ## Performance
 
-The final ball-drive development benchmark pools five held-out match pairs: 9,114 attempts, 456 losses (OBE-verified loss-ending possessions); cross-entropy **0.143483**, gain over the training-fold null **27.798%**, and ten-quantile-bin ECE **0.475%**. These ten matches also informed model-family selection, so they are not an untouched external evaluation. The bundled full-data refit is distinct from these OOF predictions. See the [benchmark](benchmark.qmd) for cohort, comparisons, calibration, limitations and a runnable fitted-model pitch example. The pass development benchmark gives **CE 0.131121, gain 68.19%, ECE 0.183%** with isotonic on 6,706 held-out passes. Both are pooled development OOF results, separate from the bundled full-data fits. Action selection and residual-risk evaluation are complete. The verified residual cohort gives **CE 0.419506, gain 11.793%, ECE 1.053%**; composed individual xLoss gives **CE 0.421925, gain 13.769%, ECE 0.930%** on its separate terminal target. The verified 118-tree native residual refit is installed. The [residual-risk vignette](vignettes/05a_residual_risk/05a_residual_risk.ipynb) explains the conditional model; a [separate composed-risk benchmark](vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb) evaluates h and xLoss. [Refit provenance](docs/residual-risk-refit-provenance.json).
+The final ball-drive development benchmark pools five held-out match pairs: 9,114 attempts, 456 losses (OBE-verified loss-ending possessions); cross-entropy **0.143483**, gain over the training-fold null **27.798%**, and ten-quantile-bin ECE **0.475%**. These ten matches also informed model-family selection, so they are not an untouched external evaluation. The bundled full-data refit is distinct from these OOF predictions. See the [benchmark](benchmark.qmd) for cohort, comparisons, calibration, limitations and a runnable fitted-model pitch example. The pass development benchmark gives **CE 0.131121, gain 68.19%, ECE 0.183%** with isotonic on 6,706 held-out passes. Both are pooled development OOF results, separate from the bundled full-data fits. Action selection and residual-risk evaluation are complete. The verified residual cohort gives **CE 0.419506, gain 11.793%, ECE 1.053%**; composed individual xLoss gives **CE 0.421925, gain 13.769%, ECE 0.930%** on its separate terminal target. The verified 118-tree native residual refit is installed. The [residual-risk vignette](vignettes/05_residual_risk/05_residual_risk.ipynb) explains the conditional model; a [separate composed-risk benchmark](benchmarks/06_composed_risk.qmd) evaluates h and xLoss. [Refit provenance](docs/residual-risk-refit-provenance.json).
 
 ## Repository map
 
@@ -117,6 +117,6 @@ Pass destination choice is finalized as a flat XGBoost categorical model. The [b
 `ResidualRiskModel.pretrained()` loads terminal individual-loss continuation after a
 successful1s carry. `compose_individual_xloss` adds it to the local hazard as
 `h + P(carry)*(1-drive_loss)*residual_loss`; completed passes terminate the
-individual sequence. The [main example](vignettes/05a_residual_risk/05a_residual_risk.ipynb)
+individual sequence. The [main example](vignettes/05_residual_risk/05_residual_risk.ipynb)
 uses installed weights and explains all31inputs. This optional terminal forecast
 does not change the pressure hazard or claim to reproduce proprietary xLoss.

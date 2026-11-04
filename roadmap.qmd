@@ -36,7 +36,7 @@ The [run guide](usage.qmd), [workflow vignette](vignettes/00_match_workflow/00_m
 
 Each notebook includes the task, inputs, model assumptions, a code-generated visual, a runnable package example and interpretation/limits. Synthetic inputs are labelled and enable execution without redistributing match data. Coarse demo grids are distinguished from the model’s default research settings. References distinguish published ideas from project choices.
 
-The fifth main component, [residual risk](vignettes/05a_residual_risk/05a_residual_risk.ipynb) documents the completed RR77 conditional terminal benchmark and `PRESS.extras.compose_individual_xloss`; it remains outside the core pressure pipeline. The [composed-risk benchmark](vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb) separately evaluates h and individual xLoss.
+The fifth main component, [residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb) documents the completed RR77 conditional terminal benchmark and `PRESS.extras.compose_individual_xloss`; it remains outside the core pressure pipeline. The [composed-risk benchmark](benchmarks/06_composed_risk.qmd) separately evaluates h and individual xLoss.
 
 ## 4. Build documentation and portfolio together — implemented configuration
 

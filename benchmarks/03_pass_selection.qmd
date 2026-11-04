@@ -1,19 +1,25 @@
 ---
-title: "Pass-selection benchmark"
+title: "Pass selection benchmark"
 jupyter: python3
 ---
 
-[Model and example](../vignettes/03_transition_model/03_transition_model.ipynb) · [All benchmarks](../benchmark.qmd)
+[Model and example](../vignettes/03_pass_selection/03_pass_selection.ipynb) · [All benchmarks](../benchmark.qmd)
 
-The pass-selection model gives the probability of each candidate destination, conditional on a pass attempt. A shared XGBoost ensemble produces a utility for every destination, and a softmax turns the utilities into a categorical choice distribution. We also evaluate an exploratory cross-nested logit (CNL) that groups destinations probabilistically by potential receiver. The [model vignette](../vignettes/03_transition_model/03_transition_model.ipynb) introduces the choice model, its predictors and an executable example. The likelihood-based tree learning follows [RUMBoost](https://doi.org/10.1016/j.trc.2024.104897).
+The pass-selection model gives the probability of each candidate destination, conditional on a pass attempt. A shared XGBoost ensemble produces a utility for every destination, and a softmax turns the utilities into a categorical choice distribution. We also evaluate an exploratory cross-nested logit (CNL) that groups destinations probabilistically by potential receiver. The [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb) introduces the choice model, its predictors and an executable example. The likelihood-based tree learning follows RUMBoost [@salvade2024rumboost].
 
 ## Evaluation cohort
 
-The evaluation uses the **same pass attempts as the pass success probability task**: **6,810 decisions across ten SkillCorner matches**, of which **1,009 are unsuccessful passes**. Passers are outfield players. Unsuccessful passes are kept because destination choice is defined independently of completion. The observed endpoint is assigned to the nearest cell centre of the one-metre pitch grid, and all candidate cells enter the categorical normalization. The pooled uniform-choice reference cross entropy is **8.873286**.
+The evaluation contains **6,810 decisions across ten SkillCorner matches**, of which **1,009 are unsuccessful passes**. Passers are outfield players. Unsuccessful passes are kept because destination choice is defined independently of completion. The observed endpoint is assigned to the nearest cell centre of the one-metre pitch grid, and all candidate cells enter the categorical normalization. The pooled uniform-choice reference cross entropy is **8.873286**.
+
+### Effective task-specific exclusions
+
+The transition candidate base requires a usable matched release, a matched next-control start and a positive duration below ten seconds. A pass is kept when its annotated outcome agrees with the receiving or recovering team, the recipient of a completed pass agrees with the next possessor, and no interruption is annotated. These criteria leave the **6,810 decisions**. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
+
+The cohort contains every pass of the final pass-probability cohort and also the passes shorter than 0.5 s. Destination choice uses the decision state and a hypothetical destination field, so it does not need the five initial ball observations used to reconstruct the observed flight, and it does not impose the 0.5 s lower limit of the pass-probability task.
 
 ## Features
 
-The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). They cover pass geometry, raw target pitch control, expected threat, pressure-line indices, one-second ball-drive loss, game context and player counts beyond the carrier and target lines; definitions are in the [model vignette](../vignettes/03_transition_model/03_transition_model.ipynb). All predictors are built from information available at the decision frame, so the observed receiver and the subsequent outcome are excluded. Pitch control enters in its raw form, without isotonic calibration.
+The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). Definitions and groups are given in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). Pitch control enters in its raw form, without isotonic calibration, and the observed receiver and outcome are excluded.
 
 ## Choice specifications and learning
 
@@ -55,7 +61,7 @@ Both models minimize the **same observed-choice negative log-likelihood**. For t
 
 ### Iterative XGBoost estimation
 
-The estimation follows [RUMBoost](https://doi.org/10.1016/j.trc.2024.104897), adapted to XGBoost and a single shared utility ensemble (the RUMBoost reference implementation uses LightGBM). The same ensemble $f_\theta$ is evaluated on every candidate, so no separate predictor is fitted per destination. Tree construction and regularization follow [Chen and Guestrin (2016)](https://arxiv.org/abs/1603.02754). Ensembles start from zero utilities, and the CNL also starts at $\mu=1$.
+The estimation follows RUMBoost [@salvade2024rumboost], adapted to XGBoost and a single shared utility ensemble (the RUMBoost reference implementation uses LightGBM). The same ensemble $f_\theta$ is evaluated on every candidate, so no separate predictor is fitted per destination. Tree construction and regularization follow Chen and Guestrin [@chen2016xgboost]. Ensembles start from zero utilities, and the CNL also starts at $\mu=1$.
 
 At boosting iteration $t$, the current utilities $u_{ij}^{(t)}$ define a full probability distribution over the destinations of each pass. The loss of the observed choice, $\ell_i=-\log p_{i,y_i}$, gives the direction in which utilities should move: alternatives with too much probability receive positive gradients, and the chosen destination receives a negative gradient in the flat model.
 
@@ -73,28 +79,28 @@ $$
 
 Because the update changes the probabilities of *all* destinations in a pass, gradients and curvatures are recomputed from the new categorical distributions before the next tree. This repeated re-evaluation of the choice likelihood is what links discrete-choice estimation to gradient boosting.
 
-**Curvature convention.** The exact categorical Hessian has off-diagonal terms linking alternatives of the same pass, whereas XGBoost takes one scalar per row. For the flat softmax the implemented convention is
+**Curvature convention.** The exact categorical Hessian has off-diagonal terms linking alternatives of the same pass, whereas XGBoost takes one scalar per row. This scalar is a curvature convention for constructing trees, not the full categorical Hessian. For the flat softmax the implemented convention is
 
 $$
 h_{ij}^{\mathrm{flat}}=\max\!\left\{\varepsilon,\frac{J_i}{J_i-1}p_{ij}(1-p_{ij})\right\},
 \qquad J_i=|\mathcal G_i|.
 $$
 
-The factor $J_i/(J_i-1)$ follows the [RUMBoost reference implementation](https://github.com/big-ucl/rumboost/blob/v1.0.2/rumboost/rumboost.py), and $\varepsilon$ keeps the curvature away from zero. For the CNL, **gradient and scalar curvature both come from the CNL likelihood**. The two models therefore share the boosting machinery and optimize different probability maps. The scalar curvature is a tree-fitting approximation and does not assume statistical independence among candidate destinations.
+The factor $J_i/(J_i-1)$ follows the [RUMBoost reference implementation](https://github.com/big-ucl/rumboost/blob/v1.0.2/rumboost/rumboost.py), and $\varepsilon=10^{-6}$ keeps the curvature away from zero. For the CNL, the gradient is the exact gradient of the CNL choice likelihood and the scalar curvature reproduces the published RUMBoost `f_obj_cross_nested` convention. It is not the exact Hessian diagonal multiplied by $J_i/(J_i-1)$; those are distinct expressions. The implementation passes the reference curvature to XGBoost without replacing it by an absolute value or a softmax curvature surrogate. The two models therefore share the boosting machinery and optimize different probability maps. The scalar curvature is a tree-fitting approximation and does not assume statistical independence among candidate destinations. At $\mu=1$ the CNL probabilities and gradient reduce to the flat softmax, while the published CNL curvature convention differs numerically from the flat rule, so the two do not produce identical boosting updates.
 
-**Dissimilarity update.** The CNL learns $\mu$ together with the trees. After every 20 trees, the utilities are held fixed and the categorical likelihood is minimized over $\rho\in[1,10]$ with bounded SLSQP. Only 10% of the proposed move is applied, to avoid abrupt changes in the choice probabilities:
+**Dissimilarity update.** The CNL learns $\mu$ together with the trees. After every 20 trees, the utilities are held fixed. The fitting-set CE is evaluated at the current $\rho$ and at $1,1.5,2,3,5,10$; one bounded SLSQP optimization over $\rho\in[1,10]$ starts from the best scanned value. Validation labels do not enter this scalar optimization. Failed or uphill updates are rejected. This is a conditional scalar scan, not multiple complete boosting trajectories. Only 10% of the proposed move is applied, to avoid abrupt changes in the choice probabilities:
 
 $$
 \rho^{(t+1)}=\rho^{(t)}+0.1\bigl(\rho^*-\rho^{(t)}\bigr).
 $$
 
-Boosting then resumes with probabilities and derivatives recomputed at the new dissimilarity. Validation cross entropy selects the joint checkpoint of tree ensemble and $\mu$. This alternating scheme extends the [RUMBoost cross-nested approach](https://transp-or.epfl.ch/heart/2024/abstracts/hEART_2024_paper_8384.pdf) to fixed pitch-control memberships and the shared PRESS XGBoost utility.
+Boosting then resumes with probabilities and derivatives recomputed at the new dissimilarity. Validation cross entropy selects the joint checkpoint of tree ensemble and $\mu$. This alternating scheme extends the RUMBoost cross-nested approach [@salvade2024beyond] to fixed pitch-control memberships and the shared PRESS XGBoost utility.
 
 ## Model selection and validation
 
 ### Hyperparameter screening
 
-Before the held-out evaluation, **five hyperparameter configurations** were compared for each model family on **one development partition**: six matches for training and two for validation. The partition was the same for flat and CNL, and the remaining two matches were left out of screening. The criterion was validation cross entropy. The screening was limited and did not cover the full hyperparameter space.
+Before the held-out evaluation, **five hyperparameter configurations** were compared for each model family on **one development partition**: six matches for training and two for validation. The partition was the same for flat and CNL, and the remaining two matches were left out of screening. The criterion was validation cross entropy.
 
 | Maximum depth | Minimum child weight | L2 | Flat | CNL |
 |---:|---:|---:|---:|---:|
@@ -104,15 +110,19 @@ Before the held-out evaluation, **five hyperparameter configurations** were comp
 | 4 | 1 | 1 | 5.818136 | 5.794084 |
 | 4 | 5 | 1 | 5.819215 | 5.794499 |
 
-The lowest validation cross entropy selects **depth 4, `min_child_weight` 20, L2 1** for the flat model and **depth 6, `min_child_weight` 5, L2 3** for the CNL. Both use learning rate 0.05, row and column subsampling 0.8, CPU histogram boosting, at most 2,000 trees and early-stopping patience 100. These settings were **fixed before** the five-fold evaluation. Since the selected capacities differ, a performance gap cannot be attributed to nesting alone.
+The lowest validation cross entropy selects **depth 4, `min_child_weight` 20, L2 1** for the flat model and **depth 6, `min_child_weight` 5, L2 3** for the CNL. Both use learning rate 0.05, row and column subsampling 0.8, CPU histogram boosting, at most 2,000 trees and early-stopping patience 100. These settings were **fixed before** the five-fold evaluation. There is one boosting trajectory per family/fold, initialized at zero utilities and $\mu=1$; no full-training multistart is used. The screening used the fold-0 development partition once, and no new hyperparameter search is run inside every outer fold. Its validation matches are outer-test matches in other folds (see the [scope of the development benchmark](../benchmark.qmd#scope-of-the-development-benchmark)). Since the selected capacities differ, a performance gap cannot be attributed to nesting alone.
 
 ### Match-wise held-out evaluation
 
 The selected configurations were evaluated on **five match-disjoint 6 + 2 + 2 partitions**:
 
 - **Six training matches** fit the XGBoost utilities and the upstream feature components (physical pass-risk and ball-drive parameters, xT smoothing, categorical vocabulary).
-- **Two validation matches** select the tree checkpoint by early stopping, then fit a **single temperature-scaling parameter** with the trees held fixed. They contribute no training examples to the trees.
+- **Two fixed validation matches** select the tree checkpoint by early stopping on native choice CE, then fit a **single temperature-scaling parameter** with the selected trees and CNL dissimilarity held fixed. The same pair is used for both operations; it is not an independent calibration split and is not rotated within that outer fold. It contributes no fitting examples to the trees.
 - **Two test matches** are used only for performance evaluation and determine neither the number of trees nor the temperature.
+
+There is **no eight-match tree refit** before testing. Temperature scaling is applied to the final destination distribution (after nest aggregation for CNL), without changing utilities, dissimilarity or the selected tree prefix. It is fitted after selection and is not the criterion used for the preceding hyperparameter screening or early stopping.
+
+**Temperature scaling.** The calibrated distribution is $p_{ij}^{(T)}\propto p_{ij}^{1/T}$, as defined in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). The single scalar $T$ minimizes the cross entropy of the observed choices on the two validation matches. $T>1$ flattens the distribution and $T<1$ concentrates it. The fitted values are close to one in every fold (table below), and the gain in cross entropy is small. The deployed flat model retains the temperature.
 
 Each of the 6,810 decisions appears exactly once among the pooled test predictions. Upstream physical fitting and calibration are documented in the [pass-probability benchmark](02_pass_probability.qmd) and [ball-drive benchmark](01_ball_drive_risk.qmd). The full-data deployment refit is described at the end.
 
@@ -146,7 +156,7 @@ All fits stopped before the tree ceiling. Given the modest CNL gain and its adde
 | **PRESS, flat + temperature scaling** | **5.827787** | **34.322%** |
 | Fernández et al. (2021), SoccerMap | 5.7134 | ≈35.543% |
 
-[Fernández, Bornn and Cervone (2021)](https://link.springer.com/article/10.1007/s10994-021-05989-6) report a pass-selection cross entropy of **5.7134** (Table 4). The McFadden value shown here is **derived** from that figure with a uniform $104\times68$ choice grid and is not a published metric. Their fully convolutional SoccerMap model was evaluated on a different dataset (**633 matches**), open-play cohort, split and candidate-grid construction. The comparison gives **context and no like-for-like ranking**, and the gap cannot be attributed to model architecture alone.
+Fernández, Bornn and Cervone [@fernandez2021] report a pass-selection cross entropy of **5.7134** (Table 4). The McFadden value shown here is **derived** from that figure with a uniform $104\times68$ choice grid and is not a published metric. Their fully convolutional SoccerMap model was evaluated on a different dataset (**633 matches**), open-play cohort, split and candidate-grid construction. The comparison gives **context and no like-for-like ranking**, and the gap cannot be attributed to model architecture alone.
 
 ## Final fitted model
 
@@ -156,4 +166,6 @@ For reproducibility, the [screening table](../data/benchmarks/pass_selection/scr
 
 ## Limitations
 
-The nested specification gave only a small gain over the flat model. Two factors may explain this. The first is the limited data: ten matches provide few decisions from which to estimate the substitution structure among receiver nests. The second is the predictors: pass geometry, raw pitch control and the other contextual features are already informative, and XGBoost uses them flexibly, which leaves little for the nest structure to add.
+The nested specification gave only a small gain over the flat model. A plausible explanation is that the predictors (pass geometry, raw pitch control and the other contextual features) are already informative and that XGBoost uses them flexibly, which leaves little for the nest structure to add.
+
+Hyperparameter screening compares five configurations per model family on a single development partition. The computational cost of boosting over the full candidate grid does not allow a wider search, or a search repeated inside each outer fold.
