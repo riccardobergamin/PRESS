@@ -2,7 +2,75 @@
 title: "Benchmarks"
 ---
 
-Choose a model to read its cohort, training procedure, results and calibration.
+The PRESS benchmarks evaluate five modeling tasks, and the predictions composed from them, under a common match-level cross-validation protocol. This page describes the shared evaluation design and the performance metrics. Each task-specific benchmark reports its cohort, its model-specific training and calibration choices and its predictive results.
+
+## Common evaluation protocol
+
+### Nested match-level cross-validation
+
+All tasks use the same partition of the ten SkillCorner A-League matches into five outer folds. In each outer fold, two complete matches are held out for testing and the other eight are available for model development. Test matches are excluded from parameter estimation, hyperparameter selection and calibration.
+
+Within the eight development matches, four inner validation rotations each use six matches for fitting and two for validation. The validation pairs are disjoint, so every development match serves as validation data exactly once. Inner validation is used where required for model selection, tuning or calibration, and the procedure and criterion are specified in the relevant task benchmark. The selected specification is then refitted on the eight development matches and evaluated on the two test matches. The five test pairs are disjoint and cover all ten matches, so every match contributes to the held-out evaluation exactly once.
+
+| Stage | Matches | Purpose |
+|---|---:|---|
+| Inner training | 6 | Estimate model parameters within each validation rotation |
+| Inner validation | 2 | Tune, select or calibrate where required; rotate through the eight development matches |
+| Outer refit | 8 | Fit the selected specification without the outer test matches |
+| Outer test | 2 | Evaluate predictions on previously unseen matches |
+| Final deployment refit | 10 | Fit the accepted specification for distribution with the package, after evaluation |
+
+### Consistency across dependent tasks
+
+The outer folds are identical across all tasks. When a task uses the predictions of another model as input features, those predictions come from the fitted parameters of the same outer fold. For example, when action selection is evaluated on fold 3, its ball-drive risk input is computed with a ball-drive risk fit that has not seen either of the test matches of fold 3. The xT surface is the exception, since it is fitted on the history of all ten matches. Any task-specific construction of features or calibration within the development matches is documented in its own benchmark.
+
+### Aggregation and performance metrics
+
+Cross-validated performance is computed on the concatenation of the five outer-fold held-out prediction sets, and not as the average of fold-level metrics. Each observation contributes once to the pooled evaluation. Fold-level results may be inspected for stability but do not replace the pooled estimates.
+
+For the binary-outcome tasks, with observed labels $y_i\in\{0,1\}$ and predicted probabilities $p_i$, the primary probabilistic metric is binary cross-entropy (CE), also called log loss:
+
+$$
+\mathrm{CE}=-\frac{1}{N}\sum_{i=1}^{N}\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right].
+$$
+
+A task-specific null model supplies a reference cross-entropy $\mathrm{CE}_{\mathrm{null}}$, estimated without the outer test labels and defined in each benchmark where needed. The relative improvement over the reference is
+
+$$
+\mathrm{Gain}=1-\frac{\mathrm{CE}_{\mathrm{model}}}{\mathrm{CE}_{\mathrm{null}}},
+$$
+
+and a positive gain indicates lower cross-entropy than the null model.
+
+The Brier score is the mean squared probabilistic error:
+
+$$
+\mathrm{Brier}=\frac{1}{N}\sum_{i=1}^{N}(p_i-y_i)^2.
+$$
+
+Calibration is summarized with the expected calibration error (ECE). Held-out predictions are divided into ten approximately equal-count quantile bins. For bin $b$, let $n_b$ be its number of observations, $\bar p_b$ its mean prediction and $\bar y_b$ its observed event frequency. Then
+
+$$
+\mathrm{ECE}=\sum_{b=1}^{10}\frac{n_b}{N}\left|\bar p_b-\bar y_b\right|.
+$$
+
+Calibration plots compare observed event frequencies with mean predicted probabilities in these bins, and ECE and the bins are recomputed on the pooled outer-test predictions and not averaged across folds. Where relevant, ROC AUC assesses ranking across classes, and precision–recall AUC (PR AUC) summarizes discrimination for the positive class, particularly when outcomes are uncommon. Not every metric applies to or is reported for every task. Task-specific numerical conventions, including any probability clipping used for log loss, are recorded alongside the corresponding results.
+
+Pass selection is a multiple-choice task. It is evaluated with the likelihood assigned to the observed choice among the available alternatives, and its improvement over a task-specific null choice model is summarized by McFadden's pseudo-$R^2$:
+
+$$
+R^2_{\mathrm{McFadden}}=1-\frac{\log L_{\mathrm{model}}}{\log L_{\mathrm{null}}},
+$$
+
+where $L_{\mathrm{model}}$ and $L_{\mathrm{null}}$ are the likelihoods of the observed choices under the fitted and null models, evaluated on the held-out observations. The Pass-selection benchmark specifies its choice set and null model, and the nested cross-validation and the pooling of held-out predictions are unchanged.
+
+### Model stability and final refitting
+
+The cross-validation results evaluate predictive performance and stability across the outer folds before a specification is accepted. The accepted specification is then refitted on all ten matches to obtain the parameters distributed with the PRESS package. This deployment fit is not an additional test fold and does not contribute to the reported held-out estimates.
+
+## Task benchmarks
+
+Choose a model to read its cohort, task-specific training procedure, results and calibration.
 
 ::: {.page-directory}
 
@@ -37,23 +105,9 @@ Choose a model to read its cohort, training procedure, results and calibration.
 :::
 
 ::: {.directory-section}
-### Composed h and xLoss
+### Composed risk (h and xLoss) {#composed-risk-benchmark}
 
-[Open benchmark](vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb)
+[Open benchmark](benchmarks/06_composed_risk.qmd)
 :::
 
 :::
-
-## Interpretation: spatial features and tree importance
-
-The [pass-selection](vignettes/03_transition_model/03_transition_model.ipynb),
-[action-selection](vignettes/04_action_selection/04_action_selection.ipynb) and
-[residual-risk](vignettes/05a_residual_risk/05a_residual_risk.ipynb) vignettes now
-show conceptual-input split importance for their frozen production and outer
-ensembles. These explain model use, not new performance benchmarks or causal
-effects. The [BCOS extra](vignettes/extras/bcos/10_bcos.ipynb) additionally reports
-fixed-model held-out perturbations. Its relevance motivates testing richer
-descriptions of accessible-space shape for continuation risk, without assuming
-that an improvement will follow. Compare a small current-state feature block
-on identical match folds, using validation selection and held-out CE/calibration.
-No such extension is included in the final models.

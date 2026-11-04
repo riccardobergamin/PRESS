@@ -3,148 +3,85 @@ title: "Residual-risk benchmark"
 jupyter: python3
 ---
 
-[Model and example](../vignettes/05a_residual_risk/05a_residual_risk.ipynb) · [All benchmarks](../benchmark.qmd)
+[Model and example](../vignettes/05_residual_risk/05_residual_risk.ipynb) · [All benchmarks](../benchmark.qmd)
 
-The [residual-risk vignette](../vignettes/05a_residual_risk/05a_residual_risk.ipynb)
-defines the conditional target, all 31 inputs, executable composition and the
-installed deployment model. A [separate composed-risk benchmark](../vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb)
-reports h and xLoss evaluation and their pooled calibration. Residual risk is optional for current pressure:
-it completes local action risk to a terminal individual-possession forecast.
+The residual-risk model estimates, for a successful one-second carry, the probability that the individual possession ends in a loss. The [model vignette](../vignettes/05_residual_risk/05_residual_risk.ipynb) introduces the conditional terminal-outcome task, its likelihood, the relationship to the action-selection features, feature importance and an executable example. This benchmark documents the outcome conventions, the cohort, the training protocol, the predictive evaluation and the final fit. The classifier is a native XGBoost model with a binary logistic objective ([Chen and Guestrin, 2016](https://arxiv.org/abs/1603.02754)).
 
-## Verified cohort and unchanged training protocol
+## Evaluation cohort
 
-RR77 uses **7,820 successful canonical one-second carry states**, 1,423 terminal
-individual losses (18.20%), ten matches and 3,975 individual possessions.
-Failed terminal passes, direct possession losses and clearances are positive;
-completed passes and fouls suffered are negative. Clearances are an operational
-individual-loss convention, not necessarily team turnovers. Whole individual
-parents require outfield control, no shot ending and matched endpoints. A
-terminal pass must have verified continuous direct reception; direct-loss
-parents follow the physical carry model's OBE verification. No 0.5–10s duration,
-curvature or unknown-context filter is added. The previous broad RR74 cohort
-contained 8,672 states: verification removes 838 pass-ending states and 14
-successful carry states from 10 of the 20 excluded non-OBE loss parents.
+Successful canonical one-second carries are identified as described in [Possessions and checkpoints](../vignettes/setup/possession_and_checkpoint_setup.ipynb). Each eligible state is a completed one-second carry within an outfield player's individual possession, and shorter interrupted tails are not included. The target is the **terminal outcome of that individual possession**.
 
-The base has 30 conceptual inputs; the augmented model adds native P(carry).
-Outer folds use **6 fit + 2 validation + 2 test matches**, with the matching
-per-fold physics/pass/choice/xT/BCOS stack. Three fixed four-fit/two-omitted AS
-refits supply six-fit training scores; matching outer AS models score validation
-and test. This cross-fits action weights, not the entire upstream feature stack.
-Validation supports both upstream calibration and downstream selection; these
-are development OOF results, not independent external validation.
+Terminal outcomes are verified with the same conventions as **Pass Selection** and **Ball Drive**: terminal passes require verified continuous direct reception, and direct possession losses follow the OBE verification of the physical carry model. No additional pass-duration, curvature or unknown-context filter is applied. A failed terminal pass or a direct `possession_loss` is labeled **loss ($Y=1$)**, and a completed terminal pass is labeled **no loss ($Y=0$)**. Individual possessions ending in a **clearance** ($Y=1$) or a **foul suffered** ($Y=0$) are also included, while those ending in a shot are excluded. Clearances are treated as terminal losses under the assumption that they are induced by defensive pressure.
 
-The native XGBoost grid is depth {3,4,6,8}, child weight {1,5,20},
-L2 {0.1,1,3,10}, eta {0.03,0.05,0.1}: 144 settings × two variants × five folds
-= 1,440 fits [@chen2016xgboost]. Row/column subsampling is 0.8, hist bins 256,
-tree cap 2,000, early stopping 100. Depth/support vary capacity, L2 shrinks leaf
-weights and eta controls update size. Validation CE selects configuration and
-tree prefix before test prediction. No resampling, class weighting or custom
-derivatives. A positive validation-only temperature is fitted to the frozen
-selected ensemble [@guo2017calibration]; no test score selects its value.
+The cohort contains **7,820 successful one-second carry states**, of which **1,423 end in a terminal individual loss (18.20%)**, across ten matches and **3,975 individual possessions**. A possession can contribute more than one state.
 
-## Conditional residual: pooled OOF scores
+| Terminal individual outcome | States | Individual possessions | Loss label |
+|---|---:|---:|---:|
+| Completed pass | 6,258 | 3,214 | 0 |
+| Failed pass | 742 | 397 | 1 |
+| Direct possession loss | 654 | 286 | 1 |
+| Clearance | 27 | 14 | 1 |
+| Foul suffered | 139 | 64 | 0 |
 
-| Variant | CE | Null CE | Gain | Brier | AUC | Quantile ECE |
+## Features
+
+The model uses **31 features**: the action-selection feature family with two changes. The number of completed carries is replaced by the elapsed time since individual control began, and the action-selection probability of carrying is added. The shared feature definitions are in the [action-selection vignette](../vignettes/04_action_selection/04_action_selection.ipynb).
+
+The action-selection probability of carrying is cross-fitted so that no state is scored by a model that was trained on it. Training states are scored by three action-selection refits, each fitted on four of the six training matches and omitting the other two, and validation and test states are scored by the action-selection model of the same outer fold.
+## Model selection and validation
+
+The evaluation uses five match-disjoint outer folds with **6 fitting + 2 validation + 2 test** matches. The validation matches support upstream calibration and the selection of the downstream model, and the test matches are used only for evaluation.
+
+The XGBoost grid covers maximum depth (3, 4, 6, 8), minimum child weight (1, 5, 20), L2 regularization (0.1, 1, 3, 10) and learning rate (0.03, 0.05, 0.10), giving **144 configurations × 5 folds = 720 fits**. Row and column subsampling are 0.8, training allows at most 2,000 trees, and early-stopping patience is 100. Validation cross entropy selects the configuration and the tree prefix before testing. There is no resampling, class weighting or custom derivative. A single positive temperature can be fitted on the validation matches with the trees held fixed ([Guo et al., 2017](https://arxiv.org/abs/1706.04599)), and test scores are not used to select it.
+
+## Predictive performance
+
+| Variant | CE | Null CE | Gain over null | Brier | AUC | Quantile ECE |
 |---|---:|---:|---:|---:|---:|---:|
-| Base, native | 0.420779 | 0.475594 | 11.526% | 0.131963 | 0.73765 | 1.396% |
-| Base, temperature | 0.421193 | 0.475594 | 11.438% | 0.131999 | 0.73707 | 1.441% |
-| Base + P(carry), native | 0.419506 | 0.475594 | 11.793% | 0.131390 | 0.73950 | 1.053% |
-| Base + P(carry), temperature | 0.419773 | 0.475594 | 11.737% | 0.131395 | 0.73963 | 1.315% |
+| **Native** | **0.419506** | **0.475594** | **11.793%** | **0.131390** | **0.73950** | **1.053%** |
+| Temperature-scaled | 0.419773 | 0.475594 | 11.737% | 0.131395 | 0.73963 | 1.315% |
 
-Native augmented output remains primary: temperature worsens CE and ECE.
-P(carry) adds only 0.268 percentage points of gain over the native base model.
-The null uses each fold's six-fit empirical terminal-loss frequency; gain is
-1−CE/nullCE in natural logarithms. Metrics concatenate held-out states, and
-ECE is recomputed on ten pooled equal-count bins, weighted by bin counts.
+The native model is retained, since temperature scaling does not improve cross entropy or ECE here. In each fold the null model predicts the terminal-loss frequency of the fitting matches. Metrics pool the held-out states, and ECE uses ten equal-count pooled bins weighted by their counts.
 
 ![Five-fold pooled conditional residual-risk calibration.](../figures/residual_risk_pooled_calibration.png){#fig-residual-risk-calibration}
 
-[Metrics](../data/benchmarks/residual_risk/pooled_metrics.csv),
-[selected configurations](../data/benchmarks/residual_risk/selected_configurations.csv),
-[folds](../data/benchmarks/residual_risk/metrics_by_fold.csv),
-[matches](../data/benchmarks/residual_risk/metrics_by_match.csv).
+Remaining possession time is retrospective and is not a predictor. A diagnostic on the verified cohort reports four remaining-time groups and an equal-possession weighting sensitivity.
 
-Remaining time is retrospective, not an input. The
-[verified-cohort horizon diagnostic](../data/benchmarks/residual_risk/remaining_time_sensitivity.csv)
-reports four groups and an equal-possession weighting sensitivity; differing
-situation mixes and small tails do not establish a monotonic horizon effect.
+## Feature importance
 
-## Composed xLoss: same-fold evaluation
+Feature importance is the **total XGBoost split gain**, normalized within each ensemble, with one-hot levels grouped under their original feature. The figure shows the production model and the five outer-fold models, and fold ranges describe variation in the fitted rankings.
 
-With pass policy p, destination-weighted pass failure f, carry failure d and
-conditional continuation c, h=pf+(1−p)d and xLoss=h+(1−p)(1−d)c.
-A completed pass ends this individual's control; no teammate continuation is
-added. **Own derivation** from the law of total probability.
+![Feature importance of the residual-risk model.](../figures/feature_importance_residual_risk.png){#fig-residual-risk-importance}
 
-The common verified cohort has **15,085 canonical checkpoints**: 7,820 successful
-carries, 456 failed carries and 6,809 pass releases. The local target has 1,465
-failed actions; the terminal target has 2,888 individual losses. All components
-use matching outer-fold weights, never the full-data deployment refits. No
-additional scaling is fitted to either composition.
+| Feature | Production gain share | Rank across outer folds |
+|---|---:|---:|
+| BCOS | 14.21% | 1–4 |
+| Opponents ahead, success-weighted | 10.30% | 1–2 |
+| One-second carry success | 8.83% | 2–4 |
+| Expected pass success | 8.01% | 4–25 |
+| Team line on pass failure | 5.60% | 10–19 |
+| Team xT on pass success | 5.24% | 5–12 |
 
-| Forecast and target | CE | Six-fit null CE | Gain | AUC | Quantile ECE |
-|---|---:|---:|---:|---:|---:|
-| h: next selected action fails | 0.272014 | 0.319133 | 14.765% | 0.78168 | 0.749% |
-| xLoss: terminal individual loss | **0.421925** | 0.489296 | **13.769%** | 0.75645 | **0.930%** |
+Accessible space and the spatial configuration of the passing options lead the ranking. BCOS accounts for 14.21% of the total split gain and ranks between first and fourth across folds, and the opponents ahead of likely completed passes contribute 10.30% and rank first or second. The rank of expected pass success varies widely across folds (4–25), so its production share is not a stable ordering. Importance measures describe predictive use and are neither causal effects nor fractions of predictive accuracy.
 
-These are **different targets with different nulls**; their gains are not a
-like-for-like model ranking. Base c yields composite CE 0.421439 and ECE 1.072%;
-this ablation does not trigger outer-test selection of a new residual model.
-Omitting c and evaluating h against the terminal target yields CE 0.500633 and
-ECE 9.443%, illustrating the missing horizon rather than h's own task accuracy.
+## Related published work
 
-![Pooled h and terminal xLoss calibration against their respective targets.](../figures/composed_risk_pooled_calibration.png){#fig-composed-risk-calibration}
+A targeted literature search on 29 October 2026 found no published cross entropy, null-gain or ECE result for this conditional terminal individual-possession target.
 
-[Pooled metrics and cohort sensitivities](../data/benchmarks/composed_risk/pooled_metrics.csv),
-[calibration bins](../data/benchmarks/composed_risk/calibration_quantile10.csv),
-[folds](../data/benchmarks/composed_risk/metrics_by_fold.csv),
-[matches](../data/benchmarks/composed_risk/metrics_by_match.csv).
-Additional short-tail hazard snapshots are descriptive and are outside this
-canonical-action CE evaluation. Whole-parent quality verification is
-retrospective; residual composition also extrapolates the hypothetical
-successful-carry continuation to pass and failed-carry states. No proprietary
-company metric is used as a numerical benchmark.
-
-## Published work: related tasks, not a common numerical benchmark
-
-A targeted search of academic primary sources on29October2026 found no published
-CE/null-gain/ECE result for this exact conditional terminal individual target.
-This is a search finding, not a claim of priority or an exhaustive systematic review.
-
-| Work | Published target and result | Why not a direct RR benchmark |
+| Work | Published target and result | Difference from this task |
 |---|---|---|
-|Gu et al., Player Pressure Map|Team outcome at4s; accuracy55.8% tracking,75.2%2D PPM,78.7%3D PPM; Table1|Team horizon and sequence inputs; accuracy, not conditional-terminal CE [@gu2024pressure].|
-|Dick & Brefeld, Action Rate Models|Next-action rate/turnover before a pass; turnover top1 hit rate75% at1s before observed loss, §4.1|Different label space and metric; no matched conditional residual CE/null/ECE [@dick2023actionrate].|
-|Le Coz et al., semi-Markov temporal xT|Team goal probability within a time budget, from event sequences|Different outcome, state and horizon [@lecoz2026semimarkov].|
+| [Gu et al., *Player Pressure Map*](https://arxiv.org/abs/2401.16235) | Team outcome at 4 s; accuracy 55.8% (tracking), 75.2% (2D PPM), 78.7% (3D PPM) | Team-level horizon, sequence inputs and accuracy as the metric |
+| [Dick and Brefeld, *Action rate models for predicting actions in soccer*](https://doi.org/10.1007/s10182-022-00435-x) | Next-action rate and turnover before a pass; 75% top-1 turnover hit rate at 1 s before the observed loss | Different labels and metric |
+| [Le Coz et al., *A semi-Markov framework for modeling football possessions and temporal expected threat*](https://doi.org/10.1038/s41598-026-52938-1) | Team goal probability within a time budget, from event sequences | Different outcome, state and horizon |
 
-[Primary sources and locators](../data/benchmarks/residual_risk/related_literature.csv).
-Fernández and Stalpaert's one-second carry-execution benchmarks belong to the
-carry section; they do not evaluate this residual terminal continuation.
+## Final fitted model
 
-## Deployment refit78
+The production model is a native **118-tree** refit on all 7,820 eligible states. Depth 4, minimum child weight 5, L2 1 and learning rate 0.03 minimize the mean validation cross entropy across the five grids. The best tree prefixes of this configuration in the five folds are 118, 133, 251, 87 and 92, and their median, 118, fixes the refit length without using test scores.
 
-The package loads **`skillcorner_outfield_residual_risk_verified_v2`**, the native
-118-tree full-data refit on 7,820 eligible states. Depth 4, child weight 5,
-L2 1 and eta 0.03 minimize mean validation CE over the five RR77 grids. For this
-setting the best prefixes are 118/133/251/87/92: median 118 fixes refit length,
-without using test scores. The verified AS73 full-data summaries are reused;
-five eight-fit/two-omitted AS fits supply training P(carry), while inference
-uses the installed all-ten-match AS73 model. Full-matrix export replay and 200
-public state-record fixtures passed. Upstream model hashes are unchanged and
-the previous export is archived. Production fitting is not an OOF benchmark.
-[Refit provenance](../docs/residual-risk-refit-provenance.json).
+Training values of the action-selection probability of carrying come from five action-selection fits, each fitted on eight of the ten matches and omitting two, and inference uses the installed action-selection model fitted on all ten matches. The production fit is not an out-of-fold evaluation.
 
-## Limitations and possible extensions
+For reproducibility, the [metrics](../data/benchmarks/residual_risk/pooled_metrics.csv), [selected configurations](../data/benchmarks/residual_risk/selected_configurations.csv), [fold scores](../data/benchmarks/residual_risk/metrics_by_fold.csv), [per-match scores](../data/benchmarks/residual_risk/metrics_by_match.csv), [remaining-time diagnostic](../data/benchmarks/residual_risk/remaining_time_sensitivity.csv), [literature locators](../data/benchmarks/residual_risk/related_literature.csv), [feature-importance analysis](../data/benchmarks/feature_importance/README.md) and [refit provenance](../docs/residual-risk-refit-provenance.json) are provided as supplementary resources.
 
-Body orientation and posture inferred from video in the PPM work are unavailable
-in this2D tracking dataset; velocity direction remains a proxy, not a measured
-body orientation [@gu2024pressure]. Tracking-only extensions could retain more
-recent trajectory history and explicit pairwise interactions instead of reducing
-the configuration to current-frame aggregates. The recurrent graph and movement
-distribution in Action Rate Models illustrate a different model family
-[@dick2023actionrate]. Our pressure, passing-option, line, xT, BCOS and elapsed-time
-inputs already cover related current-state summaries. These papers do not
-establish that another simple covariate would improve this residual target.
-Past-only changes in pressure or passing availability are a possible future
-feature-engineering experiment, not a feature tested here or a demonstrated
-improvement. No new feature is added to the frozen refit78 specification.
+## Limitations
+
+Body orientation and posture are not observed in this 2D tracking dataset, and velocity direction is not a measured body orientation (see Gu et al. above). The features summarize current carrier motion, tactical configuration and passing opportunities, and they do not include full recent trajectories or explicit pairwise histories, which recurrent and graph-based action-rate models use (Dick and Brefeld, above).

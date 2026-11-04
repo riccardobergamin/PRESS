@@ -1,0 +1,37 @@
+---
+title: "Composed-risk benchmark"
+jupyter: python3
+---
+
+[All benchmarks](../benchmark.qmd)
+
+## Composed predictions
+
+We evaluate the predictive performance of the composed hazard $h$ and of individual xLoss. The two quantities describe distinct outcomes: failure of the current canonical action, and loss by the end of the carrier's individual possession.
+
+Let $\pi(s)$ be the probability of selecting a pass, $q_j$ the probability of the destination $j$ and $p_j$ the probability that a pass to $j$ is completed, so that $f(s)=\sum_j q_j(1-p_j)$ is the pass-failure probability averaged over the destination distribution. Let $d(s)=1-D(s)$ be the loss probability of the canonical one-second carry, the complement of the carry-success probability $D(s)$, and $c(s)$ the probability of terminal individual loss conditional on a successful carry, evaluated from the current state. The composed predictions are
+
+$$
+h(s)=\pi(s)f(s)+\big(1-\pi(s)\big)d(s),
+$$
+
+$$
+\operatorname{xLoss}(s)=h(s)+\big(1-\pi(s)\big)\big(1-d(s)\big)c(s).
+$$
+
+A completed pass ends the carrier's individual possession without an individual loss event. Each prediction is evaluated against its own observed target: $h$ against the failure of the current action (a failed pass, or a loss during the one-second carry), and xLoss against the terminal individual loss.
+
+## Predictive performance
+
+The evaluation uses **15,085 held-out decision checkpoints** with a validated outcome, of which **1,465 are current-action failures** and **2,888 are terminal individual losses**. This set is smaller than the action selection training set, since player choices are evaluated on every checkpoint regardless of the outcome, whereas the composed predictions also require a validated outcome, as discussed in pass and ball drive probabilities benchmarks. The one-second segmentation of individual possessions is described in [Possessions and checkpoints](../vignettes/06_possession_and_checkpoint_setup/06_possession_and_checkpoint_setup.ipynb). The table reports pooled out-of-fold scores for each target.
+
+| Target | Checkpoints | Events | Cross-entropy | Null cross-entropy | Gain over null | AUC | ECE |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Current-action failure ($h$) | 15,085 | 1,465 | 0.272014 | 0.319133 | 14.765% | 0.78168 | 0.749% |
+| Terminal individual loss (xLoss) | 15,085 | 2,888 | 0.421925 | 0.489296 | 13.769% | 0.75645 | 0.930% |
+
+Relative to the null models, cross-entropy is lower by **14.8%** for $h$ and **13.8%** for xLoss, with AUC of **0.782** and **0.756** and ECE below **1%** for both targets. The null cross-entropy uses the event frequencies of the corresponding fitting data, and ECE is computed on ten equal-count bins of the pooled predictions.
+
+![Pooled calibration of the composed hazard and individual xLoss against their respective observed targets.](../../figures/composed_risk_pooled_calibration.png)
+
+The underlying results are available as [pooled metrics](../../data/benchmarks/composed_risk/pooled_metrics.csv), [calibration bins](../../data/benchmarks/composed_risk/calibration_quantile10.csv), [fold-level metrics](../../data/benchmarks/composed_risk/metrics_by_fold.csv) and [match-level metrics](../../data/benchmarks/composed_risk/metrics_by_match.csv).

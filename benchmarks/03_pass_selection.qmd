@@ -5,142 +5,98 @@ jupyter: python3
 
 [Model and example](../vignettes/03_transition_model/03_transition_model.ipynb) · [All benchmarks](../benchmark.qmd)
 
-**The operational choice is the model without nests.** Both final families are
-reported on the same 6,810 decisions from ten matches (1,009 unsuccessful
-passes). A decision chooses one native one-metre pitch cell; it does not
-predict pass completion. Every retained cell participates in its denominator,
-and the observed target is assigned to the nearest cell centre. The uniform
-null is therefore match-specific: $\log J_i$. Pooled null cross entropy is
-8.873286, and McFadden's measure is $1-\sum_i\ell_i/\sum_i\log J_i$.
+The pass-selection model gives the probability of each candidate destination, conditional on a pass attempt. A shared XGBoost ensemble produces a utility for every destination, and a softmax turns the utilities into a categorical choice distribution. We also evaluate an exploratory cross-nested logit (CNL) that groups destinations probabilistically by potential receiver. The [model vignette](../vignettes/03_transition_model/03_transition_model.ipynb) introduces the choice model, its predictors and an executable example. The likelihood-based tree learning follows [RUMBoost](https://doi.org/10.1016/j.trc.2024.104897).
 
-## Features and leakage controls
+## Evaluation cohort
 
-The utility uses **19 numerical variables**: pass distance and signed angle to the
-carrier's velocity, carrier speed, **raw** attacking pitch control at the
-target, own/opponent xT at the target and carrier, own/opponent nearest pressure
-line indices at both locations, one-second ball-drive **loss**, match minute,
-carrier-team score difference known at the frame, and four current-snapshot counts: opponents and teammates beyond the transverse
-line through the carrier, and opponents and teammates beyond the candidate
-destination, all measured toward the carrier team's opposing goal. Raw start type
-and previous action are unordered one-hot context variables; explicit missing
-and unseen categories retain every choice. The five-fold final design has **50 encoded
-columns** (31 category indicators plus 19 numerical columns). The saved
-vocabulary and exact column order belong to each fitted artifact.
+The evaluation uses the **same pass attempts as the pass success probability task**: **6,810 decisions across ten SkillCorner matches**, of which **1,009 are unsuccessful passes**. Passers are outfield players. Unsuccessful passes are kept because destination choice is defined independently of completion. The observed endpoint is assigned to the nearest cell centre of the one-metre pitch grid, and all candidate cells enter the categorical normalization. The pooled uniform-choice reference cross entropy is **8.873286**.
 
-Pressure-line centres use three complete-linkage clusters of longitudinal
-positions, after removing padding and the historical extreme-x goalkeeper
-proxy. Indices are 1–3, ordered in the relevant attacking direction, assigned
-by nearest centre, following the line-based representation in
-[Fernández, Bornn and Cervone (2021)](https://link.springer.com/article/10.1007/s10994-021-05989-6).
-The count definition is
+## Features
+
+The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). They cover pass geometry, raw target pitch control, expected threat, pressure-line indices, one-second ball-drive loss, game context and player counts beyond the carrier and target lines; definitions are in the [model vignette](../vignettes/03_transition_model/03_transition_model.ipynb). All predictors are built from information available at the decision frame, so the observed receiver and the subsequent outcome are excluded. Pitch control enters in its raw form, without isotonic calibration.
+
+## Choice specifications and learning
+
+For decision $i$, let $\mathcal G_i$ be the candidate destination cells, $y_i$ the observed destination and $z_{ij}$ the features of cell $j$. Both specifications use **one shared XGBoost ensemble**, $u_{ij}=f_\theta(z_{ij})$, to score all alternatives. They differ in the map from utilities to probabilities, and therefore in the derivatives used to fit the ensemble.
+
+### Flat multinomial logit
+
+The deployed specification applies a softmax:
 
 $$
-N_G(z)=\sum_{i\in G}\mathbf{1}\{d x_i>d z_x\},\qquad d\in\{-1,+1\}.
+p_{ij}=\frac{\exp(u_{ij})}{\sum_{k\in\mathcal G_i}\exp(u_{ik})}.
 $$
 
-The **carrier team's attack direction** is used for both rosters. Counts are
-computed separately at the carrier and at each candidate from current tracked
-positions. The carrier is excluded from teammates; tracked goalkeepers are
-included in both count rosters. Equality is not counted and padding is removed.
-Backward targets can increase the number beyond their line. This supersedes
-the earlier forward-only interval/bypass predictors, which returned zero for
-backward passes. Own pressure-line indices retain their existing opposite-axis
-ordering; this count correction does not silently change line construction.
-No future receiver, realized pass outcome, player identity or provider phase
-label enters as a predictor. Unknown context is retained: 173 start types are
-literal `unknown`, two are missing; 121 previous actions are `unknown`, two
-missing. Missing/unseen levels are distinct.
-
-Within each outer fold, pass-risk coefficients, ball-drive coefficients/bases,
-xT smoothing and category vocabulary use **the same six fit matches** as the
-choice ensemble. The pass feature uses the updated raw PPCF, without isotonic
-calibration; flight selection and control share the final overspeed-preserving
-TTI. Individual control used for memberships comes from that same solver and
-parameter set. The ball-drive feature uses the final verified-engagement
-cohort model. Full-ten-match physical refits never enter these OOF features.
-The physical references and estimation procedures are described in the
-[pass-risk section](02_pass_probability.qmd) and the [ball-drive benchmark](01_ball_drive_risk.qmd).
-
-## Likelihoods and nesting
-
-The flat ensemble estimates a shared cell utility $u_j=f_\theta(z_j)$ and
-minimizes categorical NLL, $-\log p_y$, with
-$p_j=\exp(u_j)/\sum_k\exp(u_k)$. Cell rows are not independent binary
-observations: gradients use the entire decision's categorical denominator.
-Uniform initial utilities are zero. Native tree subsampling acts after these
-full-choice derivatives have been computed.
-
-For the secondary cross-nested logit (CNL), each non-carrier teammate defines
-a state-dependent nest. Individual raw control $c_{jm}$ gives fixed membership
-$\alpha_{jm}=c_{jm}/\sum_l c_{jl}$. Invalid teammates have zero membership;
-a cell with all controls numerically zero is retained and allocated uniformly
-among valid teammates. Membership is an input to the likelihood, not a
-replacement for aggregate raw control in the utility features.
-
-With one common dissimilarity parameter $\mu\in[0.1,1]$, define
-$\rho=1/\mu$, $S_m=\sum_j(\alpha_{jm}e^{u_j})^\rho$. Then
+The ensemble minimizes the categorical negative log-likelihood
 
 $$
-p_j=\sum_m
-\frac{S_m^{1/\rho}}{\sum_lS_l^{1/\rho}}
-\frac{(\alpha_{jm}e^{u_j})^\rho}{S_m}.
+\mathcal L=-\sum_i\log p_{i,y_i},
 $$
 
-Empty nests are omitted. At $\rho=1$ this reduces to the flat softmax. The
-common scale avoids attaching a persistent parameter to teammate slots whose
-identity changes across choices. This is an adapted CNL model, not an exact
-implementation of the full RUMBoost architecture.
+with utility gradient $g_{ij}=p_{ij}-\mathbf 1\{j=y_i\}$. This is a **single categorical likelihood over destinations**: the probability of each cell depends on the utilities of all cells in the same decision, so cells are never treated as independent binary outcomes.
 
-The gradient and CPU curvature rules reproduce the archived
-[RUMBoost v1.0.2 objective](https://github.com/big-ucl/rumboost/blob/v1.0.2/rumboost/rumboost.py),
-checked against the later CPU implementation. The CNL curvature is the
-upstream second-order approximation, not an asserted exact Hessian diagonal;
-signed values are passed to XGBoost without a project-specific absolute-value
-or clipping rule. The flat curvature includes the upstream $J/(J-1)$ factor
-and its numerical floor. The theoretical references are
-[Salvadé and Hillel, RUMBoost](https://doi.org/10.1016/j.trc.2024.104897) and their
-[CNL extension, Beyond i.i.d.](https://transp-or.epfl.ch/heart/2024/abstracts/hEART_2024_paper_8384.pdf).
+### Exploratory cross-nested logit
 
-During training, every 20 trees, fit-only SLSQP proposes a scale update at the
-current fixed utilities. Our $\rho$ corresponds to the upstream inverse-scale
-convention. Only 10% of the proposed displacement is adopted:
-$\rho_{new}=\rho+0.1(\rho^*-\rho)$. The interval and relaxation follow the
-[archived later RUMBoost training code](https://github.com/big-ucl/rumboost/blob/main/rumboost/rumboost.py).
-The project adds a conditional scan of current $\rho$ and
-$\{1,1.5,2,3,5,10\}$, followed by one SLSQP solve from the best scanned value.
-Failed, nonfinite or uphill updates are rejected. This inexpensive scalar
-start selection does not run multiple complete boosting trajectories.
+The CNL keeps the same utility function and lets each destination belong fractionally to several **receiver nests**, one per eligible teammate other than the carrier. Membership $\alpha_{ijm}$ is proportional to teammate $m$'s **individual raw pitch control** at destination $j$, normalized over eligible teammates (a zero-control destination gets uniform membership). Memberships are fixed by the physical state and are not estimated with the trees.
 
-Explicit adaptations are: XGBoost instead of LightGBM; one shared utility
-ensemble instead of the complete upstream utility architecture; one common
-scale; fixed state-dependent physics memberships; and bounds $\rho\in[1,10]$
-instead of the later upstream default [1,2.5]. The proposal scan is our addition.
-The two families start at the flat limit, $\mu=1$. Validation selects a
-**joint tree-prefix/scale checkpoint**. Scale diagnostics retain the proposed
-and adopted values; a remaining gap is not treated as proof of joint global
-convergence. Earlier frozen-ensemble scale optimization was a diagnostic,
-not the adopted estimator. No scale refit follows early stopping.
-The [archived source identity and excerpt hashes](../docs/pass-selection-references/provenance.json)
-identify v1.0.2 and the exact later excerpts fetched on 20 October 2026; the
-later `main` URL is mutable and is not represented as a pinned commit.
+With $\rho=1/\mu$, define
 
-## Capacity screening and final training
+$$
+S_{im}=\sum_{j\in\mathcal G_i}(\alpha_{ijm}e^{u_{ij}})^\rho,
+\qquad
+p_{ij}=\sum_m
+\underbrace{\frac{S_{im}^{1/\rho}}{\sum_l S_{il}^{1/\rho}}}_{\text{nest probability}}
+\underbrace{\frac{(\alpha_{ijm}e^{u_{ij}})^\rho}{S_{im}}}_{\text{destination within nest}}.
+$$
 
-Development first compared raw/calibrated control and context representations,
-then tested a preliminary nested model. Subsequent pilots aligned derivatives
-and scale updates with the archived RUMBoost CPU implementation, inspected
-learning curves and scale proposals, and extended shallow fits that reached
-their budget. Final screening was repeated after **both** physical feature
-models had been updated; the intermediate PC-only screening was superseded.
-Historical fits are preserved, rather than resumed as new stochastic paths.
+A single dissimilarity parameter $\mu\in[0.1,1]$ ($\rho\in[1,10]$) is shared by all nests, because teammate identities and nest compositions change from decision to decision and teammate-specific scales would not be comparable. **At $\mu=1$ the CNL reduces to the flat softmax.** For $\mu<1$ it relaxes the independence-of-irrelevant-alternatives restriction of the flat model, allowing more structured substitution among destinations tied to the same receiver.
 
-The final single-fold screening (experiment **54**, after correcting player counts) used six fit matches and two
-validation matches; its two test matches were not scored for selection. Each
-of five configurations was trained fresh in both families with validation
-patience 100. The depth 3 ceiling was increased to 3,000; other ceilings were
-2,000. All ten final pilot fits stopped before their ceilings.
+Both models minimize the **same observed-choice negative log-likelihood**. For the CNL, probabilities, gradients and curvature are computed from the CNL probability function. In both cases XGBoost receives one gradient and one scalar curvature per candidate.
 
-| Depth | Minimum child curvature | L2 | Flat validation CE | CNL validation CE |
+### Iterative XGBoost estimation
+
+The estimation follows [RUMBoost](https://doi.org/10.1016/j.trc.2024.104897), adapted to XGBoost and a single shared utility ensemble (the RUMBoost reference implementation uses LightGBM). The same ensemble $f_\theta$ is evaluated on every candidate, so no separate predictor is fitted per destination. Tree construction and regularization follow [Chen and Guestrin (2016)](https://arxiv.org/abs/1603.02754). Ensembles start from zero utilities, and the CNL also starts at $\mu=1$.
+
+At boosting iteration $t$, the current utilities $u_{ij}^{(t)}$ define a full probability distribution over the destinations of each pass. The loss of the observed choice, $\ell_i=-\log p_{i,y_i}$, gives the direction in which utilities should move: alternatives with too much probability receive positive gradients, and the chosen destination receives a negative gradient in the flat model.
+
+XGBoost then fits a regression tree $b_t$ to a second-order approximation of the loss, using the gradients $g_{ij}=\partial\ell_i/\partial u_{ij}$ and curvatures $h_{ij}$ of the candidate rows. For a leaf $A$ with $G_A=\sum_{(i,j)\in A}g_{ij}$ and $H_A=\sum_{(i,j)\in A}h_{ij}$, the leaf output is the standard
+
+$$
+w_A^*=-\frac{G_A}{H_A+\lambda}.
+$$
+
+The tree is added to the **utility function shared by all destinations**, with learning rate $\eta$:
+
+$$
+u_{ij}^{(t+1)}=u_{ij}^{(t)}+\eta\,b_t(z_{ij}).
+$$
+
+Because the update changes the probabilities of *all* destinations in a pass, gradients and curvatures are recomputed from the new categorical distributions before the next tree. This repeated re-evaluation of the choice likelihood is what links discrete-choice estimation to gradient boosting.
+
+**Curvature convention.** The exact categorical Hessian has off-diagonal terms linking alternatives of the same pass, whereas XGBoost takes one scalar per row. For the flat softmax the implemented convention is
+
+$$
+h_{ij}^{\mathrm{flat}}=\max\!\left\{\varepsilon,\frac{J_i}{J_i-1}p_{ij}(1-p_{ij})\right\},
+\qquad J_i=|\mathcal G_i|.
+$$
+
+The factor $J_i/(J_i-1)$ follows the [RUMBoost reference implementation](https://github.com/big-ucl/rumboost/blob/v1.0.2/rumboost/rumboost.py), and $\varepsilon$ keeps the curvature away from zero. For the CNL, **gradient and scalar curvature both come from the CNL likelihood**. The two models therefore share the boosting machinery and optimize different probability maps. The scalar curvature is a tree-fitting approximation and does not assume statistical independence among candidate destinations.
+
+**Dissimilarity update.** The CNL learns $\mu$ together with the trees. After every 20 trees, the utilities are held fixed and the categorical likelihood is minimized over $\rho\in[1,10]$ with bounded SLSQP. Only 10% of the proposed move is applied, to avoid abrupt changes in the choice probabilities:
+
+$$
+\rho^{(t+1)}=\rho^{(t)}+0.1\bigl(\rho^*-\rho^{(t)}\bigr).
+$$
+
+Boosting then resumes with probabilities and derivatives recomputed at the new dissimilarity. Validation cross entropy selects the joint checkpoint of tree ensemble and $\mu$. This alternating scheme extends the [RUMBoost cross-nested approach](https://transp-or.epfl.ch/heart/2024/abstracts/hEART_2024_paper_8384.pdf) to fixed pitch-control memberships and the shared PRESS XGBoost utility.
+
+## Model selection and validation
+
+### Hyperparameter screening
+
+Before the held-out evaluation, **five hyperparameter configurations** were compared for each model family on **one development partition**: six matches for training and two for validation. The partition was the same for flat and CNL, and the remaining two matches were left out of screening. The criterion was validation cross entropy. The screening was limited and did not cover the full hyperparameter space.
+
+| Maximum depth | Minimum child weight | L2 | Flat | CNL |
 |---:|---:|---:|---:|---:|
 | 6 | 5 | 3 | 5.808242 | **5.774532** |
 | 3 | 5 | 1 | 5.808396 | 5.800588 |
@@ -148,73 +104,32 @@ patience 100. The depth 3 ceiling was increased to 3,000; other ceilings were
 | 4 | 1 | 1 | 5.818136 | 5.794084 |
 | 4 | 5 | 1 | 5.819215 | 5.794499 |
 
-Depth probes interaction capacity; the depth 4 child thresholds probe leaf
-support. L2=3 is the retained targeted regularization probe for the more
-flexible depth 6 configuration. These are bounded computational experiments,
-not an exhaustive search. Minimum child weight is a sum of curvature, not a
-number of choices. Similar small gains do not establish that no additional
-information exists in the features.
+The lowest validation cross entropy selects **depth 4, `min_child_weight` 20, L2 1** for the flat model and **depth 6, `min_child_weight` 5, L2 3** for the CNL. Both use learning rate 0.05, row and column subsampling 0.8, CPU histogram boosting, at most 2,000 trees and early-stopping patience 100. These settings were **fixed before** the five-fold evaluation. Since the selected capacities differ, a performance gap cannot be attributed to nesting alone.
 
-Experiment **56** froze the lowest-validation-CE configuration separately for
-each family: flat **depth 4/child 20/L2=1**; CNL **depth 6/child 5/L2=3**. Ten new fits used
-five fixed **6 fit + 2 validation + 2 test** match splits. Every decision occurs
-exactly once in pooled test scoring. There is no eight-match choice refit.
-The family comparison includes different selected capacities, so its small
-difference cannot be attributed exclusively to adding nests.
+### Match-wise held-out evaluation
 
-| Shared setting | Value | Purpose in this experiment |
-|---|---|---|
-| Learning rate | 0.05 | Small utility corrections with a bounded runtime, also while the nested scale evolves. |
-| L2 | 1 flat; 3 CNL | Penalize leaf weights; the more flexible CNL setting retains its targeted regularization probe. |
-| Minimum child weight | 20 flat; 5 CNL | Family-specific winners of the leaf-support screening; a sum of curvature, not a number of choices. |
-| Row / column subsampling | 0.8 / 0.8 | Moderate stochastic regularization, without sampling the categorical denominator. |
-| Histogram bins / device | 256 / CPU | Bound split-search cost on the large candidate matrix. |
-| L1 / split-gain threshold | 0 / 0 | No extra sparsity or gain penalty beyond the tested controls. |
-| Maximum trees / patience | 2,000 / 100 | A ceiling plus validation stopping; reaching the ceiling would be disclosed. |
-| Initialization | Utilities 0, $\rho=1$ | Uniform cell probabilities and the flat nesting limit. |
-| Seed | 20261019 + fold; per-iteration seeding | Fixed reproducibility policy shared between families, without seed selection. |
+The selected configurations were evaluated on **five match-disjoint 6 + 2 + 2 partitions**:
 
-These settings are motivated design choices, not universally optimal defaults.
-Parameter meanings and regularization follow
-[XGBoost documentation](https://xgboost.readthedocs.io/en/release_3.2.0/parameter.html)
-and [Chen and Guestrin (2016)](https://arxiv.org/abs/1603.02754).
+- **Six training matches** fit the XGBoost utilities and the upstream feature components (physical pass-risk and ball-drive parameters, xT smoothing, categorical vocabulary).
+- **Two validation matches** select the tree checkpoint by early stopping, then fit a **single temperature-scaling parameter** with the trees held fixed. They contribute no training examples to the trees.
+- **Two test matches** are used only for performance evaluation and determine neither the number of trees nor the temperature.
 
-After selecting the ensemble/scale checkpoint, one temperature is fitted on
-the same two validation matches with frozen trees and scale, using categorical
-NLL and a nonnegative inverse temperature $\beta=1/T$. It acts on the **final
-choice distribution**, $p_{T,j}=p_j^\beta/\sum_kp_k^\beta$; for CNL it does not
-divide utilities inside nests or re-estimate $\mu$. Test labels are opened
-only after this calibration is frozen. Both raw and calibrated test results
-are retained. See [Guo et al. (2017)](https://proceedings.mlr.press/v70/guo17a.html).
+Each of the 6,810 decisions appears exactly once among the pooled test predictions. Upstream physical fitting and calibration are documented in the [pass-probability benchmark](02_pass_probability.qmd) and [ball-drive benchmark](01_ball_drive_risk.qmd). The full-data deployment refit is described at the end.
 
-## Final pooled results
+## Predictive performance
 
-| Model | Cross entropy | McFadden $R^2$ |
-|---|---:|---:|
-| Historical run 30, raw | 5.866894 | 33.881% |
-| Previous final 50 flat, temperature | 5.867196 | 33.878% |
-| Previous final 50 CNL, temperature | 5.848281 | 34.091% |
-| Corrected final 56 flat, raw | 5.828043 | 34.319% |
-| Corrected final 56 flat, temperature | 5.827787 | **34.322%** |
-| Corrected final 56 CNL, raw | 5.816478 | 34.450% |
-| Corrected final 56 CNL, temperature | 5.810553 | **34.516%** |
+Pooled held-out results over the five partitions, with each family's screening-selected hyperparameters:
 
-The corrected calibrated flat model improves CE by 0.039409 relative to the
-previous final 50 flat, or 0.444 percentage points of null gain. All ten match CEs
-and all five fold CEs improve. This combines the count correction and selection
-of child weight 20 rather than 5; it is not an isolated count-feature ablation.
-CNL improves over its previous final 50 version in nine matches/all five folds.
+| Model | Calibration | Cross entropy | McFadden $R^2$ |
+|---|---|---:|---:|
+| Flat | Raw | 5.828043 | 34.319% |
+| Flat | Temperature | **5.827787** | **34.322%** |
+| CNL | Raw | 5.816478 | 34.450% |
+| CNL | Temperature | **5.810553** | **34.516%** |
 
-Calibrated CNL improves CE by **0.017234** versus corrected calibrated flat,
-or **0.194 percentage points** of McFadden's measure; eight of ten match CEs
-favour CNL. The package retains the simpler **flat** model as agreed.
-Temperature changes flat pooled CE by only 0.000256 and CNL by 0.005926.
-The raw CNL-minus-flat match-bootstrap interval includes zero; the calibrated
-contrast's interval excludes zero. These are descriptive, fixed-prediction
-match bootstraps after repeated development, not uncertainty for the entire
-selection/training procedure and not evidence of a large structural benefit.
+Relative to the calibrated flat model, the calibrated CNL lowers cross entropy by **0.017234** and raises McFadden $R^2$ by **0.194 percentage points**. Eight of ten match-level cross entropies favor the CNL. The advantage is small.
 
-| Fold | Flat selected trees | CNL selected trees | CNL $\mu$ | Flat $T$ | CNL $T$ |
+| Fold | Flat trees | CNL trees | CNL $\mu$ | Flat $T$ | CNL $T$ |
 |---:|---:|---:|---:|---:|---:|
 | 0 | 1,408 | 359 | 0.5770 | 1.0169 | 1.0607 |
 | 1 | 1,444 | 399 | 0.5892 | 1.0170 | 1.0766 |
@@ -222,72 +137,23 @@ selection/training procedure and not evidence of a large structural benefit.
 | 3 | 1,527 | 359 | 0.6015 | 1.0069 | 1.0538 |
 | 4 | 1,213 | 319 | 0.6253 | 1.0037 | 1.0524 |
 
-All ten trajectories early-stopped before the 2,000-tree cap. Independent audit
-recomputed pooled scores from 6,810 unique predictions and verified exact choice
-IDs, candidate counts, test folds, model hashes/tree counts, corrected feature
-names, matching scales and validation-only temperatures. The deployed reader
-also replayed one saved outer-test choice per match, both families/raw and
-tempered, with maximum NLL difference 1.78e-15. These sample replay checks are
-separate from the full deployment-temperature portability audit below.
+All fits stopped before the tree ceiling. Given the modest CNL gain and its added structural and optimization complexity, **the flat model is retained for deployment** and the CNL is kept as an exploratory alternative. This result does not show that nesting is unhelpful in general.
 
-Download [screening 54](../data/benchmarks/pass_selection/screening54.csv),
-[pooled results](../data/benchmarks/pass_selection/final_pooled_metrics.csv),
-[fold summaries](../data/benchmarks/pass_selection/final_fold_summary.csv),
-[per-match metrics](../data/benchmarks/pass_selection/final_metrics_by_match.csv)
-and [paired comparison against experiment 50](../data/benchmarks/pass_selection/paired_vs_final50.csv).
-Earlier tables remain in the [historical data directory](../data/benchmarks/pass_selection/old/before_corrected56_20261027/final_pooled_metrics.csv).
+## Comparison with published results
 
-These repeatedly inspected ten matches supported model development and global
-single-fold configuration selection. This is an exploratory development
-comparison, not fully nested hyperparameter selection or a fresh independent
-confirmation. Candidate cells do not increase the number of independent
-choices or matches.
+| Study / model | Cross entropy ↓ | McFadden $R^2$ ↑ |
+|---|---:|---:|
+| **PRESS, flat + temperature scaling** | **5.827787** | **34.322%** |
+| Fernández et al. (2021), SoccerMap | 5.7134 | ≈35.543% |
 
-## Academic reference and deployment refits
+[Fernández, Bornn and Cervone (2021)](https://link.springer.com/article/10.1007/s10994-021-05989-6) report a pass-selection cross entropy of **5.7134** (Table 4). The McFadden value shown here is **derived** from that figure with a uniform $104\times68$ choice grid and is not a published metric. Their fully convolutional SoccerMap model was evaluated on a different dataset (**633 matches**), open-play cohort, split and candidate-grid construction. The comparison gives **context and no like-for-like ranking**, and the gap cannot be attributed to model architecture alone.
 
-[Fernández et al. (2021), Table 4](https://link.springer.com/article/10.1007/s10994-021-05989-6)
-reports pass-selection CE **5.7134**. A uniform 104×68 grid gives
-$\log(7072)=8.863899$, hence a **derived**, not directly reported, McFadden
-value of **35.543%**. Our flat calibrated value is **1.221 percentage points**
-lower. This comparison is contextual: their SoccerMap neural architecture,
-633-match dataset, split and open-play cohort differ. Their temperature
-calibration is also validation-based; no directly comparable pass-selection
-ECE is reported in that table.
+## Final fitted model
 
-Stalpaert's CounterRisk framework is also relevant, but its pass-selection
-component chooses among receivers and reports top-k receiver accuracy. Those
-numbers are not directly comparable to categorical NLL over our thousands of
-pitch cells; no equivalent cell-level McFadden value is inferred from them.
-[Stalpaert 2022, §4.3](https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf#page=43).
+After evaluation, the flat model was refitted on all ten matches with **1,444 trees** (the median validation-selected count across folds) and no further hyperparameter optimization. The deployment model uses full-data physical feature fits and smoothed xT. Its temperature, **$T=1.0132954379$**, was estimated from reconstructed raw out-of-fold distributions and is not a new held-out evaluation. The CNL full-data refit (359 trees, $\mu=0.6263079567$, $T=1.0558986079$) is kept for research and is not deployed by default.
 
-Experiment **57** completed separate full-ten-match refits of both families,
-with no new HPO. Tree counts are the medians of the five validation-selected experiment 56
-prefixes: **1,444 flat and 359 CNL**. Full-data pass-risk/ball-drive physics and
-smoothed 10×6 xT are used only for these deployment fits. CNL learns its scale
-jointly from its neutral initialization using the same fit-only update rule;
-it is not averaged across folds or adjusted after the fixed final tree count.
+For reproducibility, the [screening table](../data/benchmarks/pass_selection/screening54.csv), [pooled metrics](../data/benchmarks/pass_selection/final_pooled_metrics.csv), [fold summaries](../data/benchmarks/pass_selection/final_fold_summary.csv), [per-match results](../data/benchmarks/pass_selection/final_metrics_by_match.csv) and [installed artifact provenance](../docs/pass-selection-final-provenance.json) are provided as supplementary resources.
 
-One deployment temperature per family is fitted to reconstructed **raw experiment 56 OOF**
-choice distributions. This consumes those labels for calibration: its apparent
-fit score is not a new held-out benchmark. The preceding table remains the
-frozen 6+2+2 result with temperatures fitted only on each validation pair.
+## Limitations
 
-The verified flat export is installed as
-`skillcorner_outfield_pass_selection_flat_v3`, with **1,444 trees, μ=1 and
-T=1.0132954379**. It stores feature contract
-`ahead_of_carrier_and_target_v1`, vocabulary, exact column order, xT and physical
-model identities alongside its checksum-verified UBJ ensemble. The secondary
-CNL refit is preserved in research history: **359 trees, μ=0.6263079567 and
-T=1.0558986079**. It is not the default installed model. Per-match export checks
-match the public reader within 3.47e-17 (flat) / 4.86e-17 (CNL) in cell probability.
-
-Full OOF reconstruction encountered very small float32 input differences
-across computation environments. In affected folds, mean absolute NLL drift
-was of order 1e-7. Pointwise outliers were accepted only after concrete fixed-weight
-perturbations of 1–4 representable float32 steps in reconstructed angle/distance
-reproduced both saved raw and tempered NLL within 2e-9; the per-fold mean-absolute
-bound remained 1e-6. Unexplained discrepancies fail with retained diagnostics.
-The actual replay distributions, not perturbation-adjusted predictions, fit
-the deployment temperature. No observations were removed and the frozen experiment 56
-benchmark was not changed. This engineering audit is not a performance metric.
-[Installed artifact and full provenance](../docs/pass-selection-final-provenance.json).
+The nested specification gave only a small gain over the flat model. Two factors may explain this. The first is the limited data: ten matches provide few decisions from which to estimate the substitution structure among receiver nests. The second is the predictors: pass geometry, raw pitch control and the other contextual features are already informative, and XGBoost uses them flexibly, which leaves little for the nest structure to add.

@@ -47,6 +47,49 @@ def build_parameter_figure(root=ROOT):
     save(fig, 'vignette_01_drive_risk', root)
 
 
+def fitted_tackle_rate(model, speed, boundary, angle):
+    """Evaluate the saved additive log-rate using the runtime spline bases."""
+    from PRESS.model.ball_drive import _basis
+
+    speed, boundary, angle = np.broadcast_arrays(speed, boundary, angle)
+    features = np.concatenate([
+        _basis(model.design['speed_basis'], speed),
+        _basis(model.design['boundary_basis'], boundary),
+    ], axis=-1)[..., :model.count]
+    eta = (model.theta[0] + model.theta[1]*speed + model.theta[2]*boundary
+           + features @ model.theta[4:4+model.count])
+    if model.kind == 'individual_angle':
+        angle_features = _basis(model.angle_design, angle, full=True)
+        eta += ((angle_features @ model.theta[4+model.count:])
+                * (speed >= 1.))
+    return np.exp(eta)
+
+
+def build_tackle_effect_figure(root=ROOT):
+    """Plot conditional tackle-rate curves from the bundled MAP coefficients."""
+    from PRESS.model import BallDriveModel
+
+    model = BallDriveModel.pretrained()
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.8), layout='constrained')
+    speed = np.linspace(1., 10., 250)
+    boundary = np.linspace(0., 30., 250)
+    angle = np.linspace(0., 180., 250)
+    panels = [
+        (speed, fitted_tackle_rate(model, speed, 5., np.pi/2),
+         'Carrier speed (m/s)', r'$B=5$ m, $\phi=90^\circ$'),
+        (boundary, fitted_tackle_rate(model, 3., boundary, np.pi/2),
+         'Distance to nearest boundary (m)', r'$v_B=3$ m/s, $\phi=90^\circ$'),
+        (angle, fitted_tackle_rate(model, 3., 5., np.deg2rad(angle)),
+         'Defender approach angle (degrees)', r'$v_B=3$ m/s, $B=5$ m'),
+    ]
+    for ax, (x, rate, label, fixed) in zip(axes, panels):
+        ax.plot(x, rate, color='#245f82', lw=2)
+        ax.set(xlabel=label, ylabel=r'$\lambda_{\mathrm{tackle}}$ (s$^{-1}$)',
+               title=fixed, ylim=(0, None))
+        ax.grid(alpha=.15)
+    save(fig, 'vignette_01_tackle_splines', root)
+
+
 def finish_case_plot(press, case, phase, root=ROOT):
     """Add case labels to a figure already drawn by PRESS visualization.
 

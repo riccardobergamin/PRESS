@@ -5,102 +5,45 @@ jupyter: python3
 
 [Model and example](../vignettes/04_action_selection/04_action_selection.ipynb) · [All benchmarks](../benchmark.qmd)
 
-The model estimates **pass versus carry**, conditional on the current tracking
-state. It does not predict whether the chosen action succeeds. Its native
-XGBoost output is $\pi(s)=P(\mathrm{pass}\mid s)$; carrying has probability
-$1-\pi(s)$. Together with the separate execution models this gives
+The action-selection model estimates the probability that the ball carrier passes, $\pi(s)=P(\mathrm{pass}\mid s)$, at a given game state $s$; the probability of carrying is $1-\pi(s)$. The target is the observed **choice of action** and not the success of its execution. The classifier is a native XGBoost model with a binary logistic objective ([Chen and Guestrin, 2016](https://arxiv.org/abs/1603.02754)), calibrated with a single temperature parameter. The [model vignette](../vignettes/04_action_selection/04_action_selection.ipynb) introduces the 30 input features, the probabilistic summaries of hypothetical passing options and an executable example.
+
+## Evaluation cohort
+
+The final cohort comprises **16,918 decisions across ten SkillCorner matches**, of which **7,770 are passes and 9,148 are carries**. Carriers are outfield players, and individual possessions that end in a shot are excluded. Pass labels occur at the actual release. Carry labels are complete one-second successful carries and failed carries, including failures before one second.
+
+The segmentation of individual possessions into decision checkpoints is discussed in [Possessions and checkpoints](../vignettes/06_possession_and_checkpoint_setup/06_possession_and_checkpoint_setup.ipynb).
+
+
+## Features
+
+The model uses **30 features**, 28 numerical and two categorical, in four groups: carrier and accessible space (6), spatial and tactical configuration (8), passing opportunities (11), and possession and match context (5). Their definitions are given in the [vignette](../vignettes/04_action_selection/04_action_selection.ipynb). The original start and previous-action categories, including `unknown`, are kept, and missing or unseen levels receive an explicit encoding. All features are built from information available at the decision frame, so future execution outcomes, receivers, remaining possession duration, player identity and role are excluded.
+
+The upstream components are refitted for each evaluation split. Pass-completion physics, physical carry risk and arrival dispersion, and destination-choice utilities are fitted on the same **six training matches** as the action classifier, while the xT surface is fitted on all ten matches. BCOS uses the fold-specific carry-arrival dispersion (see the [kinematic conventions](../docs/kinematic-parameter-conventions.md)). Production components fitted on all ten matches are not used to create benchmark inputs.
+
+## Model and learning
+
+For score $f_\theta(z_i)$ and $\pi_i=\operatorname{sigmoid}(f_\theta(z_i))$, the regularized Bernoulli loss is
 
 $$
-h(s)=[1-\pi(s)]\,P(\mathrm{loss\ within\ 1s}\mid\mathrm{carry},s)
-      +\pi(s)\sum_jq_j(s)[1-p_j(s)],
+\mathcal L(\theta)=-\sum_i\big[y_i\log\pi_i+(1-y_i)\log(1-\pi_i)\big]+\Omega(\theta),
+\qquad y_i=\mathbf1\{\mathrm{pass}\}.
 $$
 
-where $q_j$ is conditional pass-destination choice and $p_j$ is calibrated pass
-completion at the hypothetical destination. The action model learns the
-population's average choices, not an optimal policy or individual skill.
-The [example vignette](../vignettes/04_action_selection/04_action_selection.ipynb)
-defines every input and illustrates the joint outcome-weighted aggregates.
+The native gradient and curvature with respect to the score are $\pi_i-y_i$ and $\pi_i(1-\pi_i)$, so training uses standard XGBoost with no custom likelihood.
 
-## Decisions, features and fold construction
+The raw probabilities are then calibrated with a single temperature parameter $T>0$, fitted on the validation matches with the trees held fixed ([Guo et al., 2017](https://arxiv.org/abs/1706.04599)):
 
-The final cohort has **16,918 decisions: 7,770 passes and 9,148 carries**, from
-the same ten matches. Carriers are outfield players, individual-control endpoints
-are matched, and shot-ending individual possessions are excluded. Successful
-carries are full one-second actions; failed carries remain choices even when
-they fail before one second. Successful fractional tails and additional hazard
-snapshots are excluded from action-choice training. A 2.4-second possession
-ending with a pass gives choices at 0 and 1 s for carrying, and at 2.4 s for
-passing; the 2-second snapshot is only for hazard evaluation. A pass after
-0.4 s contributes the release choice, with the original start context.
+$$\pi_T=\operatorname{sigmoid}\!\left(\frac{\operatorname{logit}(\pi)}{T}\right).$$
 
-Raw granular start/previous labels, including `unknown`, are retained. The
-physical carry model's OBE loss-parent filter is **not** imposed on action
-choices: choosing to carry and successfully executing it are separate tasks.
-No future outcome, receiver, remaining duration, role or player identity enters.
+The temperature is chosen by validation negative log likelihood, and the calibrated probabilities are the model's output.
 
-There are **30 conceptual inputs: 28 numeric and two categorical**, grouped as
-five context, six carrier/pressure, eight spatial/tactical and eleven pass-option
-features. Context includes completed whole carries, not fractional possession
-age. Carrier velocity uses speed and angle to attack. Spatial values include
-own/opponent xT, nearest-line index/distance at the one-second carrier
-projection, and current counts ahead of the carrier. Passing summaries combine
-$q_j$ with calibrated $p_j$: expected completion, own-success/opponent-failure
-xT, four line and four ahead-count aggregates. These are joint weighted sums,
-not conditional branch means. Counts use the carrier team's attack direction
-for both rosters; backward destinations can have more players ahead.
+## Model selection and validation
 
-Five outer folds use **6 fit + 2 validation + 2 test matches**. Every state has
-five versions of its learned inputs. For each action fold, pass-risk parameters,
-physical carry parameters/bases, destination-choice utilities and xT come from
-the same six fitting matches. Pass completion uses their separate two-match
-isotonic transform; destination choice uses its saved two-match temperature and
-raw pitch control internally. BCOS uses that fold's carry-arrival dispersion,
-a 40 m domain, a 1 m target grid, 0.03125 m path spacing and 0.04 s temporal
-integration. Full-data deployment fits never supply these benchmark features.
-All stages use the final overspeed-preserving TTI where specified; the component
-speed caps remain task-specific. See the [kinematic conventions](../docs/kinematic-parameter-conventions.md).
+### Hyperparameter search
 
-Fitting-state upstream scores are in-sample to their fitted component models.
-The same two validation matches support upstream calibration, action tuning and
-early stopping. This is a frozen component stack with an outer held-out test,
-not independently nested tuning of every layer. These ten development matches
-have also informed earlier experiments; no untouched external benchmark is claimed.
+In each of five match-disjoint **6 + 2 + 2 partitions**, all **144 configurations** of a grid were fitted, giving **720 fits**. The grid varied maximum depth (3, 4, 6, 8), minimum child weight (1, 5, 20), L2 leaf regularization (0.1, 1, 3, 10) and learning rate (0.03, 0.05, 0.10). Row and column sampling were fixed at 0.8, and training allowed at most 2,000 trees with early-stopping patience 100. Validation log loss selected the configuration and the tree prefix of each partition, and every candidate stopped before the tree ceiling.
 
-## Native likelihood and hyperparameter search
-
-Each tree ensemble gives a score $f_\theta(z)$ and probability
-$\pi=\operatorname{sigmoid}(f_\theta(z))$. Native `binary:logistic` minimizes
-Bernoulli negative log-likelihood with tree regularization:
-
-$$
--\sum_i\{y_i\log\pi_i+(1-y_i)\log(1-\pi_i)\}+\Omega(\theta),
-\qquad y_i=1\text{ for pass},\quad y_i=0\text{ for carry}.
-$$
-
-The native score gradient is $\pi_i-y_i$ and its curvature is
-$\pi_i(1-\pi_i)$. No custom categorical-choice derivatives or nests are used
-for this binary task [@chen2016xgboost].
-
-| Parameter | Tested values / setting | Reason |
-|---|---|---|
-| Maximum depth | 3, 4, 6, 8 | Compare modest through richer interactions. |
-| Minimum child weight | 1, 5, 20 | Vary minimum Hessian support; this is not a fixed number of observations. |
-| L2 leaf regularization | 0.1, 1, 3, 10 | Compare weak and stronger leaf-weight shrinkage. |
-| Learning rate | 0.03, 0.05, 0.10 | Compare slower and faster learning within the same ceiling. |
-| Trees / early stopping | At most 2,000 / patience 100 | Select the best validation prefix and report cap hits. |
-| Row / column sampling | 0.8 / 0.8 | Fixed stochastic regularization across candidates. |
-| Tree method | CPU `hist`, 256 bins | Efficient native training at this sample size. |
-| Seed | 20261026 + fold; per-iteration sampling | Reproducible fold-specific sampling. |
-
-These are project search ranges, not literature-derived optimal values. Their
-meaning follows the [XGBoost parameter documentation](https://xgboost.readthedocs.io/en/stable/parameter.html).
-All **144 configurations per fold, 720 fits**, are trained without progressive
-screening or resampling. Vocabulary, one-hot columns and the native intercept
-use fitting data only. Validation logloss selects configuration and tree prefix;
-that selection is saved before opening test features. Missing/unseen categories
-are explicit. No classifier calibration is used in the primary result.
-
-| Fold | Depth | Child weight | L2 | Learning rate | Selected trees |
+| Fold | Depth | Minimum child weight | L2 | Learning rate | Selected trees |
 |---|---:|---:|---:|---:|---:|
 | 0 | 4 | 5 | 3 | 0.03 | 541 |
 | 1 | 8 | 1 | 10 | 0.03 | 217 |
@@ -108,113 +51,60 @@ are explicit. No classifier calibration is used in the primary result.
 | 3 | 4 | 1 | 0.1 | 0.03 | 419 |
 | 4 | 8 | 20 | 3 | 0.03 | 248 |
 
-Every candidate early-stopped below the ceiling. Selected held-out predictions
-were independently replayed from the saved ensembles, with maximum probability
-difference 1.20e-7. [Selected configurations](../data/benchmarks/action_selection/selected_configurations.csv)
-and [encoded schemas](../data/benchmarks/action_selection/feature_schemas.json).
+### Match-wise held-out evaluation
 
-## Pooled results and published comparisons
+In each partition, **six matches** were used to fit the XGBoost classifier and the upstream feature components. **Two validation matches** selected the configuration and, by early stopping, the number of trees, and then fitted a **single temperature-scaling parameter** with the trees held fixed. The remaining **two test matches** were reserved exclusively for performance evaluation. One-hot vocabularies and encoded columns were fitted on training matches only. Each of the 16,918 decisions appears exactly once among the pooled test predictions.
 
-Pooled evaluation concatenates each held-out decision once. Null probabilities
-are the corresponding six-fit pass proportions. CE uses natural logarithms;
-ECE uses ten equal-count rank bins, recalculated on the pooled scores.
+## Predictive performance
+
+The pooled null model predicts the pass proportion of the corresponding six training matches. Cross entropy (CE) uses natural logarithms, and expected calibration error (ECE) uses ten equal-count rank bins on the pooled predictions.
 
 | Model | CE | Null CE | Gain over null | Brier | AUC | Quantile ECE |
 |---|---:|---:|---:|---:|---:|---:|
-| **PRESS, native XGBoost** | **0.568592** | **0.690053** | **17.602%** | **0.193975** | **0.77083** | **1.026%** |
-| Temperature diagnostic only | 0.568411 | 0.690053 | 17.628% | 0.193872 | 0.77092 | 0.817% |
+| Native XGBoost (raw) | 0.568592 | 0.690053 | 17.602% | 0.193975 | 0.77083 | 1.026% |
+| **PRESS, temperature scaling** | **0.568411** | **0.690053** | **17.628%** | **0.193872** | **0.77092** | **0.817%** |
 
-Held-out fold gains range from **16.20% to 19.02%**. Pooled ECE is not the
-average of fold ECE. [Pooled metrics](../data/benchmarks/action_selection/metrics.csv),
-[per-fold scores](../data/benchmarks/action_selection/metrics_by_fold.csv),
-[per-match scores](../data/benchmarks/action_selection/metrics_by_match.csv).
+Fold-level gains over the null range from **16.20% to 19.02%**. The uncalibrated classifier's mean absolute bin deviation is approximately **1.03 percentage points**, with a maximum near **2.41 points** (@fig-action-selection-calibration).
 
-![Action selection: pooled five-fold calibration and native signed bin deviations. Each bin contains 1,691 or 1,692 held-out decisions. The temperature curve is a separate diagnostic, not the selected benchmark output.](../figures/action_selection_pooled_calibration.png){#fig-action-selection-calibration}
+![Pooled five-fold calibration of the classifier before and after temperature scaling. Each quantile bin contains 1,691 or 1,692 held-out decisions.](../figures/action_selection_pooled_calibration.png){#fig-action-selection-calibration}
 
-The native curve is close to the diagonal: average absolute bin deviation is
-**1.03 percentage points**, with maximum bin deviation about **2.41 points**.
-This does not establish perfect pointwise or subgroup calibration. ECE depends
-on binning and sample size; no universal 1% acceptance threshold is assumed.
+The fold temperatures were **1.0875, 1.0256, 1.0279, 1.0153 and 1.0537**. Relative to the raw output, temperature scaling reduces pooled ECE from **1.026% to 0.817%**, with a CE change of **−0.000180** and a null-gain change of **+0.026 percentage points**. The gain is small, and the calibrated version is the one retained.
 
-| Published binary action-choice model | CE | Null CE | Gain over null |
+## Feature importance
+
+Split-gain importance for the deployed model and the five outer-fold models is shown below, with one-hot levels aggregated to their original feature. Gain shares describe contributions to training splits, not causal effects or percentages of predictive accuracy.
+
+![Normalized split-gain shares for the full-data refit and five held-out fold models.](../figures/feature_importance_action_selection.png)
+
+| Feature | Production gain share | Outer-fold rank range |
+|---|---:|---:|
+| One-second carry success | 22.09% | 1–1 |
+| Carrier speed | 8.00% | 2–2 |
+| Team line on pass success | 6.85% | 3–9 |
+| Opponent line on pass failure | 5.32% | 5–14 |
+| BCOS | 4.10% | 4–7 |
+| Previous action | 4.04% | 3–18 |
+
+Carry-success probability and carrier speed rank first and second in every outer fold.
+
+Two context extensions were also assessed without changing the feature set: the verified origin of the team-possession chain and the previous completed-pass count. With fixed hyperparameters, paired fits and three seeds, the origin feature changed null gain by an average of **+0.105 percentage points**, the count by **+0.039** and both together by **+0.053**, with the joint change ranging from **−0.056 to +0.148 points**. These small, variable changes did not motivate adding the features.
+
+## Comparison with published results
+
+| Binary action-choice model | CE | Null CE | Gain over null |
 |---|---:|---:|---:|
-| Stalpaert, major previous-action categories | 0.5762 | 0.6602 | 12.72% |
-| PRESS, native final development benchmark | 0.568592 | 0.690053 | 17.60% |
-| Stalpaert, specific previous-action types included | 0.4807 | 0.6602 | 27.19% |
+| Stalpaert, major action categories | 0.5762 | 0.6602 | 12.72% |
+| **PRESS, temperature scaling** | **0.568411** | **0.690053** | **17.63%** |
+| Stalpaert, specific action types included | 0.4807 | 0.6602 | 27.19% |
 
-Stalpaert explicitly uses **human-annotated action types**, alongside seven broad
-categories, and reports the large benefit of the specific types in §4.6/Table4.6.
-Those inputs cannot be reproduced from our provider labels without equivalent
-annotations. PRESS is numerically between these two references; differing data,
-prevalence, features and validation prevent a controlled superiority claim.
-Stalpaert's Table4.7 reports postcalibration action ECE 2.17%; it is not assigned
-to both uncalibrated Table4.6 variants here [@stalpaert2022].
-[Published values and locators](../data/benchmarks/action_selection/literature_comparison.csv).
-Fernández motivates the action decomposition and one-second carry convention,
-but its **shoot/pass/carry** classifier has a different label space and is not
-a direct numerical baseline for this binary task [@fernandez2021].
+[Stalpaert (2022)](https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf) studies the same binary pass–carry choice. PRESS does better than his model with the major action categories but does not reach the performance of the model with the granular, human-annotated action types. That gain may be tied to the particular annotation, and we cannot reproduce it.
 
-The historical PRESS gain of **15.965%** used 17,677 decisions. Relative to it,
-the current cohort excludes 1,094 goalkeeper decisions and recovers 335 otherwise
-valid decisions with unknown context; 16,583 decisions overlap. Splits and
-upstream feature fitting also changed. The difference cannot be attributed
-solely to richer features or BCOS.
-[Exact cohort audit](../data/benchmarks/action_selection/historical_cohort_comparison.json).
+[Fernández, Bornn and Cervone (2021)](https://link.springer.com/article/10.1007/s10994-021-05989-6) motivate the decomposition of action choice and execution. Their shoot/pass/carry classifier has a different label space and is not used as a numerical baseline for this binary task.
 
-## Small context and calibration diagnostics
+## Final fitted model
 
-Origin of the verified team-possession chain and its previously completed pass
-count were tested separately and together. All original inputs were reused;
-each fold's selected hyperparameters stayed fixed, with fresh paired baseline
-fits and the same early-stopping procedure. Across three seeds, origin adds
-**0.105 percentage points** of null gain on average, count **0.039**, and both
-**0.053**. Both together range from -0.056 to +0.148 points. Chains with missing
-links retain unresolved origin and conservative verified-pass counts; no rows
-are removed. This modest, variable gain does not justify expanding the selected
-feature set. Local baselines were freshly refitted and not bit-identical to
-cluster training; these changes are relative to each paired local baseline,
-not a revision of the frozen 17.602% result.
-[All seed comparisons](../data/benchmarks/action_selection/context_probe_by_seed.csv)
-and [summary](../data/benchmarks/action_selection/context_probe_summary.csv).
+The production model is a native XGBoost refit on all ten matches and **16,918** decisions, with **277 trees** and temperature scaling (**T = [value]**). Its configuration (depth 6, minimum child weight 1, L2 10, learning rate 0.03) has the lowest mean validation CE across the five fold-specific search grids. For this configuration, the best tree prefixes in the five folds are 242, 329, 369, 253 and 277, and their median, 277, fixes the tree count. Outer-test performance was not used to select these deployment values.
 
-A separate inexpensive check fits one positive temperature per frozen fold:
-$\pi_T=\operatorname{sigmoid}[\operatorname{logit}(\pi)/T]$. It minimizes
-Bernoulli NLL on the existing two validation matches, never test ECE; the
-underlying trees remain fixed [@guo2017calibration]. Temperatures are
-**1.0875, 1.0256, 1.0279, 1.0153 and 1.0537**. Pooled ECE improves from
-1.026% to 0.817%, while CE changes by only -0.000180 and gain by +0.026 points.
-The native output remains the primary model. This is a post-development
-diagnostic reusing validation already used for selection, not an independent
-calibration holdout or a test-selected deployment rule.
-[Temperature values](../data/benchmarks/action_selection/temperature_diagnostic.csv).
+Production features use the full-data pass-risk, carry-risk, destination-choice and xT models, and BCOS uses the full-data carry dispersion. All held-out scores above refer to the five outer-fold models and not to the production refit.
 
-## Production refit and public example
-
-The package now loads **`skillcorner_outfield_action_selection_v2`**, the verified
-full-ten-match native XGBoost refit: **16,918 decisions, 277 trees, no classifier
-scaling**. Its single configuration minimizes mean validation CE across the five
-AS70 grids: depth6, child weight1, L2=10, learning rate0.03. For that same
-configuration the five best prefixes are242/329/369/253/277; their median277
-fixes the deployment tree count. No outer-test score selects these values.
-These are deployment rules, not a new held-out performance result.
-
-All production feature inputs use the full-data pass-risk, carry-risk, flat
-destination-choice and xT artifacts. BCOS uses full-data carry s=0.2996318905,
-with the same verified numerical convention; no fold model or averaged fold
-coefficient supplies these production features. The existing full-data raw-PC
-cache is reused for6,808 identical states, and the remaining10,110 are computed.
-
-The export independently replays the full17k model matrix and200 native-grid
-feature fixtures through the public reader, with **zero probability and feature
-differences**. The revised runtime retains raw unknown/missing context, integer
-past-carry counts, signed line distances and the agreed4+4 aggregates. BCOS
-returns a probability field and its probability-weighted **area in m²**; use
-`BCOS area` as the scalar input. Old weights and code are archived together.
-
-The [example](../vignettes/04_action_selection/04_action_selection.ipynb) now calls
-this installed model on a synthetic frame and uses the package pitch plot.
-Coarse example grids remain illustrative. Reported benchmark scores and the
-pooled calibration curve still come from AS70 held-out predictions, not the
-full-data refit's training scores.
-[Refit and runtime provenance](../docs/action-selection-refit-provenance.json),
-[benchmark source hashes](../docs/action-selection-benchmark-provenance.json).
+For reproducibility, the [selected configurations](../data/benchmarks/action_selection/selected_configurations.csv), [encoded feature schemas](../data/benchmarks/action_selection/feature_schemas.json), [pooled metrics](../data/benchmarks/action_selection/metrics.csv), [fold scores](../data/benchmarks/action_selection/metrics_by_fold.csv), [per-match scores](../data/benchmarks/action_selection/metrics_by_match.csv), [temperature values](../data/benchmarks/action_selection/temperature_diagnostic.csv), [literature values and locators](../data/benchmarks/action_selection/literature_comparison.csv), [importance tables](../data/benchmarks/feature_importance/README.md), [context-extension results](../data/benchmarks/action_selection/context_probe_summary.csv) with [seed-level comparisons](../data/benchmarks/action_selection/context_probe_by_seed.csv), [refit provenance](../docs/action-selection-refit-provenance.json) and [benchmark provenance](../docs/action-selection-benchmark-provenance.json) are provided as supplementary resources.

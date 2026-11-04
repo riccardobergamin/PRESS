@@ -4,6 +4,7 @@ from scipy.interpolate import griddata
 from matplotlib.lines import Line2D
 from mplsoccer import Pitch
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import PercentFormatter
 from PRESS.utils.frame import frame_to_long, resolve_pitch_size
 
 
@@ -586,10 +587,11 @@ def plot_pi(
     legend_fontsize=8,
 ):
     """
-    Plot stored defender-specific tackle probabilities on the pitch.
+    Plot each defender's share of the stored ball-drive loss probability.
 
-    Colors and annotations show probabilities, rather than rate parameters.
-    The title reports the total drive-loss probability. Returns None.
+    Colors show cause-specific probabilities divided by the total loss
+    probability, on a fixed 0–100% scale. Zero total risk gives zero shares.
+    The title reports the absolute drive-loss probability. Returns None.
     """
 
     if frame_id not in press.results["PI"]:
@@ -639,9 +641,14 @@ def plot_pi(
     # Pressing intensity
     # ----------------------------------
 
-    pressing_intensity = press.results["PI"][frame_id][
-        "Individual tackle probabilities"
-    ]
+    result = press.results["PI"][frame_id]
+    total_loss_probability = float(result["Ball drive loss probability"])
+    cause_probabilities = np.asarray(result["Individual tackle probabilities"], dtype=float)
+    pressing_intensity = (
+        cause_probabilities / total_loss_probability
+        if total_loss_probability > 0.0
+        else np.zeros_like(cause_probabilities)
+    )
 
 
     # ----------------------------------
@@ -726,11 +733,6 @@ def plot_pi(
             linewidth=0.7,
             zorder=3,
         )
-
-        ax.annotate(f"{int(player.shirt_num)}: {intensity:.3f}",
-                    (player.x, player.y), xytext=(5, 5),
-                    textcoords="offset points", fontsize=legend_fontsize, zorder=5)
-
 
     # ----------------------------------
     # Attacking team
@@ -823,10 +825,11 @@ def plot_pi(
 
 
     cbar.set_label(
-        "Defender-specific tackle probability",
+        "Share of total loss risk",
         fontsize=legend_fontsize,
     )
 
+    cbar.ax.yaxis.set_major_formatter(PercentFormatter(xmax=1.0))
 
     cbar.ax.tick_params(
         labelsize=legend_fontsize
