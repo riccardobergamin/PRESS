@@ -1,0 +1,23 @@
+{
+  "source": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/102_h_pass_branch_diagnostics_20261105/results/03_pass_branch_decomposition/pass_subset_means_bootstrap.csv",
+  "source_sha256": "fd946c455b2454f903dc158a79f6f0079b3234f24a4a805f3dc7049ee934f29f",
+  "n_high_states": 851,
+  "n_high_observed_passes": 457,
+  "bootstrap_replicates": 2000,
+  "seed": 20261030,
+  "percentiles": [
+    2.5,
+    97.5
+  ],
+  "actual_destination_used_only_for_retrospective_diagnosis": true,
+  "action_selection": "native",
+  "pass_completion": "fold-specific isotonic",
+  "models_refitted": false,
+  "curiosity_tests_published": false,
+  "current_h_cohort": "terminal_action_covered",
+  "current_h_n_states": 14919,
+  "current_h_high_states": 841,
+  "current_h_high_passes": 457,
+  "observed_pass_subset_unchanged": true,
+  "coverage_provenance": "docs/h-band-terminal-coverage-20261105.json"
+}

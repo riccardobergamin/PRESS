@@ -33,8 +33,10 @@ def main():
         (panels[1], 'xloss_with_action_choice', 'Individual xLoss', 'Predicted terminal loss probability', 'Observed terminal loss frequency'),
     ]:
         axes(title, xlabel, ylabel, ax=ax)
-        selected = bins[bins.cohort.eq('verified_endpoints') & bins.model.eq(model)]
-        expected = metrics[metrics.cohort.eq('verified_endpoints') & metrics.model.eq(model)].iloc[0]
+        cohort = 'verified_endpoints'
+        selected = bins[bins.cohort.eq(cohort) & bins.model.eq(model)]
+        expected = metrics[metrics.cohort.eq(cohort) & metrics.model.eq(model)].iloc[0]
+        assert int(expected.n) == 15085
         ece = points(ax, selected, 'predicted', 'observed', 'PRESS', expected_n=15085)
         assert abs(ece-expected.ece_quantile10) < 1e-12
     save(fig, 'composed_risk_pooled_calibration')

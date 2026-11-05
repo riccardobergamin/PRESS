@@ -3,9 +3,9 @@ title: "Pass selection benchmark"
 jupyter: python3
 ---
 
-[Model and example](../vignettes/03_pass_selection/03_pass_selection.ipynb) · [All benchmarks](../benchmark.qmd)
+[Model and example](../vignettes/03_transition_model/03_pass_selection.ipynb) · [All benchmarks](../benchmark.qmd)
 
-The pass-selection model gives the probability of each candidate destination, conditional on a pass attempt. A shared XGBoost ensemble produces a utility for every destination, and a softmax turns the utilities into a categorical choice distribution. We also evaluate an exploratory cross-nested logit (CNL) that groups destinations probabilistically by potential receiver. The [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb) introduces the choice model, its predictors and an executable example. The likelihood-based tree learning follows RUMBoost [@salvade2024rumboost].
+The pass-selection model gives the probability of each candidate destination, conditional on a pass attempt. A shared XGBoost ensemble produces a utility for every destination, and a softmax turns the utilities into a categorical choice distribution. We also evaluate an exploratory cross-nested logit (CNL) that groups destinations probabilistically by potential receiver. The [model vignette](../vignettes/03_transition_model/03_pass_selection.ipynb) introduces the choice model, its predictors and an executable example. The likelihood-based tree learning follows RUMBoost [@salvade2024rumboost].
 
 ## Evaluation cohort
 
@@ -19,7 +19,7 @@ The cohort contains every pass of the final pass-probability cohort and also the
 
 ## Features
 
-The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). Definitions and groups are given in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). Pitch control enters in its raw form, without isotonic calibration, and the observed receiver and outcome are excluded.
+The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). Definitions and groups are given in the [model vignette](../vignettes/03_transition_model/03_pass_selection.ipynb). Pitch control enters in its raw form, without isotonic calibration, and the observed receiver and outcome are excluded.
 
 ## Choice specifications and learning
 
@@ -110,7 +110,7 @@ Before the held-out evaluation, **five hyperparameter configurations** were comp
 | 4 | 1 | 1 | 5.818136 | 5.794084 |
 | 4 | 5 | 1 | 5.819215 | 5.794499 |
 
-The lowest validation cross entropy selects **depth 4, `min_child_weight` 20, L2 1** for the flat model and **depth 6, `min_child_weight` 5, L2 3** for the CNL. Both use learning rate 0.05, row and column subsampling 0.8, CPU histogram boosting, at most 2,000 trees and early-stopping patience 100. These settings were **fixed before** the five-fold evaluation. There is one boosting trajectory per family/fold, initialized at zero utilities and $\mu=1$; no full-training multistart is used. The screening used the fold-0 development partition once, and no new hyperparameter search is run inside every outer fold. Its validation matches are outer-test matches in other folds (see the [scope of the development benchmark](../benchmark.qmd#scope-of-the-development-benchmark)). Since the selected capacities differ, a performance gap cannot be attributed to nesting alone.
+The lowest validation cross entropy selects **depth 4, `min_child_weight` 20, L2 1** for the flat model and **depth 6, `min_child_weight` 5, L2 3** for the CNL. Both use learning rate 0.05, row and column subsampling 0.8, CPU histogram boosting, at most 2,000 trees and early-stopping patience 100. These settings were **fixed before** the five-fold evaluation. There is one boosting trajectory per family/fold, initialized at zero utilities and $\mu=1$; no full-training multistart is used. The screening used the fold-0 development partition once, and no new hyperparameter search is run inside every outer fold. Its validation matches are outer-test matches in other folds (see the [scope of the development benchmark](../benchmark.qmd#scope-of-the-development-benchmark)).
 
 ### Match-wise held-out evaluation
 
@@ -122,7 +122,7 @@ The selected configurations were evaluated on **five match-disjoint 6 + 2 + 2 pa
 
 There is **no eight-match tree refit** before testing. Temperature scaling is applied to the final destination distribution (after nest aggregation for CNL), without changing utilities, dissimilarity or the selected tree prefix. It is fitted after selection and is not the criterion used for the preceding hyperparameter screening or early stopping.
 
-**Temperature scaling.** The calibrated distribution is $p_{ij}^{(T)}\propto p_{ij}^{1/T}$, as defined in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). The single scalar $T$ minimizes the cross entropy of the observed choices on the two validation matches. $T>1$ flattens the distribution and $T<1$ concentrates it. The fitted values are close to one in every fold (table below), and the gain in cross entropy is small. The deployed flat model retains the temperature.
+**Temperature scaling.** The calibrated distribution is $p_{ij}^{(T)}\propto p_{ij}^{1/T}$, as defined in the [model vignette](../vignettes/03_transition_model/03_pass_selection.ipynb). The single scalar $T$ minimizes the cross entropy of the observed choices on the two validation matches. $T>1$ flattens the distribution and $T<1$ concentrates it. The fitted values are close to one in every fold (table below), and the gain in cross entropy is small. The deployed flat model retains the temperature.
 
 Each of the 6,810 decisions appears exactly once among the pooled test predictions. Upstream physical fitting and calibration are documented in the [pass-probability benchmark](02_pass_probability.qmd) and [ball-drive benchmark](01_ball_drive_risk.qmd). The full-data deployment refit is described at the end.
 
@@ -147,7 +147,7 @@ Relative to the calibrated flat model, the calibrated CNL lowers cross entropy b
 | 3 | 1,527 | 359 | 0.6015 | 1.0069 | 1.0538 |
 | 4 | 1,213 | 319 | 0.6253 | 1.0037 | 1.0524 |
 
-All fits stopped before the tree ceiling. Given the modest CNL gain and its added structural and optimization complexity, **the flat model is retained for deployment** and the CNL is kept as an exploratory alternative. This result does not show that nesting is unhelpful in general.
+All fits stopped before the tree ceiling. Given the modest CNL gain and its added structural and optimization complexity, **the flat model is retained for deployment** and the CNL is kept as an exploratory alternative.
 
 ## Comparison with published results
 
@@ -156,7 +156,7 @@ All fits stopped before the tree ceiling. Given the modest CNL gain and its adde
 | **PRESS, flat + temperature scaling** | **5.827787** | **34.322%** |
 | Fernández et al. (2021), SoccerMap | 5.7134 | ≈35.543% |
 
-Fernández, Bornn and Cervone [@fernandez2021] report a pass-selection cross entropy of **5.7134** (Table 4). The McFadden value shown here is **derived** from that figure with a uniform $104\times68$ choice grid and is not a published metric. Their fully convolutional SoccerMap model was evaluated on a different dataset (**633 matches**), open-play cohort, split and candidate-grid construction. The comparison gives **context and no like-for-like ranking**, and the gap cannot be attributed to model architecture alone.
+Fernández, Bornn and Cervone [@fernandez2021] report a pass-selection cross entropy of **5.7134** (Table 4). The McFadden value shown here is **derived** from that figure with a uniform $104\times68$ choice grid. Their fully convolutional SoccerMap model was evaluated on a different dataset (**633 matches**), open-play cohort, split and candidate-grid construction. The comparison is reported as context.
 
 ## Final fitted model
 
@@ -169,3 +169,5 @@ For reproducibility, the [screening table](../data/benchmarks/pass_selection/scr
 The nested specification gave only a small gain over the flat model. A plausible explanation is that the predictors (pass geometry, raw pitch control and the other contextual features) are already informative and that XGBoost uses them flexibly, which leaves little for the nest structure to add.
 
 Hyperparameter screening compares five configurations per model family on a single development partition. The computational cost of boosting over the full candidate grid does not allow a wider search, or a search repeated inside each outer fold.
+
+Unsuccessful passes enter the training data with their recovery location as the observed destination. This location is a proxy for the intended destination and may be an interception point where the passer did not aim. If so, the model assigns probability to regions that are contested more often than the intended destinations are, and the resulting distribution leans towards riskier destinations. We have not tested this explanation. A direct check would refit the choice model on completed passes only and compare the downstream results.

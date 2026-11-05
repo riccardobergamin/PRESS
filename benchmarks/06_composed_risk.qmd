@@ -3,7 +3,7 @@ title: "Composed-risk benchmark"
 jupyter: python3
 ---
 
-[All benchmarks](../benchmark.qmd)
+[Model and example](../vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) · [All benchmarks](../benchmark.qmd)
 
 ## Composed predictions
 
@@ -27,11 +27,17 @@ No additional predictor, hyperparameter search or calibrator is fitted for $h$ o
 
 ### Effective outcome-verification exclusions
 
-Starting from the **16,918 canonical action-selection checkpoints**, verification removes **34 checkpoints from 20 loss-ending parents without a valid associated OBE**, and **1,799 checkpoints from 961 parents with an unverified terminal pass**. These disjoint, whole-parent exclusions leave the **15,085 checkpoints** evaluated below. The verification concerns each parent's terminal outcome, so earlier checkpoints of the affected possession are removed as well. The stricter observed-flight duration filter is not applied to this composed-outcome cohort. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
+The cohort starts from the canonical action-selection checkpoints. A checkpoint is kept when the terminal outcome of its parent possession is verified: a loss-ending parent needs a valid associated OBE, and a terminal pass must belong to the verified continuous direct-receipt cohort. Verification concerns the parent's terminal outcome, so earlier checkpoints of an affected possession are removed as well. The observed-flight duration filter of the pass-probability task is not applied. These criteria leave **15,085 verified-outcome checkpoints**. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
+
+The overall predictive metrics of h and xLoss use all 15,085 checkpoints, including the earlier valid carry checkpoints of possessions ending in a foul suffered or a clearance. Every checkpoint has an observed current-action outcome for h and a verified terminal individual outcome for xLoss. No terminal-coverage or minimum-possession-duration filter is applied to the pooled metrics or calibration curves.
+
+### Cohort for difficulty bands and possession profiles
+
+The [h-band validation and the subsequent possession-profile analysis](../vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) additionally require coverage of the terminal canonical action. A pass supplies its release checkpoint, and a failed carry supplies the start of the final failed action, at most one second before loss. Micropossessions remain eligible with their single pass or failed-carry checkpoint. Possessions ending in a foul suffered or a clearance have no terminal canonical action, so their earlier successful-carry states are not part of this cohort, which has **14,919 states from 7,265 possessions**. The rule applies to the band analysis only. Predictions and component models are unchanged.
 
 ## Predictive performance
 
-The evaluation uses **15,085 held-out decision checkpoints** with a validated outcome, of which **1,465 are current-action failures** and **2,888 are terminal individual losses**. This set is smaller than the action selection training set, since player choices are evaluated on every checkpoint regardless of the outcome, whereas the composed predictions also require a validated outcome, as discussed in pass and ball drive probabilities benchmarks. The one-second segmentation of individual possessions is described in [Possessions and checkpoints](../vignettes/setup/possession_and_checkpoint_setup.ipynb). The table reports pooled out-of-fold scores for each target.
+Both targets are evaluated on **15,085 held-out canonical checkpoints**: **1,465 current-action failures** for h and **2,888 terminal individual losses** for xLoss. This verified-outcome set is smaller than the action-selection training set, which requires an identifiable choice. The one-second segmentation is described in [Possessions and checkpoints](../vignettes/setup/possession_and_checkpoint_setup.ipynb). Scores are pooled across the five outer test folds for each target.
 
 | Target | Checkpoints | Events | Cross-entropy | Null cross-entropy | Gain over null | AUC | ECE |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -40,6 +46,23 @@ The evaluation uses **15,085 held-out decision checkpoints** with a validated ou
 
 Relative to the null models, cross-entropy is lower by **14.8%** for $h$ and **13.8%** for xLoss, with AUC of **0.782** and **0.756** and ECE below **1%** for both targets. The null cross-entropy uses the event frequencies of the corresponding fitting data, and ECE is computed on ten equal-count bins of the pooled predictions.
 
-![Pooled calibration of the main composed hazard and individual xLoss models against their respective observed targets. Points represent ten quantile bins.](../figures/composed_risk_pooled_calibration.png)
+![Pooled calibration of h and individual xLoss on all 15,085 verified-outcome checkpoints, against their respective observed targets. Points represent ten quantile bins.](../figures/composed_risk_pooled_calibration.png)
 
 The underlying results are available as [pooled metrics](../data/benchmarks/composed_risk/pooled_metrics.csv), [calibration bins](../data/benchmarks/composed_risk/calibration_quantile10.csv), [fold-level metrics](../data/benchmarks/composed_risk/metrics_by_fold.csv) and [match-level metrics](../data/benchmarks/composed_risk/metrics_by_match.csv).
+
+## Band validation intervals
+
+The h bands of the [model vignette](../vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) are validated on the 14,919 held-out states of the band cohort. Predictions and band thresholds are fixed, and the intervals quantify between-match variability in this sample.
+
+Intervals are 95% percentile intervals from **2,000 whole-match bootstrap replicates**, with seed **20261030** [@efron1993bootstrap]. Each replicate draws ten matches with replacement and includes all their eligible actions, preserving multiplicity. For every band, mean predicted h and the observed frequency of current-action failure are recomputed, and the bounds are the 2.5th and 97.5th percentiles. The paired gap is the difference between the two means within each replicate, and its interval is taken from the same replicates. Action selection remains native, and pass completion retains its fold-specific isotonic calibration.
+
+Whole matches are resampled because actions within a match are dependent. Band counts are unequal, so the denominators vary across draws: High contains 665–1,053 actions across replicates (median 841), and no band is empty in any replicate. With ten matches the 95% level is indicative, and the intervals do not include model-estimation uncertainty.
+
+| Band | Actions | Mean predicted h (95% interval) | Observed failures (95% interval) |
+|---|---:|---:|---:|
+| None | 8,659 | 2.93% [2.77%, 3.09%] | 3.40% [2.83%, 3.98%] |
+| Low | 2,936 | 11.87% [11.82%, 11.93%] | 12.26% [10.72%, 14.09%] |
+| Medium | 2,483 | 21.40% [21.27%, 21.50%] | 21.67% [19.20%, 24.41%] |
+| High | 841 | 36.53% [35.88%, 37.21%] | 32.46% [29.19%, 36.27%] |
+
+In High, the paired predicted-minus-observed gap is **4.07 percentage points** with a 95% interval of **−0.07 to 7.82 points**. The [bootstrap aggregates](../data/examples/pressure_report/h_band_bootstrap_terminal_coverage_20261105.csv) and [provenance](../docs/h-band-terminal-coverage-20261105.json) record the procedure.

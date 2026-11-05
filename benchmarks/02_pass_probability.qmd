@@ -13,6 +13,9 @@ The benchmark contains **6,706 passes: 5,742 completions and 964 failures (14.38
 
 Release and the immediate next individual-possession start must be matched in the same match/period, with positive chronology, no intervening annotated interruption and complete observed ball XY. For completed passes, the identified recipient must be the next carrier with a matched pass reception; for failures, the next endpoint is an opponent interception/recovery. The recovery location is a proxy for a failed pass's intended destination. Native-coordinate conversion, endpoint identity, tracking state and the five initial observations are checked. The passer's possession start and receiver's possession end need not both be matched. Applied to **7,078 outfield pass candidates**, these criteria and the duration interval leave the **6,706 passes** of the cohort. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
 
+
+A completed link requires the next start type to be `pass_reception`. Distinct restart-reception labels (`free_kick_reception`, `goal_kick_reception`, `corner_reception` and `throw_in_reception`) are not accepted as that endpoint; the no-interruption rule also separates play across restarts. These situations have a different restart dynamic from the open-play pass task. A possession beginning with such a reception remains eligible for its subsequent actions, retaining that start type as context.
+
 ## Ball-flight initial conditions
 
 The physical flight and player-reachability models, including their kinetic parameters, are described in the [model vignette](../vignettes/02_pass_probability/02_pass_probability.ipynb). Here we assess the reconstruction of the ball's initial conditions, which determines the trajectories used to fit the control parameters.
@@ -87,7 +90,7 @@ These ranges describe variation between training partitions, not confidence or c
 | Fernández et al. (2021), SoccerMap | 0.1900 | ≈62.40% | 0.470% |
 | Stalpaert et al. (2022), CatBoost | 0.2087 | 63.85% | 0.310% |
 
-The studies differ in dataset, completion prevalence, pass selection, available features and validation protocol; their metrics are therefore **contextual comparisons, not a like-for-like ranking**. Fernández et al.'s gain is approximate, calculated using the reported overall completion share and not a published test-fold null. [@fernandez2021; @stalpaert2022]
+The studies differ in dataset, completion prevalence, pass selection, available features and validation protocol; their metrics are reported as context. Fernández et al.'s gain is approximate, computed with the reported overall completion share. [@fernandez2021; @stalpaert2022]
 
 ## Curvature and limitations
 

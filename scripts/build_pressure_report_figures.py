@@ -11,16 +11,22 @@ BANDS=['None','Low','Medium','High'];COLORS=['#b9dbc2','#f6dc88','#eca865','#cf7
 def save(fig,name):
  for ext in ['png','svg']:fig.savefig(ROOT/'figures'/f'{name}.{ext}',dpi=170)
  plt.close(fig)
-def main():
- b=pd.read_csv(DATA/'band_validation.csv',keep_default_na=False).set_index('band').loc[BANDS];x=np.arange(4)
+def build_band_validation():
+ b=pd.read_csv(DATA/'h_band_bootstrap_terminal_coverage_20261105.csv',keep_default_na=False).set_index('band').loc[BANDS];x=np.arange(4)
+ assert b.n.sum()==14919 and b.failures.sum()==1465
+ assert np.allclose(b.observed_failure, b.failures/b.n, rtol=0, atol=1e-14)
  fig,ax=plt.subplots(figsize=(8.2,5),layout='constrained')
- y=100*b.observed_loss.to_numpy(float);lo=100*b.cluster_lower95.to_numpy(float);hi=100*b.cluster_upper95.to_numpy(float)
- ax.bar(x,y,color=COLORS,width=.62,label='Observed current-action failures')
- ax.errorbar(x,y,yerr=[y-lo,hi-y],fmt='none',ecolor='#414141',capsize=4,lw=1.4,label='95% whole-match bootstrap interval')
- ax.plot(x,100*b.mean_h.to_numpy(float),'D--',color='#15354b',ms=6,lw=1.4,label='Mean predicted h')
- for i,(_,r) in enumerate(b.iterrows()):ax.text(i,100*r.cluster_upper95+1.7,f'n={int(r.n):,}',ha='center',fontsize=9)
+ for offset,column,lower,upper,label,color in [
+  (-.1,'mean_h','mean_h_lower95','mean_h_upper95','Mean predicted h','#15354b'),
+  (.1,'observed_failure','observed_lower95','observed_upper95','Observed current-action failures','#c37e31')]:
+  y=100*b[column].to_numpy(float);lo=100*b[lower].to_numpy(float);hi=100*b[upper].to_numpy(float)
+  ax.errorbar(x+offset,y,yerr=[y-lo,hi-y],fmt='o',color=color,capsize=4,lw=1.4,ms=5,label=label)
+ for i,(_,r) in enumerate(b.iterrows()):ax.text(i,100*max(r.mean_h_upper95,r.observed_upper95)+1.7,f'n={int(r.n):,}',ha='center',fontsize=9)
  ax.set(xticks=x,xticklabels=['Minimal (None)','Low','Medium','High'],ylabel='Current-action failure (%)',ylim=(0,47),title='Fixed absolute bands · held-out development predictions')
  ax.legend(fontsize=8,loc='upper left');ax.grid(axis='y',alpha=.15);ax.set_axisbelow(True);save(fig,'h_band_validation')
+
+def main():
+ build_band_validation()
  patterns=pd.read_csv(DATA/'pattern_counts.csv');fig,ax=plt.subplots(figsize=(8.5,4.2),layout='constrained');yy=np.arange(len(patterns))[::-1]
  ax.barh(yy,patterns.positive,color=['#2a7881','#c37e31','#5c769b'],height=.55)
  ax.set_yticks(yy,['Pressure escape','Drawing pressure','Sustained successful carrying'])

@@ -105,7 +105,7 @@ These intervals describe uncertainty conditional on the model, movement assumpti
 
 ## 5. Comparison with published results
 
-Published results provide context, but they are not a common-data leaderboard: the studies differ in sample size, loss definitions, input representations, train/test splits, and prevalence. The normalized gain over each study's null does not eliminate these differences.
+Published results provide context. The studies differ in sample size, loss definitions, input representations, train/test splits and prevalence, and the gain over each study's null is reported for orientation.
 
 | Study / model | Training loss share | CE | Null CE | Gain over null | Quantile ECE |
 |---|---:|---:|---:|---:|---:|
@@ -146,7 +146,7 @@ After selecting configuration and tree count, fresh six-match fits produce inner
 | Natural prevalence | 0.139855 | 29.623% | 0.490% |
 | 10% losses, prior-corrected | 0.139928 | 29.586% | 0.397% |
 
-Unlike the published result, resampling did **not** yield a meaningful gain in held-out cross-entropy in our experiment. The smaller scale of our dataset and differences in TTI conventions, ball-drive segmentation, outcome labels and feature construction may contribute, and the experiment does not identify the cause. It does not change the deployed physical likelihood model. Full hyperparameter settings, feature definitions, calibration variants, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [selected parameters](../data/benchmarks/ball_drive/catboost_final_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
+In our experiment, resampling yielded no meaningful change in held-out cross-entropy. Differences in dataset scale, TTI conventions, ball-drive segmentation, outcome labels and feature construction may contribute. The deployed physical likelihood model is unchanged. Full hyperparameter settings, feature definitions, calibration variants, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [selected parameters](../data/benchmarks/ball_drive/catboost_final_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
 
 ![Pooled out-of-fold calibration of the final physical model and the CatBoost comparisons on the verified-loss cohort. Each marker represents one quantile bin.](../figures/ball_drive_physical_pooled_calibration.png){#fig-ball-drive-physical-calibration}
 

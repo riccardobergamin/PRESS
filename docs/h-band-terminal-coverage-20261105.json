@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "cohort": "terminal_action_covered",
+  "n_states": 14919,
+  "n_parents": 7265,
+  "n_failures": 1465,
+  "removed_states": 166,
+  "removed_parents": 78,
+  "removed_parent_end_types": [
+    "clearance",
+    "foul_suffered"
+  ],
+  "removed_checkpoints_are_preceding_successful_carries": true,
+  "terminal_pass_checkpoint": "Matched release frame",
+  "terminal_failed_carry_checkpoint": "Start of final canonical failed carry; zero to ten tracking frames before annotated loss at 10 Hz.",
+  "retained_micropossession_states": 3347,
+  "no_minimum_possession_duration": true,
+  "exact_one_second_foul_parents_removed": 2,
+  "bootstrap_replicates": 2000,
+  "seed": 20261030,
+  "n_matches": 10,
+  "match_order": [
+    "1925299",
+    "2015213",
+    "2006229",
+    "2011166",
+    "1899585",
+    "1953632",
+    "1886347",
+    "2013725",
+    "1996435",
+    "2017461"
+  ],
+  "thresholds_exact": [
+    0.08299595679532878,
+    0.1591035847462855,
+    0.2928932188134524
+  ],
+  "percentiles": [
+    2.5,
+    97.5
+  ],
+  "n_h_ge_half": 36,
+  "empty_replicates_all_bands": 0,
+  "empty_band_policy": "Empty means are NaN; exclude only from that band percentile and report their count.",
+  "fit_or_calibration_within_bootstrap": false,
+  "model_error_included": false,
+  "coverage": "Nominal 95% coverage is not guaranteed with ten match clusters.",
+  "source": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/77_residual_risk_verified_endpoints_20261029/results_review/77_residual_risk_verified_endpoints_20261029_170451/composition/oof_composed_predictions.parquet",
+  "source_sha256": "40aaf7c8deba34df5b7783f96676ae17d8ed961e9536398a8c868e69cc5f7a91",
+  "experiment": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/112_h_terminal_coverage_publication_20261105",
+  "aggregate_csv": "data/examples/pressure_report/h_band_bootstrap_terminal_coverage_20261105.csv",
+  "aggregate_sha256": "3410be10edac2b672016c8085254ef0580adfefe6cff2026bd952e08f676a796",
+  "xloss_cohort_unchanged": true,
+  "xloss_bands_published": false,
+  "models_refitted": false,
+  "pre_change_archive": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/112_h_terminal_coverage_publication_20261105/before",
+  "scope": "Difficulty-band validation and subsequent retrospective possession profiles only; not overall predictive metrics or pooled calibration.",
+  "overall_h_metrics_n": 15085,
+  "overall_xloss_metrics_n": 15085,
+  "band_analysis_n": 14919,
+  "overall_metrics_source": "data/benchmarks/composed_risk/pooled_metrics.csv"
+}
