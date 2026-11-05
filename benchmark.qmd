@@ -6,11 +6,11 @@ The PRESS benchmarks evaluate five modeling tasks, and the predictions composed 
 
 ## Dataset overview
 
-The benchmarks use ten SkillCorner A-League matches. All component benchmarks concern **outfield ball carriers**; goalkeeper receivers and defenders remain in the tracked state. Reliability is checked at the temporal boundaries needed for the target. Two data-preparation branches share these principles: possession-based tasks use matched individual-control intervals, whereas pass tasks use matched release and the immediate next reception/recovery start.
+The benchmarks use ten A-League 2024/25 matches from SkillCorner Open Data [@skillcorner-opendata]. All component benchmarks concern **outfield ball carriers**; goalkeeper receivers and defenders remain in the tracked state. Reliability is checked at the temporal boundaries needed for the target. Two data-preparation branches share these principles: possession-based tasks use matched individual-control intervals, whereas pass tasks use matched release and the immediate next reception/recovery start.
 
 For the possession branch used by ball-drive, action-selection and residual-risk training, the frozen preparation audit starts from **9,566 raw individual possessions**. A possession is kept when its individual-control interval is matched at both boundaries, its terminal event and outcome supply a supported component label, its carrier is an outfield player and it does not end in a shot. These criteria leave **8,451 possessions**.
 
-These are **parent-possession counts before task segmentation**, not action counts or a universal pass cohort. Individual tasks then select the actions and verified outcomes required by their target, and their benchmark pages give the task-specific criteria and the resulting cohort sizes. Features and predictions can still be computed for states outside these training populations. [Effective exclusion counts](data/benchmarks/filters/effective_exclusions.csv) and [source-audit provenance](docs/effective-filters-provenance.json).
+These are **parent-possession counts before task segmentation** (see [Possessions and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb)), not action counts or a universal pass cohort. Individual tasks then select the actions and verified outcomes required by their target, and their benchmark pages give the task-specific criteria and the resulting cohort sizes. Features and predictions can still be computed for states outside these training populations. [Effective exclusion counts](data/benchmarks/filters/effective_exclusions.csv) and [source-audit provenance](docs/effective-filters-provenance.json).
 
 ## Model families
 

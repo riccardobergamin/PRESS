@@ -1,0 +1,3 @@
+match_id,possession_id,player_name,actor,name,distance_m,toward_carrier_mps,relative_closing_mps,mean_toward_last1s,fraction_toward_last1s,distance_1s_ago
+1953632,8_702,Storm  Roux,away_6,S. Ugarković,1.5132085117392122,2.2349625048217447,1.8309014870008973,2.0491412898565855,1.0,1.7860011198204775
+1953632,8_702,Storm  Roux,away_38,H. Politidis,2.6223081436017397,3.955988716994309,-0.8929156574192261,4.319489094852455,1.0,3.5322655619304744

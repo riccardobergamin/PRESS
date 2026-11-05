@@ -116,9 +116,9 @@ Published results provide context. The studies differ in sample size, loss defin
 
 *For Fernández et al., the approximate null uses entropy at the published overall success rate (90.6%), not a recovered test-fold null [@fernandez2021]. Stalpaert's published results use a different drive-labelling convention, marking the last two seconds of failed drives as unsuccessful, whereas PRESS labels only the terminal section [@stalpaert2022]. [Literature comparison details](../data/benchmarks/ball_drive/literature_comparison.csv).
 
-### Resampling experiment motivated by Stalpaert
+### CatBoost with training-set resampling
 
-Stalpaert reports a substantial improvement with training-set resampling. To examine whether a similar effect arises in our data, we trained CatBoost on the same **9,114 sections and 456 losses** used to evaluate the final physical model. Its 50 snapshot-derived features cover carrier speed, boundary geometry, defender times to interception, encounter probabilities, and local spatial relationships, broadly overlapping the information used by Stalpaert, although not reproducing every feature transformation or convention. The feature representation comprises the following 50 inputs, all derived from the initial tracking snapshot and the carrier's projected constant-velocity path:
+Stalpaert [@stalpaert2022] applies CatBoost to ball-drive sections and reports a substantial improvement when the training set is resampled (table above). We tested the same approach on our data by training CatBoost on the same **9,114 sections and 456 losses** used to evaluate the final physical model. Its 50 snapshot-derived features cover carrier speed, boundary geometry, defender times to interception, encounter probabilities, and local spatial relationships, broadly overlapping the information used by Stalpaert, although not reproducing every feature transformation or convention. The feature representation comprises the following 50 inputs, all derived from the initial tracking snapshot and the carrier's projected constant-velocity path:
 
 | Feature block | Count | Definition |
 |---|---:|---|
@@ -146,7 +146,7 @@ After selecting configuration and tree count, fresh six-match fits produce inner
 | Natural prevalence | 0.139855 | 29.623% | 0.490% |
 | 10% losses, prior-corrected | 0.139928 | 29.586% | 0.397% |
 
-In our experiment, resampling yielded no meaningful change in held-out cross-entropy. Differences in dataset scale, TTI conventions, ball-drive segmentation, outcome labels and feature construction may contribute. The deployed physical likelihood model is unchanged. Full hyperparameter settings, feature definitions, calibration variants, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [selected parameters](../data/benchmarks/ball_drive/catboost_final_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
+In our experiment, resampling yielded no meaningful change in held-out cross-entropy, and CatBoost performs close to the physical model, so we do not observe the same benefit. We do not identify the cause; one possibility is the scale of the dataset. The deployed physical likelihood model is unchanged. Full hyperparameter settings, feature definitions, calibration variants, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [selected parameters](../data/benchmarks/ball_drive/catboost_final_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
 
 ![Pooled out-of-fold calibration of the final physical model and the CatBoost comparisons on the verified-loss cohort. Each marker represents one quantile bin.](../figures/ball_drive_physical_pooled_calibration.png){#fig-ball-drive-physical-calibration}
 
@@ -156,6 +156,6 @@ The physical model’s pooled calibration curve is close to the diagonal. In the
 
 The spline model achieves strong held-out discrimination and good pooled calibration while retaining an explicit interpretation in terms of defender reachability and tackle intensity. On the same observations, CatBoost trained at natural prevalence reaches a slightly lower cross-entropy (0.139855 against 0.143483). The physical model remains close to it while providing defender-level rates and reachability, which the composed hazard uses. The comparison with published work is contextual, because datasets and outcome conventions differ.
 
-The evaluation has two limits. The ten matches also informed model-family development, so the results form a development benchmark and not an untouched external evaluation, and they leave uncertainty about generalization to other competitions and annotation conventions. Tracking velocities use a centred seven-frame estimate, so the offline evaluation is not strictly causal in real time.
+The evaluation is offline: tracking velocities use a centred seven-frame estimate with three frames of future support, so a real-time implementation would need a causal velocity estimate.
 
 The scope of the model is described in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb), which also includes executable real-match examples.

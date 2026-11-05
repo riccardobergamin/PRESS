@@ -65,4 +65,4 @@ Whole matches are resampled because actions within a match are dependent. Band c
 | Medium | 2,483 | 21.40% [21.27%, 21.50%] | 21.67% [19.20%, 24.41%] |
 | High | 841 | 36.53% [35.88%, 37.21%] | 32.46% [29.19%, 36.27%] |
 
-In High, the paired predicted-minus-observed gap is **4.07 percentage points** with a 95% interval of **−0.07 to 7.82 points**. The [bootstrap aggregates](../data/examples/pressure_report/h_band_bootstrap_terminal_coverage_20261105.csv) and [provenance](../docs/h-band-terminal-coverage-20261105.json) record the procedure.
+In High, the paired predicted-minus-observed gap is 4.07 percentage points with a 95% interval of −0.07 to 7.82 points. The [bootstrap aggregates](../data/examples/pressure_report/h_band_bootstrap_terminal_coverage_20261105.csv) and [provenance](../docs/h-band-terminal-coverage-20261105.json) record the procedure.

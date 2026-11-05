@@ -98,7 +98,7 @@ Two context extensions were also assessed without changing the feature set: the 
 | **PRESS, native XGBoost** | **0.568592** | **0.690053** | **17.60%** |
 | Stalpaert, specific action types included | 0.4807 | 0.6602 | 27.19% |
 
-Stalpaert [@stalpaert2022] studies the same binary pass–carry choice. PRESS has a lower CE and a higher gain than Stalpaert's model with major action categories. The model that includes granular action types, which are human-annotated labels, reaches a higher gain. The studies differ in dataset, class balance (null CE 0.6602 versus 0.690053), available features and validation protocol, and the values are reported as context.
+Stalpaert [@stalpaert2022] studies the same binary pass–carry choice. PRESS has a lower CE and a higher gain than Stalpaert's model with major action categories, and the model that includes specific action types reaches a higher gain; with our labels we did not obtain a comparable benefit. The studies differ in dataset, class balance (null CE 0.6602 versus 0.690053), available features and validation protocol, and the values are reported as context.
 
 Fernández, Bornn and Cervone [@fernandez2021] motivate the decomposition of action choice and execution. Their shoot/pass/carry classifier has a different label space and is not used as a numerical baseline for this binary task.
 

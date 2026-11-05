@@ -1,0 +1,13 @@
+team_id,team_name,n_matches,eo_per100,match_bootstrap_lower95,match_bootstrap_upper95,interpretation
+866,Adelaide United,1,2.848840760224379,2.8488407602243786,2.8488407602243786,Descriptive sensitivity; with one match the interval degenerates.
+867,Wellington P FC,2,3.2730693543455995,1.4684478069089735,5.097306353384796,Descriptive sensitivity; with one match the interval degenerates.
+868,Melbourne V FC,2,0.9736153001803574,-2.8610685153773012,4.8286963700760905,Descriptive sensitivity; with one match the interval degenerates.
+869,Sydney FC,2,4.929223325364358,1.8480730201684266,7.736203476284379,Descriptive sensitivity; with one match the interval degenerates.
+870,CC Mariners,1,-5.994447558989357,-5.994447558989357,-5.994447558989357,Descriptive sensitivity; with one match the interval degenerates.
+871,Perth Glory,1,2.3763705125901877,2.3763705125901886,2.3763705125901886,Descriptive sensitivity; with one match the interval degenerates.
+1802,Brisbane FC,1,3.916120965544166,3.916120965544166,3.916120965544166,Descriptive sensitivity; with one match the interval degenerates.
+1803,Western United,2,-9.599076525979205,-15.121233811428999,-5.564925694692532,Descriptive sensitivity; with one match the interval degenerates.
+1804,Macarthur FC,1,-1.81557358162703,-1.8155735816270306,-1.8155735816270306,Descriptive sensitivity; with one match the interval degenerates.
+1805,Newcastle,1,0.06344235866132635,0.06344235866132622,0.06344235866132622,Descriptive sensitivity; with one match the interval degenerates.
+2380,Melbourne City,2,6.037815685641091,0.40628915104359214,9.658082743596626,Descriptive sensitivity; with one match the interval degenerates.
+4177,Auckland FC,4,-1.5862253926195138,-7.0091264370522435,3.570805336073668,Descriptive sensitivity; with one match the interval degenerates.
