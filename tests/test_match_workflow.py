@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from PRESS import PRESS
-from PRESS.datasets import load_demo_match
+from _fixtures import load_test_match
 from PRESS.utils.match import link_team_possessions, standardize_action_context
 from PRESS.utils.possession import possession_survival, hazard_to_band
 from PRESS.model import PassRiskModel
@@ -25,7 +25,7 @@ def pass_risk_model():
 
 @pytest.fixture
 def match(pass_risk_model):
-    tracking, possessions, actions, xt = load_demo_match()
+    tracking, possessions, actions, xt = load_test_match()
     return PRESS(tracking, possessions_data=possessions, actions_data=actions,
                  pass_risk_model=pass_risk_model), xt
 
@@ -47,14 +47,14 @@ def test_navigation_preserves_team_possession_across_carrier_change(match):
 
 
 def test_no_team_possessions_are_invented_from_tracking():
-    tracking, *_ = load_demo_match()
+    tracking, *_ = load_test_match()
     with pytest.raises(ValueError, match="Supply possessions_data"):
         PRESS(tracking).get_possessions()
 
 
 @pytest.mark.parametrize('release,canonical,all_frames', [(4,[4],[0,4]), (24,[0,10,24],[0,10,20,24])])
 def test_pass_release_and_extra_snapshot_sampling(release,canonical,all_frames,monkeypatch):
-    tracking,teams,_,xt=load_demo_match()
+    tracking,teams,_,xt=load_test_match()
     tracking['player_possession']='home_7'
     teams=teams.iloc[[0]].copy()
     teams['frame_end']=release
@@ -117,7 +117,7 @@ def test_team_link_requires_a_matching_successful_reception():
 
 
 def test_invalid_intervals_and_duplicate_checkpoints_are_rejected(match):
-    tracking, teams, actions, _ = load_demo_match()
+    tracking, teams, actions, _ = load_test_match()
     teams.loc[1, "frame_start"] = 29
     with pytest.raises(ValueError, match="overlap"):
         PRESS(tracking, possessions_data=teams)
@@ -132,18 +132,18 @@ def test_full_checkpoint_and_recompute_invalidate_downstream_results(match):
     result = model.compute_frame(0, xt, ppcf_kwargs={"r_max": 12, "step": 6},
                                  bcos_kwargs={"r_max": 8, "step": 4})
     ppcf = result["PPCF"]
-    probabilities = np.asarray(ppcf["Transition probabilities"])
+    probabilities = np.asarray(ppcf["Pass selection probabilities"])
     assert np.isclose(probabilities.sum(), 1)
     assert probabilities.shape == np.asarray(ppcf["Pass probability"]).shape
     p_pass = result["ACTION_SELECTION"]["Pass probability"]
     hazard = result["HAZARD"]
     assert 0 <= p_pass <= 1 and 0 <= hazard["Hazard"] <= 1
     assert np.isclose(hazard["Hazard"], (1-p_pass)*hazard["Drive risk"] + p_pass*hazard["Pass failure expected"])
-    model.compute_ball_drive_loss(0, t_press=0.5)
+    model.compute_ball_drive_risk(0, t_press=0.5)
     with pytest.raises(KeyError):
         model.get_hazard_result(0)
-    assert "Transition probabilities" not in model.get_ppcf_result(0)
-    with pytest.raises(ValueError, match="transition"):
+    assert "Pass selection probabilities" not in model.get_ppcf_result(0)
+    with pytest.raises(ValueError, match="pass selection"):
         model.compute_hazard(0)
 
 
@@ -174,7 +174,7 @@ def test_scalar_bands_and_absorbing_loss():
 
 
 def test_processed_file_adapter_filters_matches_and_links_players(tmp_path):
-    tracking, _, actions, _ = load_demo_match()
+    tracking, _, actions, _ = load_test_match()
     match_dir = tmp_path / "demo"
     match_dir.mkdir()
     tracking.to_parquet(match_dir / "demo_tracking.parquet", index=False)
@@ -192,7 +192,7 @@ def test_processed_file_adapter_filters_matches_and_links_players(tmp_path):
 
 
 def test_missing_players_can_be_padded_and_invalid_carrier_is_rejected():
-    tracking, *_ = load_demo_match()
+    tracking, *_ = load_test_match()
     # Simulate a frame with no detected defenders/teammates.
     player_cols = [c for c in tracking if c.endswith(("_x", "_y"))
                    and c.startswith(("home_", "away_")) and not c.startswith("home_7_")]
@@ -220,7 +220,7 @@ def test_arbitrary_frame_resolves_context_without_checkpoint_membership(match):
 
 
 def test_frame_computation_needs_no_possession_or_segmentation_table(pass_risk_model):
-    tracking, _, _, xt = load_demo_match()
+    tracking, _, _, xt = load_test_match()
     model = PRESS(tracking,pass_risk_model=pass_risk_model)
     result = model.compute_frame(5, xt, start_type="pass_reception",
                                  previous_action="ball_drive",
@@ -267,16 +267,16 @@ def test_pitch_choice_plots_use_stored_probabilities_and_return_figures(match):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from PRESS.visualization import plot_transition, plot_action_selection, plot_ppcf, plot_pi, plot_pass_map
+    from PRESS.visualization import plot_pass_selection, plot_action_selection, plot_ppcf, plot_ball_drive_risk, plot_pass_map
     model, xt = match
     result = model.compute_frame(5, xt, ppcf_kwargs={"r_max": 12, "step": 6},
                                  bcos_kwargs={"r_max": 8, "step": 4})
-    original = result["PPCF"]["Transition probabilities"].copy()
-    fig, ax = plot_transition(model, 5, pass_target=(4., 3.))
+    original = result["PPCF"]["Pass selection probabilities"].copy()
+    fig, ax = plot_pass_selection(model, 5, pass_target=(4., 3.))
     fields = [c for c in ax.collections if c.get_array() is not None]
     assert any(c.norm.vmin == 0 and c.norm.vmax == 100 for c in fields)
     assert "Relative pass preference" in fig.axes[1].get_ylabel()
-    np.testing.assert_array_equal(result["PPCF"]["Transition probabilities"], original)
+    np.testing.assert_array_equal(result["PPCF"]["Pass selection probabilities"], original)
     line = next(line for line in ax.lines if line.get_label() == "Observed pass")
     row = model.get_frame(5).iloc[0]
     np.testing.assert_allclose(line.get_xdata(), [row.ball_x, 4.])
@@ -293,6 +293,6 @@ def test_pitch_choice_plots_use_stored_probabilities_and_return_figures(match):
     plt.close(fig)
     plot_ppcf(model, 5, field="pass_success")
     plt.close("all")
-    plot_pi(model, 5)
+    plot_ball_drive_risk(model, 5)
     assert "P(loss)=" in plt.gca().get_title()
     plt.close("all")

@@ -1,4 +1,5 @@
 """Possession-level hazard bands, survival summaries, and typologies."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -56,43 +57,3 @@ def possession_survival(hazards) -> dict[str, np.ndarray]:
         "survival": survival,
         "bands": hazard_to_band(h),
     }
-
-
-def classify_possession_typology(
-    bands,
-    lost: bool,
-    has_engagement: bool = False,
-) -> dict[str, str | bool]:
-    """Assign one of eight project-defined possession trajectory labels.
-
-    The real engagement flag is returned as case context; it does not split
-    the low-band loss category into additional typologies.
-    """
-    bands = list(bands)
-    if len(bands) == 0:
-        raise ValueError("bands must contain at least one checkpoint label.")
-    if any(band not in BAND_ORDER for band in bands):
-        raise ValueError(f"bands must use labels in {BAND_ORDER}.")
-    ranks = np.asarray([BAND_ORDER.index(band) for band in bands])
-    reached_elevated = bool(np.max(ranks) >= BAND_ORDER.index("Medium"))
-    deescalated = any(ranks[i] < np.max(ranks[:i]) for i in range(1, len(ranks)))
-    first, last = bands[0], bands[-1]
-
-    if first == "High" and lost:
-        category = "Instant High-Risk Loss"
-    elif first in ("None", "Low") and last == "High" and not lost:
-        category = "Attracted risk"
-    elif reached_elevated and lost and not deescalated:
-        category = "Pressing to Loss"
-    elif reached_elevated and lost:
-        category = "De-escalated but Lost"
-    elif reached_elevated and not lost and deescalated:
-        category = "Escaped Risk"
-    elif reached_elevated and not lost:
-        category = "Retained Under Intense Risk"
-    elif lost:
-        category = "Unexpected Loss"
-    else:
-        category = "Ordinary/Low-Risk"
-
-    return {"category": category, "has_engagement": bool(has_engagement)}

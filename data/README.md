@@ -4,7 +4,7 @@ Raw tracking/event files and match-level feature tables are not stored here. Obt
 
 Set `SKILLCORNER_OPENDATA` and `SKILLCORNER_ANALYSIS` to your local repository roots for the match guide. The original scripts do not consume `PRESS_DATA_DIR`; update their machine-specific paths before using them. The original preprocessing and possession-segmentation scripts live in the sibling research repository at `skillcorner-analysis/scripts/analysis/preprocess_matches.py` and `skillcorner-analysis/scripts/analysis/ball_drive_segmentation.py`; they currently use machine-specific paths and are documented as source references rather than moved or modified here.
 
-The committed vignette inputs are synthetic and clearly labeled. They are sufficient to rebuild all figures and notebook outputs. The final production XGBoost model parameters used by the package are included separately under `PRESS/utils/data/`: the transition booster, action-selection booster, and action-selection feature-column schema. Their source is documented in the repository README; they contain learned parameters rather than tracking rows.
+The vignette examples use observed match frames. Saved figures and aggregate outputs support rendering without local tracking files; re-executing the examples requires the processed open data. All five pretrained models are included under `PRESS/utils/data/`, separately from the tracking inputs and held-out benchmark summaries.
 
 See [the match guide](../usage.qmd) for `PRESS.from_skillcorner`, possession/frame getters and a complete checkpoint calculation, and [data setup](../data.qmd) for the expected processed-file layout.
 

@@ -1,4 +1,5 @@
 """Load and evaluate exported additive ball-drive models without training code."""
+
 from __future__ import annotations
 
 from copy import deepcopy
@@ -13,36 +14,48 @@ import numpy as np
 
 
 def _basis(spec, values, *, full=False):
-    z=(np.asarray(values,float)-spec['offset'])/spec['scale']
-    knots=np.asarray(spec['knots']);terms=np.maximum(z[...,None]-knots,0.)**3
-    a=(knots[-1]-knots[:-2])/(knots[-1]-knots[-2])
-    b=(knots[-2]-knots[:-2])/(knots[-1]-knots[-2])
-    raw=terms[...,:-2]-terms[...,-2,None]*a+terms[...,-1,None]*b
-    linear=np.stack([np.ones_like(z),z],axis=-1)
-    nonlinear=(raw-linear@np.asarray(spec['projection']))@np.asarray(spec['transform'])
-    if not full:return nonlinear
-    return np.concatenate([((z-spec['linear_mean'])/spec['linear_sd'])[...,None],nonlinear],axis=-1)
+    """Evaluate the spline basis with its saved projection and normalization."""
+    z = (np.asarray(values, float) - spec['offset']) / spec['scale']
+    knots = np.asarray(spec['knots'])
+    terms = np.maximum(z[..., None] - knots, 0.0) ** 3
+    a = (knots[-1] - knots[:-2]) / (knots[-1] - knots[-2])
+    b = (knots[-2] - knots[:-2]) / (knots[-1] - knots[-2])
+    raw = terms[..., :-2] - terms[..., -2, None] * a + terms[..., -1, None] * b
+    linear = np.stack([np.ones_like(z), z], axis=-1)
+    # Remove the fitted linear projection, then apply the saved curvature scaling.
+    nonlinear = (raw - linear @ np.asarray(spec['projection'])) @ np.asarray(spec['transform'])
+    if not full:
+        return nonlinear
+    return np.concatenate(
+        [((z - spec['linear_mean']) / spec['linear_sd'])[..., None], nonlinear],
+        axis=-1,
+    )
 
 
-@partial(jax.jit,static_argnames=('v_max','a_linear','a_turn','preserve_initial_overspeed'))
-def _arrivals(r,v,x,vx,times,*,v_max,a_linear,a_turn,preserve_initial_overspeed):
+@partial(jax.jit, static_argnames=('v_max', 'a_linear', 'a_turn', 'preserve_initial_overspeed'))
+def _arrivals(r, v, x, vx, times, *, v_max, a_linear, a_turn, preserve_initial_overspeed):
     """Retain benchmark float32 arithmetic, including the overspeed correction."""
     from PRESS.physics.times import time_to_intercept
     from PRESS.physics.angles import compute_angle
-    def snapshot(r,v,x,vx):
+
+    def snapshot(r, v, x, vx):
+
         def at_time(t):
-            target=(x+vx*t)[None,:]
-            result=time_to_intercept(r,v,target,v_max=v_max,a_max=a_linear).squeeze(-1)
-            speed=jnp.linalg.norm(v,axis=-1);distance=jnp.linalg.norm(target-r,axis=-1)
-            if a_turn!=a_linear:
-                theta=compute_angle(r,v,target).squeeze(-1)
-                result=result+speed*theta*(1/a_turn-1/a_linear)
+            target = (x + vx * t)[None, :]
+            result = time_to_intercept(r, v, target, v_max=v_max, a_max=a_linear).squeeze(-1)
+            speed = jnp.linalg.norm(v, axis=-1)
+            distance = jnp.linalg.norm(target - r, axis=-1)
+            if a_turn != a_linear:
+                theta = compute_angle(r, v, target).squeeze(-1)
+                result = result + speed * theta * (1 / a_turn - 1 / a_linear)
             if preserve_initial_overspeed:
-                correction=distance*(1/jnp.maximum(speed,v_max)-1/v_max)
-                result=result+jnp.where(speed>v_max,correction,0.)
-            return jnp.where(distance<=.1,0.,result)
+                correction = distance * (1 / jnp.maximum(speed, v_max) - 1 / v_max)
+                result = result + jnp.where(speed > v_max, correction, 0.0)
+            return jnp.where(distance <= 0.1, 0.0, result)
+
         return jax.vmap(at_time)(times)
-    return jax.vmap(snapshot)(r,v,x,vx)
+
+    return jax.vmap(snapshot)(r, v, x, vx)
 
 
 class BallDriveModel:
@@ -56,37 +69,56 @@ class BallDriveModel:
     """
 
     def __init__(self, artifact):
-        self._artifact=deepcopy(artifact)
-        a=self._artifact
-        if a.get('schema_version')!=1 or a.get('model_type')!='ball_drive_additive':
+        self._artifact = deepcopy(artifact)
+        a = self._artifact
+        if a.get('schema_version') != 1 or a.get('model_type') != 'ball_drive_additive':
             raise ValueError('Unsupported ball-drive artifact schema.')
-        self.theta=np.asarray(a['theta'],float)
-        self.design=a['design'];self.angle_design=a.get('angle_design')
-        self.count=int(a['active_spline_columns']);self.kind=a['kind']
-        if self.design['variant']!='additive' or self.kind not in {'none','individual_angle'}:
+        self.theta = np.asarray(a['theta'], float)
+        self.design = a['design']
+        self.angle_design = a.get('angle_design')
+        self.count = int(a['active_spline_columns'])
+        self.kind = a['kind']
+        if self.design['variant'] != 'additive' or self.kind not in {'none', 'individual_angle'}:
             raise ValueError('Artifact must describe an additive ball-drive model.')
-        expected=4+self.count+(3 if self.kind=='individual_angle' else 0)
-        if self.theta.shape!=(expected,) or not np.isfinite(self.theta).all():
+        expected = 4 + self.count + (3 if self.kind == 'individual_angle' else 0)
+        if self.theta.shape != (expected,) or not np.isfinite(self.theta).all():
             raise ValueError('Invalid ball-drive parameter vector.')
-        if self.count not in {0,6}:raise ValueError('Unsupported active spline layout.')
-        for spec in [self.design['speed_basis'],self.design['boundary_basis'],self.angle_design]:
-            if spec is None:continue
-            knots=np.asarray(spec['knots'],float);k=len(knots)-2
-            if (spec['scale']<=0 or spec['linear_sd']<=0 or not np.isfinite(knots).all()
-                or np.any(np.diff(knots)<=0) or np.shape(spec['projection'])!=(2,k)
-                or np.shape(spec['transform'])!=(k,k)):
+        if self.count not in {0, 6}:
+            raise ValueError('Unsupported active spline layout.')
+        for spec in [self.design['speed_basis'], self.design['boundary_basis'], self.angle_design]:
+            if spec is None:
+                continue
+            knots = np.asarray(spec['knots'], float)
+            k = len(knots) - 2
+            if (
+                spec['scale'] <= 0
+                or spec['linear_sd'] <= 0
+                or (not np.isfinite(knots).all())
+                or np.any(np.diff(knots) <= 0)
+                or (np.shape(spec['projection']) != (2, k))
+                or (np.shape(spec['transform']) != (k, k))
+            ):
                 raise ValueError('Invalid spline basis.')
-            if not np.isfinite(np.asarray(spec['projection'])).all() or not np.isfinite(np.asarray(spec['transform'])).all():
+            if (
+                not np.isfinite(np.asarray(spec['projection'])).all()
+                or not np.isfinite(np.asarray(spec['transform'])).all()
+            ):
                 raise ValueError('Nonfinite spline basis.')
-        if self.kind=='individual_angle' and (self.angle_design is None or len(self.angle_design['knots'])!=4):
+        if (
+            self.kind == 'individual_angle'
+            and (
+                self.angle_design is None
+                or len(self.angle_design['knots']) != 4
+            )
+        ):
             raise ValueError('Missing four-knot angle spline.')
-        if not np.isfinite(np.exp(self.theta[3])) or np.exp(self.theta[3])<=0:
+        if not np.isfinite(np.exp(self.theta[3])) or np.exp(self.theta[3]) <= 0:
             raise ValueError('Arrival dispersion must be positive and finite.')
         self._physics(dict(a['physics']))
         self.theta.setflags(write=False)
 
     @classmethod
-    def from_json(cls,path):
+    def from_json(cls, path):
         """Load a self-contained JSON artifact; no pickle or research imports."""
         return cls(json.loads(Path(path).read_text()))
 
@@ -98,6 +130,7 @@ class BallDriveModel:
         The artifact records the separate pooled OOF evaluation and provenance.
         """
         from importlib.resources import files
+
         return cls(json.loads(files('PRESS.utils').joinpath('data/ball_drive_model.json').read_text()))
 
     def to_dict(self):
@@ -116,16 +149,40 @@ class BallDriveModel:
 
     @staticmethod
     def _physics(p):
-        required={'v_max','a_linear','a_turn','preserve_initial_overspeed','pitch_length','pitch_width','dt','integration_method','boundary_mode'}
-        if set(p)!=required:raise ValueError('Unknown or missing fitted physics settings.')
-        values=[p[k] for k in ['v_max','a_linear','a_turn','pitch_length','pitch_width','dt']]
-        if not np.isfinite(values).all() or min(values)<=0:raise ValueError('Physics scales must be finite and positive.')
-        if p['integration_method']!='exponential' or p['boundary_mode'] not in {'absolute','signed'}:
+        """Validate the physical settings supported by this exported model."""
+        required = {
+            'v_max',
+            'a_linear',
+            'a_turn',
+            'preserve_initial_overspeed',
+            'pitch_length',
+            'pitch_width',
+            'dt',
+            'integration_method',
+            'boundary_mode',
+        }
+        if set(p) != required:
+            raise ValueError('Unknown or missing fitted physics settings.')
+        values = [p[k] for k in [
+            'v_max',
+            'a_linear',
+            'a_turn',
+            'pitch_length',
+            'pitch_width',
+            'dt',
+        ]]
+        if not np.isfinite(values).all() or min(values) <= 0:
+            raise ValueError('Physics scales must be finite and positive.')
+        if (
+            p['integration_method'] != 'exponential'
+            or p['boundary_mode'] not in {'absolute', 'signed'}
+        ):
             raise ValueError('Unsupported fitted integration or boundary convention.')
-        if not isinstance(p['preserve_initial_overspeed'],bool):raise ValueError('Overspeed convention must be boolean.')
+        if not isinstance(p['preserve_initial_overspeed'], bool):
+            raise ValueError('Overspeed convention must be boolean.')
         return p
 
-    def predict(self,r_defs,v_defs,x_bc,v_bc,*,horizon=1.,physics_kwargs=None):
+    def predict(self, r_defs, v_defs, x_bc, v_bc, *, horizon=1.0, physics_kwargs=None):
         """Return per-defender loss, total loss and survival from one frame.
 
         Coordinates are centred metres and velocities m/s. A shorter horizon
@@ -133,11 +190,22 @@ class BallDriveModel:
         does not establish calibration at arbitrary horizons. Physics overrides
         are explicit sensitivities; the saved pitch is used unless overridden.
         """
-        result=self.predict_batch(np.asarray(r_defs)[None],np.asarray(v_defs)[None],
-            np.asarray(x_bc)[None],np.asarray(v_bc)[None],horizon=horizon,physics_kwargs=physics_kwargs)
-        return {k:(v[0] if isinstance(v,np.ndarray) and k!='times' else v) for k,v in result.items()}
+        result = self.predict_batch(
+            np.asarray(r_defs)[None],
+            np.asarray(v_defs)[None],
+            np.asarray(x_bc)[None],
+            np.asarray(v_bc)[None],
+            horizon=horizon,
+            physics_kwargs=physics_kwargs,
+        )
+        return (
+            {k: v[0]
+            if isinstance(v, np.ndarray)
+            and k != 'times'
+            else v for k, v in result.items()}
+        )
 
-    def predict_batch(self,r_defs,v_defs,x_bc,v_bc,*,horizon=1.,physics_kwargs=None):
+    def predict_batch(self, r_defs, v_defs, x_bc, v_bc, *, horizon=1.0, physics_kwargs=None):
         """Evaluate N independent states: defenders (N,D,2), carrier (N,2).
 
         Padding at norm(position)>=500m has zero defensive hazard. Real-player
@@ -145,54 +213,119 @@ class BallDriveModel:
         yields zero loss. Cause attribution is model based, not an observed
         tackler identity. ``survival_curve`` includes the initial state.
         """
-        p=self._physics(self.physics | dict(physics_kwargs or {}))
-        if not np.isfinite(horizon) or horizon<0:raise ValueError('Horizon must be finite and nonnegative.')
-        r=np.asarray(r_defs,float);v=np.asarray(v_defs,float);x=np.asarray(x_bc,float);vx=np.asarray(v_bc,float)
-        if r.ndim!=3 or r.shape[-1]!=2 or v.shape!=r.shape or x.shape!=(len(r),2) or vx.shape!=x.shape:
+        p = self._physics(self.physics | dict(physics_kwargs or {}))
+        if not np.isfinite(horizon) or horizon < 0:
+            raise ValueError('Horizon must be finite and nonnegative.')
+        r = np.asarray(r_defs, float)
+        v = np.asarray(v_defs, float)
+        x = np.asarray(x_bc, float)
+        vx = np.asarray(v_bc, float)
+        if (
+            r.ndim != 3
+            or r.shape[-1] != 2
+            or v.shape != r.shape
+            or (x.shape != (len(r), 2))
+            or (vx.shape != x.shape)
+        ):
             raise ValueError('Expected defenders (N,D,2) and carrier (N,2).')
-        if not all(np.isfinite(z).all() for z in [r,v,x,vx]):raise ValueError('State coordinates and velocities must be finite.')
-        n,d=r.shape[:2];steps=max(0,math.ceil(horizon/p['dt']-1e-12))
-        logical_times=np.arange(steps,dtype=float)*p['dt']
-        times=np.arange(steps,dtype=np.float32)*np.float32(p['dt'])
-        widths=np.minimum(p['dt'],np.maximum(horizon-logical_times,0.))
-        causes=np.zeros((n,d));log_survival=np.zeros(n);curve=[np.ones(n)]
+        if not all((np.isfinite(z).all() for z in [r, v, x, vx])):
+            raise ValueError('State coordinates and velocities must be finite.')
+        n, d = r.shape[:2]
+        steps = max(0, math.ceil(horizon / p['dt'] - 1e-12))
+        logical_times = np.arange(steps, dtype=float) * p['dt']
+        times = np.arange(steps, dtype=np.float32) * np.float32(p['dt'])
+        widths = np.minimum(p['dt'], np.maximum(horizon - logical_times, 0.0))
+        causes = np.zeros((n, d))
+        log_survival = np.zeros(n)
+        curve = [np.ones(n)]
         if steps and d:
-            cfg={k:p[k] for k in ['v_max','a_linear','a_turn','preserve_initial_overspeed']}
-            tti=np.asarray(_arrivals(*[jnp.asarray(z,dtype=jnp.float32) for z in [r,v,x,vx]],jnp.asarray(times),**cfg),float)
-            target=x[:,None,:]+vx[:,None,:]*times[None,:,None]
-            margins=np.stack([p['pitch_length']/2-target[...,0],p['pitch_length']/2+target[...,0],
-                p['pitch_width']/2-target[...,1],p['pitch_width']/2+target[...,1]],axis=-1)
-            boundary=np.min(margins if p['boundary_mode']=='signed' else abs(margins),axis=-1)
-            speed=np.linalg.norm(vx,axis=-1)
-            matrix=np.concatenate([_basis(self.design['speed_basis'],np.broadcast_to(speed[:,None],boundary.shape)),
-                _basis(self.design['boundary_basis'],boundary)],axis=-1)[...,:self.count]
-            eta=self.theta[0]+self.theta[1]*speed[:,None]+self.theta[2]*boundary+matrix@self.theta[4:4+self.count]
-            valid=np.linalg.norm(r,axis=-1)<500
-            log_rate=np.broadcast_to(eta[...,None],tti.shape).copy()
-            if self.kind=='individual_angle':
-                delta=target[:,:,None,:]-r[:,None,:,:];distance=np.linalg.norm(delta,axis=-1)
-                direction=np.where((distance<=.1)[...,None],v[:,None,:,:],delta)
-                norm=np.linalg.norm(direction,axis=-1)
-                cosine=np.sum(direction*vx[:,None,None,:],axis=-1)/np.maximum(norm*speed[:,None,None],1e-12)
-                angle=np.arccos(np.clip(cosine,-1,1))
-                available=(speed[:,None,None]>=1.) & (norm>1e-8) & valid[:,None,:]
-                basis=_basis(self.angle_design,angle,full=True)*available[...,None]
-                log_rate+=basis@self.theta[4+self.count:]
-            z=np.pi/(np.sqrt(3)*np.exp(self.theta[3]))*(times[None,:,None]-tti)
-            gates=np.exp(-np.logaddexp(0.,-z))*valid[:,None,:]
-            with np.errstate(over='raise',invalid='raise'):
-                try:rates=gates*np.exp(log_rate)
-                except FloatingPointError as exc:raise ValueError('Fitted rates exceeded the finite numerical range.') from exc
-            for i,width in enumerate(widths):
-                intensity=rates[:,i];total=intensity.sum(axis=1);exposure=width*total
-                if not np.isfinite(exposure).all():raise ValueError('Nonfinite integrated hazard.')
-                small=exposure<1e-5;zs=np.where(small,exposure,0.)
-                factor=width*np.where(small,1-zs/2+zs**2/6-zs**3/24,
-                    -np.expm1(-exposure)/np.where(small,1.,exposure))
-                causes+=np.exp(log_survival)[:,None]*factor[:,None]*intensity
-                log_survival-=exposure;curve.append(np.exp(log_survival))
-        else:curve.extend(np.ones(n) for _ in range(steps))
-        survival=np.exp(log_survival)
-        return dict(loss_probability=-np.expm1(log_survival),survival_probability=survival,
-            cause_probabilities=causes,survival_curve=np.stack(curve,axis=1),
-            times=np.r_[logical_times,horizon],physics=p,model_id=self.model_id,horizon=float(horizon))
+            cfg = {k: p[k] for k in ['v_max', 'a_linear', 'a_turn', 'preserve_initial_overspeed']}
+            tti = np.asarray(
+                _arrivals(
+                    *[jnp.asarray(z, dtype=jnp.float32) for z in [r, v, x, vx]],
+                    jnp.asarray(times),
+                    **cfg,
+                ),
+                float,
+            )
+            target = x[:, None, :] + vx[:, None, :] * times[None, :, None]
+            margins = np.stack(
+                [
+                    p['pitch_length'] / 2 - target[..., 0],
+                    p['pitch_length'] / 2 + target[..., 0],
+                    p['pitch_width'] / 2 - target[..., 1],
+                    p['pitch_width'] / 2 + target[..., 1],
+                ],
+                axis=-1,
+            )
+            boundary = np.min(margins if p['boundary_mode'] == 'signed' else abs(margins), axis=-1)
+            speed = np.linalg.norm(vx, axis=-1)
+            matrix = np.concatenate(
+                [
+                    _basis(
+                        self.design['speed_basis'],
+                        np.broadcast_to(speed[:, None], boundary.shape),
+                    ),
+                    _basis(self.design['boundary_basis'], boundary),
+                ],
+                axis=-1,
+            )[..., :self.count]
+            eta = (
+                self.theta[0]
+                + self.theta[1] * speed[:, None]
+                + self.theta[2] * boundary
+                + matrix @ self.theta[4:4 + self.count]
+            )
+            valid = np.linalg.norm(r, axis=-1) < 500
+            log_rate = np.broadcast_to(eta[..., None], tti.shape).copy()
+            if self.kind == 'individual_angle':
+                delta = target[:, :, None, :] - r[:, None, :, :]
+                distance = np.linalg.norm(delta, axis=-1)
+                direction = np.where((distance <= 0.1)[..., None], v[:, None, :, :], delta)
+                norm = np.linalg.norm(direction, axis=-1)
+                cosine = (
+                    np.sum(direction * vx[:, None, None, :], axis=-1)
+                    / np.maximum(norm * speed[:, None, None], 1e-12)
+                )
+                angle = np.arccos(np.clip(cosine, -1, 1))
+                available = (speed[:, None, None] >= 1.0) & (norm > 1e-08) & valid[:, None, :]
+                basis = _basis(self.angle_design, angle, full=True) * available[..., None]
+                log_rate += basis @ self.theta[4 + self.count:]
+            z = np.pi / (np.sqrt(3) * np.exp(self.theta[3])) * (times[None, :, None] - tti)
+            gates = np.exp(-np.logaddexp(0.0, -z)) * valid[:, None, :]
+            with np.errstate(over='raise', invalid='raise'):
+                try:
+                    rates = gates * np.exp(log_rate)
+                except FloatingPointError as exc:
+                    raise ValueError('Fitted rates exceeded the finite numerical range.') from exc
+            # Allocate each survival decrement among competing defender causes.
+            for i, width in enumerate(widths):
+                intensity = rates[:, i]
+                total = intensity.sum(axis=1)
+                exposure = width * total
+                if not np.isfinite(exposure).all():
+                    raise ValueError('Nonfinite integrated hazard.')
+                # Taylor expansion avoids cancellation for very small exposures.
+                small = exposure < 1e-05
+                zs = np.where(small, exposure, 0.0)
+                factor = width * np.where(
+                    small,
+                    1 - zs / 2 + zs ** 2 / 6 - zs ** 3 / 24,
+                    -np.expm1(-exposure) / np.where(small, 1.0, exposure),
+                )
+                causes += np.exp(log_survival)[:, None] * factor[:, None] * intensity
+                log_survival -= exposure
+                curve.append(np.exp(log_survival))
+        else:
+            curve.extend((np.ones(n) for _ in range(steps)))
+        survival = np.exp(log_survival)
+        return dict(
+            loss_probability=-np.expm1(log_survival),
+            survival_probability=survival,
+            cause_probabilities=causes,
+            survival_curve=np.stack(curve, axis=1),
+            times=np.r_[logical_times, horizon],
+            physics=p,
+            model_id=self.model_id,
+            horizon=float(horizon),
+        )

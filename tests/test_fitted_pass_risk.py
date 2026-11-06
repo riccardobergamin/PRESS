@@ -5,7 +5,7 @@ from pathlib import Path
 from importlib.resources import files
 import numpy as np
 from PRESS import PRESS
-from PRESS.datasets import load_demo_match
+from _fixtures import load_test_match
 from PRESS.model import PassRiskModel
 
 
@@ -28,7 +28,7 @@ def test_installed_pass_model_is_the_verified_full_refit():
 
 
 def test_public_default_uses_saved_isotonic_without_physics_overrides():
-    tracking,*_=load_demo_match()
+    tracking,*_=load_test_match()
     match=PRESS(tracking)
     match.compute_ppcf(5,r_max=12,step=12)
     result=match.get_ppcf_result(5);fitted=PassRiskModel.pretrained()

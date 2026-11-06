@@ -16,11 +16,13 @@ project:
   - usage.qmd
   - api.qmd
   - solvers.qmd
+  - reference/getters.qmd
+  - reference/plots.qmd
   - roadmap.qmd
   - vignettes/00_match_workflow/00_match_workflow.ipynb
   - vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb
   - vignettes/02_pass_probability/02_pass_probability.ipynb
-  - vignettes/03_transition_model/03_pass_selection.ipynb
+  - vignettes/03_pass_selection/03_pass_selection.ipynb
   - vignettes/04_action_selection/04_action_selection.ipynb
   - vignettes/05_residual_risk/05_residual_risk.ipynb
   - vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb
@@ -31,25 +33,26 @@ project:
   - vignettes/extras/expected_threat/11.expected_threat.ipynb
 website:
   title: PRESS
+  favicon: branding/favicon.png
   site-url: https://riccardobergamin.github.io/PRESS/
   repo-url: https://github.com/riccardobergamin/PRESS
   repo-actions:
   - source
   - issue
   navbar:
+    logo: branding/press-logo.svg
+    logo-alt: PRESS logo
     left:
     - href: index.qmd
       text: Overview
     - text: User guide
       menu:
-      - text: Using the package
-        href: usage.qmd
-      - text: Match → possession → frame
-        href: vignettes/00_match_workflow/00_match_workflow.ipynb
-      - text: Possessions and checkpoints
-        href: vignettes/setup/possession_and_checkpoint_setup.ipynb
-      - text: Data setup
+      - text: 1 · Dataset and preprocessing
         href: data.qmd
+      - text: 2 · Possession segmentation and context
+        href: vignettes/setup/possession_and_checkpoint_setup.ipynb
+      - text: 3 · Installation and use
+        href: vignettes/00_match_workflow/00_match_workflow.ipynb
     - text: Models
       menu:
       - text: 1 · Ball-drive risk
@@ -57,7 +60,7 @@ website:
       - text: 2 · Pass probability
         href: vignettes/02_pass_probability/02_pass_probability.ipynb
       - text: 3 · Pass selection
-        href: vignettes/03_transition_model/03_pass_selection.ipynb
+        href: vignettes/03_pass_selection/03_pass_selection.ipynb
       - text: 4 · Action selection
         href: vignettes/04_action_selection/04_action_selection.ipynb
       - text: 5 · Residual risk
@@ -86,14 +89,18 @@ website:
         href: benchmarks/06_composed_risk.qmd
     - text: Reference
       menu:
-      - text: Python API
+      - &id001
+        text: 1 · Initialization and classes
         href: api.qmd
-      - text: Solver reference
+      - &id002
+        text: 2 · Solvers
         href: solvers.qmd
-      - text: Research pipeline
-        href: pipeline.qmd
-      - text: Project plan
-        href: roadmap.qmd
+      - &id003
+        text: 3 · Getters and saved results
+        href: reference/getters.qmd
+      - &id004
+        text: 4 · Plot functions
+        href: reference/plots.qmd
     right:
     - icon: github
       href: https://github.com/riccardobergamin/PRESS
@@ -105,14 +112,13 @@ website:
     - section: User guide
       collapsed: false
       contents:
-      - text: Using the package
-        href: usage.qmd
-      - text: Match → possession → frame
-        href: vignettes/00_match_workflow/00_match_workflow.ipynb
-      - text: Possessions and checkpoints
-        href: vignettes/setup/possession_and_checkpoint_setup.ipynb
-      - text: Data setup
+      - text: 1 · Dataset and preprocessing
         href: data.qmd
+      - text: 2 · Possession segmentation and context
+        href: vignettes/setup/possession_and_checkpoint_setup.ipynb
+      - text: 3 · Installation and use
+        href: vignettes/00_match_workflow/00_match_workflow.ipynb
+      href: usage.qmd
     - section: Models
       contents:
       - text: 1 · Ball-drive risk
@@ -120,7 +126,7 @@ website:
       - text: 2 · Pass probability
         href: vignettes/02_pass_probability/02_pass_probability.ipynb
       - text: 3 · Pass selection
-        href: vignettes/03_transition_model/03_pass_selection.ipynb
+        href: vignettes/03_pass_selection/03_pass_selection.ipynb
       - text: 4 · Action selection
         href: vignettes/04_action_selection/04_action_selection.ipynb
       - text: 5 · Residual risk
@@ -157,14 +163,10 @@ website:
     - section: Reference
       collapsed: true
       contents:
-      - text: Python API
-        href: api.qmd
-      - text: Solver reference
-        href: solvers.qmd
-      - text: Research pipeline
-        href: pipeline.qmd
-      - text: Project plan
-        href: roadmap.qmd
+      - *id001
+      - *id002
+      - *id003
+      - *id004
   page-footer:
     center:
     - text: All pages

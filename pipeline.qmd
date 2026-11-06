@@ -48,7 +48,7 @@ The ten-match output contains 642,687 tracking frames, 9,106 selected individual
 
 All 16,901 distinct v5 training states passed the package state extractor, including canonical/snapshot selection and event context. All ten tracking files are byte-identical to v4. The v5 output includes `manifest.json`, `coverage.csv`, `folds.json` and `validation.json`. The historical v4 root retains its 5,608 validated trajectories; trajectories and downstream features have not been regenerated for the filtered v5 indices. Ball-drive training does not require them. Previous raw/processed files and distributed model artifacts were retained.
 
-The new base tables are complete. The final booster feature matrices have **not** been regenerated in bulk: they depend on physical parameters, calibration, transition-model artifacts and xT. The new action-feature command was smoke-tested on real tracking with a reduced grid; its partial outputs are kept outside the training feature directory. Review fitting and dependencies per fold before reporting out-of-sample component performance.
+The new base tables are complete. The final booster feature matrices have **not** been regenerated in bulk: they depend on physical parameters, calibration, pass-selection artifacts and xT. The new action-feature command was smoke-tested on real tracking with a reduced grid; its partial outputs are kept outside the training feature directory. Review fitting and dependencies per fold before reporting out-of-sample component performance.
 
 ## Accepted boundary policy
 

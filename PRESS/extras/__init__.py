@@ -1,4 +1,4 @@
-"""Optional PRESS components that are outside the core hazard pipeline."""
+"""Optional spatial descriptor and terminal individual-loss composition."""
 
 from .bcos import BCOS
 from .residual_risk import compose_individual_xloss

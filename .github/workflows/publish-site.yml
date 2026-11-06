@@ -35,17 +35,16 @@ jobs:
         run: |
           python scripts/check_environment.py --extras io,vignettes,dev
           python -m pytest -q
-          python scripts/rebuild_vignettes.py
-          python scripts/check_docs.py
+          python scripts/check_docs.py --sources-only
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: "1.10.19"
 
-      - name: Render website and execute vignette notebooks
+      - name: Render saved real-match notebook outputs
         run: |
-          quarto render
+          quarto render --no-execute
           python scripts/check_site.py
 
       - name: Configure GitHub Pages

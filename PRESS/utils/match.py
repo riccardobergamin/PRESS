@@ -1,4 +1,5 @@
 """Match navigation and adapters for the processed SkillCorner tables."""
+
 from __future__ import annotations
 
 import numpy as np

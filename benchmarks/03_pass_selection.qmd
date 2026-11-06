@@ -3,9 +3,9 @@ title: "Pass selection benchmark"
 jupyter: python3
 ---
 
-[Model and example](../vignettes/03_transition_model/03_pass_selection.ipynb) · [All benchmarks](../benchmark.qmd)
+[Model and example](../vignettes/03_pass_selection/03_pass_selection.ipynb) · [All benchmarks](../benchmark.qmd)
 
-The pass-selection model gives the probability of each candidate destination, conditional on a pass attempt. A shared XGBoost ensemble produces a utility for every destination, and a softmax turns the utilities into a categorical choice distribution. We also evaluate an exploratory cross-nested logit (CNL) that groups destinations probabilistically by potential receiver. The [model vignette](../vignettes/03_transition_model/03_pass_selection.ipynb) introduces the choice model, its predictors and an executable example. The likelihood-based tree learning follows RUMBoost [@salvade2024rumboost].
+The pass-selection model gives the probability of each candidate destination, conditional on a pass attempt. A shared XGBoost ensemble produces a utility for every destination, and a softmax turns the utilities into a categorical choice distribution. We also evaluate an exploratory cross-nested logit (CNL) that groups destinations probabilistically by potential receiver. The [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb) introduces the choice model, its predictors and an executable example. The likelihood-based tree learning follows RUMBoost [@salvade2024rumboost].
 
 ## Evaluation cohort
 
@@ -19,7 +19,7 @@ The cohort contains every pass of the final pass-probability cohort and also the
 
 ## Features
 
-The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). Definitions and groups are given in the [model vignette](../vignettes/03_transition_model/03_pass_selection.ipynb). Pitch control enters in its raw form, without isotonic calibration, and the observed receiver and outcome are excluded.
+The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). Definitions and groups are given in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). Pitch control enters in its raw form, without isotonic calibration, and the observed receiver and outcome are excluded.
 
 ## Choice specifications and learning
 
@@ -122,7 +122,7 @@ The selected configurations were evaluated on **five match-disjoint 6 + 2 + 2 pa
 
 There is **no eight-match tree refit** before testing. Temperature scaling is applied to the final destination distribution (after nest aggregation for CNL), without changing utilities, dissimilarity or the selected tree prefix. It is fitted after selection and is not the criterion used for the preceding hyperparameter screening or early stopping.
 
-**Temperature scaling.** The calibrated distribution is $p_{ij}^{(T)}\propto p_{ij}^{1/T}$, as defined in the [model vignette](../vignettes/03_transition_model/03_pass_selection.ipynb). The single scalar $T$ minimizes the cross entropy of the observed choices on the two validation matches. $T>1$ flattens the distribution and $T<1$ concentrates it. The fitted values are close to one in every fold (table below), and the gain in cross entropy is small. The deployed flat model retains the temperature.
+**Temperature scaling.** The calibrated distribution is $p_{ij}^{(T)}\propto p_{ij}^{1/T}$, as defined in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). The single scalar $T$ minimizes the cross entropy of the observed choices on the two validation matches. $T>1$ flattens the distribution and $T<1$ concentrates it. The fitted values are close to one in every fold (table below), and the gain in cross entropy is small. The deployed flat model retains the temperature.
 
 Each of the 6,810 decisions appears exactly once among the pooled test predictions. Upstream physical fitting and calibration are documented in the [pass-probability benchmark](02_pass_probability.qmd) and [ball-drive benchmark](01_ball_drive_risk.qmd). The full-data deployment refit is described at the end.
 

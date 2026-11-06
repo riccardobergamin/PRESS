@@ -4,6 +4,7 @@ from __future__ import annotations
 import contextlib
 import io
 import os
+import re
 import sys
 import traceback
 from pathlib import Path
@@ -74,17 +75,16 @@ def main() -> None:
     for path in notebooks:
         execute_notebook(path)
         print(f"Executed {path.relative_to(ROOT)}")
-    expected_figures = [ROOT / "figures" / f"vignette_{i:02d}_{name}.{ext}"
-        for i, name in enumerate([
-            "drive_risk", "pass_probability", "transition", "action_selection",
-            "hazard_bands", "possession_setup", "survival", "typologies",
-            "league_report", "bcos", "expected_threat",
-        ], 1) for ext in ("png", "svg")]
-    expected_figures.extend([ROOT / "figures" / f"model_overview.{ext}" for ext in ("png", "svg")])
-    expected_figures.extend([ROOT / "figures" / f"vignette_00_match_workflow.{ext}" for ext in ("png", "svg")])
-    expected_figures.extend([ROOT / "figures" / f"vignette_{name}.{ext}"
-        for name in ("01_drive_pitch", "02_pass_pitch", "03_transition_pitch", "04_action_pitch", "12_residual_risk")
-        for ext in ("png", "svg")])
+    expected_figures = {ROOT / "figures/model_overview.png", ROOT / "figures/model_overview.svg"}
+    for path in notebooks:
+        notebook = nbformat.read(path, as_version=4)
+        for cell in notebook.cells:
+            if cell.cell_type != "markdown":
+                continue
+            for target in re.findall(r"!\[[^\]]*\]\(([^)\s]+)", cell.source):
+                if not target.startswith(("http:", "https:", "data:")):
+                    expected_figures.add((path.parent / target).resolve())
+    expected_figures = sorted(expected_figures)
     missing = [p.relative_to(ROOT) for p in expected_figures if not p.is_file()]
     if missing:
         raise SystemExit(f"Missing generated figures: {missing}")

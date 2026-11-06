@@ -60,3 +60,9 @@
   .page-directory { display: block; }
   .directory-section { break-inside: avoid; margin-bottom: 1rem; }
 }
+
+/* Approved package badge in the shared website header. */
+#quarto-header .navbar-logo {
+  max-height: 60px;
+  width: auto;
+}

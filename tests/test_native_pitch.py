@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 from PRESS import PRESS
-from PRESS.datasets import load_demo_match
+from _fixtures import load_test_match
 from PRESS.utils.state import get_xt_values
 from PRESS.utils.frame import resolve_pitch_size
 
@@ -18,7 +18,7 @@ def test_xt_uses_relative_location_on_native_pitch():
 
 
 def test_state_and_plot_dimensions_come_from_tracking():
-    tracking, *_ = load_demo_match()
+    tracking, *_ = load_test_match()
     tracking['pitch_length'] = 104.
     tracking['pitch_width'] = 70.
     state = PRESS(tracking).get_state(5)
@@ -28,7 +28,7 @@ def test_state_and_plot_dimensions_come_from_tracking():
 
 
 def test_adapter_reads_new_parquet_actions(tmp_path):
-    tracking, _, actions, _ = load_demo_match()
+    tracking, _, actions, _ = load_test_match()
     import pandas as pd
     match = tmp_path / '123'
     match.mkdir()
@@ -43,12 +43,14 @@ def test_adapter_reads_new_parquet_actions(tmp_path):
 
 
 def test_drive_boundary_distance_uses_native_dimensions():
-    from PRESS.model.solver_intensity import integrate_loss_prob
-    args = (np.array([[50.,0.]]), np.zeros((1,2)), np.array([51.,0.]), np.zeros(2), 1.)
-    kwargs = dict(lambda_0=.36, beta_v=.09, beta_B=.5, s=.43)
-    reference = integrate_loss_prob(*args, **kwargs)
-    explicit = integrate_loss_prob(*args, **kwargs, pitch_length=105, pitch_width=68)
-    np.testing.assert_allclose(reference, explicit)
-    narrow = integrate_loss_prob(*args, **kwargs, pitch_length=104, pitch_width=68)
-    wide = integrate_loss_prob(*args, **kwargs, pitch_length=106, pitch_width=68)
-    assert float(np.asarray(narrow).sum()) < float(np.asarray(wide).sum())
+    from PRESS.model import BallDriveModel
+
+    model = BallDriveModel.pretrained()
+    state = dict(r_defs=np.array([[50., 0.]]), v_defs=np.zeros((1, 2)),
+                 x_bc=np.array([51., 0.]), v_bc=np.zeros(2))
+    reference = model.predict(**state)
+    explicit = model.predict(**state, physics_kwargs={'pitch_length': 105., 'pitch_width': 68.})
+    np.testing.assert_allclose(reference['loss_probability'], explicit['loss_probability'])
+    narrow = model.predict(**state, physics_kwargs={'pitch_length': 104., 'pitch_width': 68.})
+    wide = model.predict(**state, physics_kwargs={'pitch_length': 106., 'pitch_width': 68.})
+    assert abs(narrow['loss_probability'] - wide['loss_probability']) > 1e-8

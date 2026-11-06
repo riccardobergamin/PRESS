@@ -1,16 +1,18 @@
 # PRESS
 
-**Possession Risk Estimate from Spatio-temporal State** is a work-in-progress, physics-informed framework for estimating the discrete-time risk that a team loses possession during its current canonical action. The code combines physics-based pass and carry components with learned action and destination choices. [@spearman2017; @fernandez2019] **own derivation**
+<img src="branding/press-logo.svg" align="right" width="155" alt="PRESS logo" />
+
+**Possession Risk Estimate from Spatio-temporal State** (PRESS) is a work-in-progress, physics-informed framework for estimating the risk that a team loses possession. It combines physics-based pass and carry components with learned action and destination choices, and it evaluates possession vulnerability at two horizons: the next canonical action of the ball carrier (the hazard h) and the eventual outcome of the carrier's individual possession (xLoss).
 
 ## Objectives and motivation
 
-This project is a portfolio research project to learn the main ideas behind expected possession value (EPV), work with player tracking data, and explore a physics-based formulation of ball-drive likelihood. The goal is to package the existing research code into reusable components with reproducible examples and results. [@fernandez2019] **own derivation**
+This is a portfolio research project to learn the main ideas behind expected possession value (EPV), work with player tracking data and explore a physics-based formulation of ball-drive likelihood (Spearman et al., 2017; Fernández et al., 2019, 2021). The goal is to package the research code into reusable components with reproducible examples and results.
 
-The motivating question is: given the current game state and the player in possession, how difficult is it for the team to retain the ball? Pressure can constrain a carrier's options, raise interception risk, and affect action choice. PRESS adapts building blocks from pitch control and EPV research to express that question as a team-possession hazard over canonical action opportunities. [@spearman2017; @fernandez2019; @bekkers2025; @skillcorner2026] **own derivation**
+The motivating question is: given the current game state and the player in possession, how difficult is it for the team to retain the ball? Pressure can constrain a carrier's options, raise interception risk and affect action choice. PRESS adapts building blocks from pitch control and EPV research to express that question as a team-possession hazard over canonical action opportunities (Spearman et al., 2017; Fernández et al., 2021; Bekkers, 2025; SkillCorner, 2026).
 
-The model style is hybrid: pass and carry outcomes use physics-inspired motion and arrival probabilities; action selection and pass destination use tree models. The risk unit is team possession, represented as a sequence of canonical actions across successive carriers. A successful pass is nonterminal: it continues team possession with the receiver. It ends only the passer's individual control, which is the separate endpoint used by xLoss. The current-action hazard can be evaluated at any usable tracking frame attributable to the current carrier. Canonical action starts define the benchmark; separately marked snapshots can enrich a descriptive trajectory. [@fernandez2019] **design choice** [@singer2003] **own derivation**
+The model style is hybrid: pass and carry outcomes use physics-inspired motion and arrival probabilities, while action selection and pass destination use tree models. The risk unit is team possession, represented as a discrete-time survival process over a sequence of canonical actions across successive carriers (Singer and Willett, 2003). A successful pass is nonterminal: it continues team possession with the receiver. It ends only the passer's individual control, which is the separate endpoint used by xLoss. The current-action hazard can be evaluated at any usable tracking frame attributable to the current carrier. Canonical action starts define the benchmark, and separately marked snapshots can enrich a descriptive trajectory.
 
-Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking; the observed-possession summary is retrospective. See [interpretation and action units](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) for the verified Fernandez convention and the separate individual-possession endpoint. **design choice**
+Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking, whereas the observed-possession summary is retrospective. See the [hazard and bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) for the interpretation of the hazard and the [possession segmentation page](vignettes/setup/possession_and_checkpoint_setup.ipynb) for the definition of canonical actions and checkpoints.
 
 ## Model overview
 
@@ -18,44 +20,96 @@ Pressure means constraining the carrier's time, space and usable passing options
 
 At each evaluated frame, PRESS composes the drive and pass branches as
 
-`h_t = P(drive | s_t) × drive_risk(s_t) + P(pass | s_t) × pass_failure_expected(s_t)`.
+`h = P(drive) × drive_loss + P(pass) × pass_failure_expected`
 
-The drive solver accumulates defender-specific loss probabilities under a shared remaining survival mass. The final fitted model uses additive penalized spline effects for carrier speed, signed boundary distance and individual interception angle in the log tackle rate. `BallDriveModel.pretrained()` loads its verified ten-match refit, also used by the frame API by default. The historical log-linear solver remains available by supplying its legacy coefficients explicitly. `lambda_control` belongs to pass control; the drive solver names its baseline `lambda_0` and its cause-specific intensity `lambda_def`. **own derivation** [@spearman2017]
+where the pass failure is averaged over candidate destinations. The expected loss of the individual possession adds the continuation after a successful carry:
 
-The pass component uses a verified trajectory-MLE fit transferred to target pitch control, with exact-distance flight and mass-preserving exponential integration. `PassRiskModel.pretrained()` loads its parameters and isotonic calibration; `PRESS(..., pass_risk_model=model)` accepts it explicitly, and `compute_ppcf` uses it by default. The accepted cohort has 6,706 passes (964 failures), outfield passers and duration [0.5, 10] s. The final run41 artifact uses the same TTI for trajectory fitting, target control and receiver/flight timing: v_max=5.5 m/s, a=a_turn=7 m/s², preserving initial speed above v_max; the [vignette](vignettes/02_pass_probability/02_pass_probability.ipynb) explains flight, control, speed quantiles and model assumptions. [Pass refit provenance](docs/pass-risk-refit-provenance.json).
+`xLoss = h + P(carry) × (1 − drive_loss) × residual_loss`
+
+Operational difficulty bands follow from the half-life of possession under a constant hazard, with cutoffs at half-lives of 8, 4 and 2 actions: None below h = 0.083, Low from 0.083, Medium from 0.159 and High from 0.293.
+
+**Ball-drive risk.** The drive solver accumulates defender-specific loss probabilities under a shared remaining survival mass. The tackle rate has additive penalized spline effects for carrier speed, signed distance to the pitch boundary and defender approach angle. `BallDriveModel.pretrained()` loads the ten-match refit, which the frame API uses by default. The historical log-linear solver is retained only in `archive/legacy_package/`, outside the installed package. The drive model names its baseline tackle rate `lambda_0`, and `lambda_control` belongs to pass control.
+
+**Pass probability.** Two physical parameters, the control rate and the arrival dispersion, are fitted by maximum likelihood along reconstructed pass trajectories and transferred to target pitch control, with exact-distance flight and exponential integration. An isotonic map calibrates the completion probability. `PassRiskModel.pretrained()` loads parameters and calibration, `PRESS(..., pass_risk_model=model)` accepts it explicitly, and `compute_ppcf` uses it by default. The benchmark cohort has 6,706 passes (964 failures) with outfield passers and a flight duration between 0.5 and 10 s. The fitted time-to-intercept settings are v_max = 5.5 m/s and a = a_turn = 7 m/s², preserving an initial speed above v_max. The [vignette](vignettes/02_pass_probability/02_pass_probability.ipynb) explains flight, control and model assumptions, and the [provenance file](docs/pass-risk-refit-provenance.json) records the refit.
+
+**Choice and residual models.** Pass selection is a flat XGBoost categorical model over candidate destinations. Action selection is a binary XGBoost pass-versus-carry policy. Residual risk estimates the probability that the individual possession eventually ends in a loss after a successful carry. The tree models use features derived from the physical components together with tactical and contextual information.
+
+### Fitted models shipped with the package
+
+| Task | Model | Deployment fit |
+|---|---|---|
+| Ball-drive risk | Competing-risk physical model with additive penalized splines | Maximum a posteriori refit on the ten matches |
+| Pass probability | Trajectory-likelihood physical model with isotonic calibration | Refit on the ten matches: control rate 5.437830 s⁻¹, arrival dispersion 0.294560 s |
+| Pass selection | Flat XGBoost categorical choice model | 1,444 trees with temperature scaling |
+| Action selection | XGBoost binary policy | Native probabilities, no scaling |
+| Residual risk | XGBoost conditional loss model | 118 trees on all 7,820 eligible states, native probabilities |
+
+Readers validate tree-model checksums and feature contracts. Held-out benchmark predictions remain separate from the deployment refits, and adapting another provider's format does not establish calibration on that provider.
 
 ## Package API
 
-`PRESS` accepts wide tracking data and optional event data. `get_state(frame_id)` extracts carrier, teammate, and defender positions and velocities. The core class computes pitch control/pass probability, ball-drive loss, transition choice, action selection, and the composed hazard. BCOS is an optional extra in `PRESS.extras.BCOS`; the current action-selection booster still consumes a scalar BCOS feature, supplied explicitly to `compute_action_selection_probability`. Result access for core outputs is available through `get_result(component, frame_id)` and component getters such as `get_ppcf_result` and `get_hazard_result`. **design choice**
+`PRESS` represents one match. Initialize it from canonical wide tables, use `PRESS.from_long(players, ball, context, ...)` for another provider's long tables, or use `PRESS.from_skillcorner(...)` for this project's processed parquet files. Input frequency, pitch dimensions and source-ID mapping are explicit. Initialization validates and copies the inputs and performs no inference.
 
-Post-processing helpers in `PRESS.utils.possession` expose `hazard_to_band`, `possession_survival`, and `classify_possession_typology`. The core visualization package exposes `plot_frame`, `plot_ppcf`, and `plot_pi`, plus pitch views `plot_transition` and `plot_action_selection`; optional BCOS visualization is available through `plot_bcos` with a `PRESS.extras.BCOS` instance.
+The workflow is load → navigate → compute → retrieve → plot or save. Team and individual possessions have separate getters. Any usable frame can be evaluated independently of canonical checkpoint sampling. `compute_frame(frame_id)` computes h, and `include_residual=True` also computes the conditional residual risk and the terminal individual xLoss, deriving the elapsed time from annotations and never imputing zero. The fitted xT surface and the frozen model parameters are included in the pretrained artifacts.
 
-Use `get_possessions`, `get_possession`, `get_player_possessions`, `get_frames`, `get_frame` and `get_checkpoints` to select inputs. `PRESS.from_skillcorner` loads processed match files; `compute_frame` evaluates any usable frame, resolving annotated event context or accepting it explicitly. `compute_possession` returns a sampled hazard trajectory: its default includes canonical action starts and additional evaluation snapshots, labeled separately; `include_snapshots=False` selects canonical rows and `frame_ids` accepts custom frames. The frame evaluator is independent of that sampling. Initialization performs no model calculation.
+```python
+from PRESS import PRESS
+from PRESS.visualization import plot_ball_drive_risk
 
-See the [end-to-end match usage guide](usage.qmd) for loading processed tracking, selecting any usable frame, and computing its components. The [Python API reference](api.qmd) documents public methods, getters, plots, and possession utilities. The [action plan](roadmap.qmd) explains the package and portfolio structure.
+press = PRESS(tracking, player_possessions_data=individuals,
+              actions_data=actions, fps=input_frequency)
+frame_id = int(press.get_checkpoints().frame_id.iloc[0])
+press.compute_ball_drive_risk(frame_id)
+result = press.get_ball_drive_risk_result(frame_id)
+fig, ax = plot_ball_drive_risk(press, frame_id, show=False)
+fig.savefig("drive_risk.png", dpi=160)
+press.save_results("outputs/match_results")
+```
 
-The installed destination-choice ensemble is `PRESS/utils/data/pass_selection_model.json` + `pass_selection_model.ubj`, from the verified full-data flat refit in research experiment57. Its [provenance](docs/pass-selection-final-provenance.json) identifies weights, physics and calibration. The previous `transition_model.json` is retained for historical comparisons. The revised [action-selection benchmark](benchmarks/04_action_selection.qmd) is complete: 30 conceptual inputs, 16,918 decisions, pooled CE **0.568592**, null gain **17.602%** and quantile ECE **1.026%**. Action selection loads the verified full-data `action_selection_model.json` manifest and checksum-verified `.ubj`: 277 trees, 30 conceptual inputs, no scaling. [Refit provenance](docs/action-selection-refit-provenance.json) links the installed runtime and upstream model hashes; the held-out benchmark remains separate. The [example vignette](vignettes/04_action_selection/04_action_selection.ipynb) defines every feature and evaluates the installed model on a synthetic frame. The verified ball-drive refit is `PRESS/utils/data/ball_drive_model.json`, with [export provenance](docs/ball-drive-refit-provenance.json), and is the default frame-level carry model. These are learned parameters, not raw tracking records.
+All plot functions return figure and axes. Getters copy results by default. Saved results use JSON metadata and compressed NPZ arrays, with input and model fingerprints and no pickle. An upstream recomputation invalidates the dependent outputs.
 
-## Vignettes
+## Documentation
 
-Every vignette starts with the idea and a code-generated visual. All examples use deterministic toy inputs unless the vignette explicitly reads local data. Mathematical descriptions tagged **own derivation** or **design choice** are project formulations.
+**User guide.** [Using the package](usage.qmd) follows the path from raw observations to a possession-level risk profile:
 
-- [00 · Match, possession and frame workflow](vignettes/00_match_workflow/00_match_workflow.ipynb) — initialize one match, select a frame, compute and retrieve its components.
-- [01 · Ball-drive risk](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb) — geometry, carrier speed, boundary distance, and competing defender causes.
-- [02 · Pass probability](vignettes/02_pass_probability/02_pass_probability.ipynb) — simplified flight path and Spearman-style arrival/control accumulation.
-- [03 · Transition model](vignettes/03_transition_model/03_pass_selection.ipynb) — destination choice across candidate receivers.
-- [04 · Action selection](vignettes/04_action_selection/04_action_selection.ipynb) — pass-versus-carry likelihood, all 30 benchmark inputs, 4+4 option summaries, package pitch example and held-out calibration. Fractional possession age is excluded; completed whole carries are included.
-- [05a · Residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb) — conditional terminal outcome, all 31 inputs, model use and feature importance.
-- [05 · Composed hazard and pressure bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) — canonical-action hazard, absolute half-life bands, held-out validation and contextual pitch examples.
-- [05b · Composed h and xLoss benchmark](benchmarks/06_composed_risk.qmd) — distinct targets, held-out protocol, scores and pooled calibration.
-- [06 · Possession and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb) — team possession construction and the configurable default sampling of a trajectory.
-- [07 · Survival curve](vignettes/07_case_studies/07_case_studies.ipynb) — retrospective cumulative possession difficulty and band trajectory.
-- [08 · Possession typologies](vignettes/07_case_studies/07_case_studies.ipynb) — three pressure behaviours, eligibility denominators and a close-engagement case; historical helper distinguished.
-- [09 · League-level report](vignettes/07_case_studies/07_case_studies.ipynb) — real ten-match A-League exposure and player/team retention percentages, with denominators and uncertainty.
-- [Extra · Ball Carrier Open Space](vignettes/extras/bcos/10_bcos.ipynb) — concept, conditional-hazard mathematics, real-frame calculation and one-match spatial/temporal summaries; its scalar area is used by action selection.
-- [Extra · Expected Threat](vignettes/extras/expected_threat/11.expected_threat.ipynb) — xT value iteration on a toy grid and the match-derived grid consumed by PRESS [@singh2018xt].
+1. [Dataset and preprocessing](data.qmd): preprocess one observed match and inspect the input tables.
+2. [Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb): individual possessions, canonical actions and checkpoints, additional snapshots, start type and previous action.
+3. [Installation and use](vignettes/00_match_workflow/00_match_workflow.ipynb): a complete real-match workflow with h and xLoss, plots, getters and result persistence.
 
+**Models.** Each vignette explains the concept, the mathematics and an observed match example using the package visualization.
 
+- [01 · Ball-drive risk](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb): geometry, carrier speed, boundary distance and competing defender causes.
+- [02 · Pass probability](vignettes/02_pass_probability/02_pass_probability.ipynb): simplified flight path and arrival and control accumulation.
+- [03 · Pass selection](vignettes/03_pass_selection/03_pass_selection.ipynb): destination choice across candidate cells.
+- [04 · Action selection](vignettes/04_action_selection/04_action_selection.ipynb): pass-versus-carry choice and its calibration.
+- [05 · Residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb): conditional terminal outcome after a successful carry.
+
+**Risk profiles and reports.**
+
+- [06 · Composed hazard and bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb): the hazard, half-life bands and held-out band validation.
+- [07 · Case studies](vignettes/07_case_studies/07_case_studies.ipynb): pressure patterns, observed cases and the team and player report.
+
+**Benchmarks.** The [benchmark overview](benchmark.qmd) describes the dataset, the shared evaluation protocol and the metrics. Each task has its own page: [ball-drive risk](benchmarks/01_ball_drive_risk.qmd), [pass probability](benchmarks/02_pass_probability.qmd), [pass selection](benchmarks/03_pass_selection.qmd), [action selection](benchmarks/04_action_selection.qmd), [residual risk](benchmarks/05_residual_risk.qmd) and [composed risk](benchmarks/06_composed_risk.qmd).
+
+**Extras.** [Ball Carrier Open Space](vignettes/extras/bcos/10_bcos.ipynb), whose scalar area is a feature of action selection, and [Expected Threat](vignettes/extras/expected_threat/11.expected_threat.ipynb), which builds the xT grid consumed by PRESS (Singh, 2018).
+
+**Reference.** [Initialization and classes](api.qmd), [solvers](solvers.qmd), [getters and saved results](reference/getters.qmd), [plot functions](reference/plots.qmd), the [research pipeline](pipeline.qmd) and the [project plan](roadmap.qmd).
+
+## Performance
+
+Held-out results pool the five outer match folds. The deployment refits are separate from these predictions, and the [scope of the development benchmark](benchmark.qmd#scope-of-the-development-benchmark) is described in the benchmark overview.
+
+| Task | Cohort | Cross-entropy | Gain over null | ECE |
+|---|---|---:|---:|---:|
+| Ball-drive risk | 9,114 carries, 456 losses | 0.143483 | 27.80% | 0.475% |
+| Pass probability | 6,706 passes, 964 failures | 0.131121 | 68.19% | 0.183% |
+| Pass selection | 6,810 decisions | 5.827787 | McFadden R² 34.322% | not reported |
+| Action selection | 16,918 decisions | 0.568592 | 17.602% | 1.026% |
+| Residual risk | 7,820 states | 0.419506 | 11.793% | 1.053% |
+| Hazard h | 15,085 checkpoints, 1,465 failures | 0.272014 | 14.765% | 0.749% |
+| xLoss | 15,085 checkpoints, 2,888 losses | 0.421925 | 13.769% | 0.930% |
+
+Pass probability uses isotonic calibration and pass selection uses the flat model with temperature scaling. The task benchmarks give the cohorts, null models, comparisons with published results and calibration plots.
 
 ## Reproduce
 
@@ -66,57 +120,56 @@ python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -e '.[io,vignettes,dev]'
 python scripts/check_environment.py --extras io,vignettes,dev
-python -m examples.checkpoint
+python -m examples.checkpoint --help
 python -m pytest -q tests
 python scripts/rebuild_vignettes.py
 python scripts/check_docs.py
 ```
 
-The notebooks use fixed random seeds and synthetic examples so that the build does not require raw tracking files. See [data setup](data/README.md) for local data preprocessing.
+The checked-in model examples use observed matches and saved figures. Re-executing them requires the local processed tracking, whereas rendering the saved outputs does not. The examples read the processed matches from `PRESS_PROCESSED_ROOT`; if it is not set, they use `$SKILLCORNER_OPENDATA/data/processed/2026-10-15_training_v5_outfield`. Artificial fixtures are confined to `tests/` and are not installed with the package. The command-line example requires `--match-dir` and reads an observed match. See the [dataset and preprocessing guide](data.qmd) and [data/README.md](data/README.md) for local data preprocessing.
 
 ## Build the website
 
 Install Quarto 1.10.19 and the pinned Python environment above, activate that environment, then run:
 
 ```bash
-quarto render
+quarto render --no-execute
 ```
 
-Quarto renders the notebooks as pages in `_site/`, executing their code and including outputs. The GitHub Actions workflow deploys the rendered site to GitHub Pages when changes reach `main`. In repository settings, select **Settings → Pages → Build and deployment → GitHub Actions** for the first deployment. The intended site URL is <https://riccardobergamin.github.io/PRESS/>.
+Quarto renders the saved notebook outputs as pages in `_site/`. Re-executing the notebook code requires the local processed matches. The publishing workflow is started manually through GitHub Actions. In the repository settings, select **Settings → Pages → Build and deployment → GitHub Actions** for the first deployment. The intended site URL is <https://riccardobergamin.github.io/PRESS/>.
 
 ## Data
 
-Raw SkillCorner tracking/event files and match-level derived tables are not included. The project uses the SkillCorner open-data repository, which describes an Australian A-League sample and requests attribution. Its MIT license file covers software and does not specify separate data redistribution terms; this repository documents that distinction and includes learned XGBoost and ball-drive parameter files, aggregate benchmark summaries and synthetic vignette examples. [@skillcorner-opendata]
-
-## Performance
-
-The final ball-drive development benchmark pools five held-out match pairs: 9,114 attempts, 456 losses (OBE-verified loss-ending possessions); cross-entropy **0.143483**, gain over the training-fold null **27.798%**, and ten-quantile-bin ECE **0.475%**. These ten matches also informed model-family selection, so they are not an untouched external evaluation. The bundled full-data refit is distinct from these OOF predictions. See the [benchmark](benchmark.qmd) for cohort, comparisons, calibration, limitations and a runnable fitted-model pitch example. The pass development benchmark gives **CE 0.131121, gain 68.19%, ECE 0.183%** with isotonic on 6,706 held-out passes. Both are pooled development OOF results, separate from the bundled full-data fits. Action selection and residual-risk evaluation are complete. The verified residual cohort gives **CE 0.419506, gain 11.793%, ECE 1.053%**; composed individual xLoss gives **CE 0.421925, gain 13.769%, ECE 0.930%** on its separate terminal target. The verified 118-tree native residual refit is installed. The [residual-risk vignette](vignettes/05_residual_risk/05_residual_risk.ipynb) explains the conditional model; a [separate composed-risk benchmark](benchmarks/06_composed_risk.qmd) evaluates h and xLoss. [Refit provenance](docs/residual-risk-refit-provenance.json).
+PRESS uses ten matches of the Australian A-League 2024/25 season from the [SkillCorner open-data repository](https://github.com/SkillCorner/opendata), which requests attribution. Raw SkillCorner tracking and event files and match-level derived tables are not included in this repository. The repository's MIT license file covers software and does not specify separate data redistribution terms; this repository documents that distinction. It includes the learned XGBoost and ball-drive parameter files, aggregate benchmark summaries and saved real-match illustrations.
 
 ## Repository map
 
-- `PRESS/`: existing importable model package; retained in its current location.
-- `vignettes/`: runnable component notebooks; BCOS is under `vignettes/extras/`.
-- `usage.qmd`, `api.qmd`, `solvers.qmd`, `roadmap.qmd`: match workflow, public function reference, solver reference and action plan.
-- `_quarto.yml`, `index.qmd`, `benchmark.qmd`, `data.qmd`: site navigation and pages.
-- `.github/workflows/publish-site.yml`: GitHub Pages build and deployment on `main`.
-- `scripts/rebuild_vignettes.py`: one-command notebook execution and figure export.
+- `PRESS/`: the importable package, split into `core`, `io`, `model`, `physics`, `utils`, `extras` and `visualization`.
+- `vignettes/`: runnable notebooks for the models, the case studies, the match workflow and the setup page. BCOS and expected threat are under `vignettes/extras/`.
+- `benchmarks/`: one benchmark page per task, and `benchmark.qmd` for the shared protocol.
+- `index.qmd`, `data.qmd`, `usage.qmd`, `api.qmd`, `solvers.qmd`, `reference/`, `pipeline.qmd`, `roadmap.qmd`, `_quarto.yml`: site pages and navigation.
+- `docs/`, `figures/`, `data/`: provenance records, figures and data setup notes.
+- `scripts/`, `examples/`, `tests/`: environment checks, notebook rebuild, command-line examples and tests.
+- `.github/workflows/publish-site.yml`: GitHub Pages build and deployment.
 - `references/refs.bib`, `REFERENCES.md`: citation records and unresolved references.
-- `data/README.md`: data setup notes.
+- `archive/legacy_package/`: unused implementations, outside the installed package.
+
+The raw-to-base preprocessing pipeline lives in the sibling `skillcorner-analysis` checkout (`scripts/pipeline`). [pipeline.qmd](pipeline.qmd) documents its layout and conventions.
+
+## AI assistance
+
+The author designed the modeling framework and validation protocols and developed the software. Codex (OpenAI) assisted with implementation, pipeline organization, debugging, and package refactoring under the author's supervision. The author is responsible for the final software and results.
 
 ## Citation
 
-Cite a release using the metadata in [CITATION.cff](CITATION.cff), and include the repository version or commit used. **design choice**
+Cite a release using the metadata in [CITATION.cff](CITATION.cff), and include the repository version or commit used.
 
-The raw-to-base pipeline lives in the sibling `skillcorner-analysis/scripts/pipeline`; inputs and versioned outputs live in `opendata`. The outfield-carrier v5 base regeneration and training-state validation are complete; trajectories remain validated in the historical v4 root and have not been regenerated for the new filtered indices. [pipeline.qmd](pipeline.qmd) records the actual layout, native-geometry conventions, exported training bases and the accepted segmentation convention and remaining model-feature/benchmark review. `PRESS.from_skillcorner` accepts either CSV or parquet action tables.
+## References
 
-The carry solver uses exponential Euler to preserve competing-risk probability mass; explicit `integration_method="euler"` reproduces the previous update. Numerical method and step are separate from the tackle-rate functional form. The current versioned base root is `2026-10-15_training_v5_outfield`, with the accepted v2 segmentation, outfield carriers and no shot-ending possessions in training. All goalkeeper tracking, intervals and inference checkpoints remain available. The historical reproduction is frozen separately in v4.
-
-Pass destination choice is finalized as a flat XGBoost categorical model. The [benchmark](benchmarks/03_pass_selection.qmd) records the five-configuration capacity screening and both final flat/CNL runs (pooled calibrated McFadden 34.322% / 34.516%). The verified full-ten-match flat refit is installed: 1,444 trees and temperature 1.013295. `PassSelectionModel.pretrained()` loads it, and `PRESS` uses it for destination choice by default. Its saved xT, granular context and corrected carrier/destination ahead-count schema travel with the weights. The CNL refit is retained only in research history. Historical transition weights remain archived; the benchmark continues to use held-out predictions, not full-refit scores.
-
-
-`ResidualRiskModel.pretrained()` loads terminal individual-loss continuation after a
-successful1s carry. `compose_individual_xloss` adds it to the local hazard as
-`h + P(carry)*(1-drive_loss)*residual_loss`; completed passes terminate the
-individual sequence. The [main example](vignettes/05_residual_risk/05_residual_risk.ipynb)
-uses installed weights and explains all31inputs. This optional terminal forecast
-does not change the pressure hazard or claim to reproduce proprietary xLoss.
+- Bekkers, J. (2025). Pressing intensity: an intuitive measure for pressing in soccer. [arXiv:2501.04712](https://arxiv.org/abs/2501.04712).
+- Fernández, J., Bornn, L. and Cervone, D. (2019). Decomposing the immeasurable sport: a deep learning expected possession value framework for soccer. MIT Sloan Sports Analytics Conference.
+- Fernández, J., Bornn, L. and Cervone, D. (2021). A framework for the fine-grained evaluation of the instantaneous expected value of soccer possessions. Machine Learning 110, 1389–1427. [doi:10.1007/s10994-021-05989-6](https://doi.org/10.1007/s10994-021-05989-6).
+- Singer, J. D. and Willett, J. B. (2003). Applied Longitudinal Data Analysis: Modeling Change and Event Occurrence. Oxford University Press.
+- Singh, K. (2018). [Introducing Expected Threat (xT)](https://karun.in/blog/expected-threat.html).
+- SkillCorner (2026). [Introducing SkillCorner's new pressure metrics](https://skillcorner.com/us/articles/introducing-skillcorners-new-pressure-metrics).
+- Spearman, W., Basye, A., Dick, G., Hotovy, R. and Pop, P. (2017). [Physics-based modeling of pass probabilities in soccer](https://static.hudl.com/craft/downloads/SSAC17-Physics-Based-Modeling-of-Pass-Probabilities-in-Soccer.pdf). MIT Sloan Sports Analytics Conference.

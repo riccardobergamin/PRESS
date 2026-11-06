@@ -1,10 +1,65 @@
 ---
-title: "Scientific solver reference"
+title: "Reference: solvers"
 ---
 
-These functions expose numerical primitives. The [public class API](api.qmd) handles frame extraction, trained models and result stores. Positions use centred pitch metres, velocities m/s, time seconds and angles radians. Low-level solver defaults can differ from the class defaults; pass explicit settings when reproducing a calculation.
+[1 · Initialization and classes](api.qmd) · **2 · Solvers** · [3 · Getters and saved results](reference/getters.qmd) · [4 · Plot functions](reference/plots.qmd).
 
-## Pitch control
+The match-level methods extract the current frame and store results; the numerical functions below operate directly on arrays. Positions are centred metres, velocities m/s and time seconds. Input frame frequency and numerical integration step are independent.
+
+## Complete frame and possession calculations
+
+```python
+outputs = press.compute_frame(frame_id, include_residual=True)
+h = outputs["HAZARD"]["Hazard"]
+xloss = outputs["XLOSS"]["xLoss"]
+```
+
+`compute_frame(frame_id, xT_grid=None, *, start_type=None, previous_action=None, bcos_value=None, ppcf_kwargs=None, ball_drive_kwargs=None, bcos_kwargs=None, pass_selection_kwargs=None, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None, include_residual=False, time_since_start=None)` computes prerequisites in order. It evaluates any usable frame, not only training checkpoints. Current context is read from annotations unless supplied explicitly. The fitted xT surface is used by default; each fitted feature builder retains its saved surface when an explicit `xT_grid` argument is supplied.
+
+It always recomputes the requested frame and returns copied `PPCF`, `BALL_DRIVE_RISK`, `ACTION_SELECTION` and `HAZARD` results. With `include_residual=True`, it also returns `RESIDUAL_RISK` and `XLOSS`. Elapsed individual-possession time must be observed or explicitly supplied in seconds; a missing value raises an error and is never replaced by zero. A custom `bcos_value` reuses an already computed area in m²; otherwise BCOS is calculated with its default settings. BCOS can be the expensive part of a full-frame calculation.
+
+`compute_possession(possession_id, xT_grid=None, *, frame_ids=None, include_snapshots=True, **frame_kwargs)` evaluates a **team** interval. `compute_player_possession(player_possession_id, ...)` evaluates an **individual** interval. Both return a chronological DataFrame with frame IDs, canonical/snapshot kind, P(pass) and h; xLoss is included when requested. Default frames come from the supplied action table. Explicit `frame_ids` must be nonempty, unique integer usable frames within the chosen interval. No new segmentation or observed outcome is inferred.
+
+Additional snapshot forecasts can overlap canonical actions. They are useful for plotting, but must not be multiplied blindly into a survival sequence. Frame sampling never changes the modeled one-second carry action.
+
+## Individual component methods
+
+Call these methods in dependency order when only some outputs are needed.
+
+| Method | Prerequisites and output |
+|---|---|
+| `compute_ppcf(frame_id, r_max=150, step=1.0, physics_kwargs=None, model=None)` | Current physical state → raw player/attacking control and isotonic pass completion on a candidate grid. Stores `PPCF`; returns `None`. |
+| `compute_ball_drive_risk(frame_id, t_press=1.0, physics_kwargs=None, model=None)` | Current physical state → total and cause-specific drive loss over `t_press` seconds. Stores `BALL_DRIVE_RISK`; returns `None`. |
+| `compute_pass_selection(frame_id, xT_grid=None, *, start_type_raw=None, previous_action_raw=None, match_clock_min=None, score_difference_prefix=None)` | Requires PPCF and one-second drive loss. Uses **raw** control for destination choice, stores `Pass selection probabilities` inside PPCF, and returns that normalized vector. |
+| `compute_bcos(frame_id, r_max=40.0, step=1.0, physics_args=None)` | Current state and physical drive dispersion → spatial field and area. Stores `BCOS` and returns its copied mapping. |
+| `compute_action_selection_probability(frame_id, xT_grid=None, start_type=None, previous_action=None, bcos_value=None, *, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None)` | Requires PPCF, destination choice, one-second drive loss and a BCOS area. The builder converts the stored loss d to **`drive_success_1s = 1 - d`** and uses **calibrated** pass completion. Stores `ACTION_SELECTION`; returns native P(pass). |
+| `compute_hazard(frame_id)` | Requires the preceding pass/drive/choice/policy results. Returns and stores raw marginal next-action loss; no post-hoc h calibrator. |
+| `compute_residual_risk(frame_id, *, time_since_start=None, model=None)` | Requires the current action feature record and its matching action model. Reuses the record plus native P(carry) and the observed elapsed time. Returns/stores terminal individual loss conditional on a successful carry. |
+| `compute_xloss(frame_id, *, time_since_start=None, model=None)` | Requires pass/drive/choice/policy results. Computes residual risk if needed and composes the terminal individual loss. Returns/stores xLoss. |
+
+### Fitted-model settings
+
+The default pass-risk artifact uses `v_max=5.5`, `a_max=a_turn=7`, overspeed-preserving TTI, `dt_ball=0.04`, `t_max_flight=10`, `dt_pc=0.01`, `t_max_pc=15`, exact target distances and exponential integration. Launch candidates span 5–25 m/s and 0–45 degrees, 30 values on each axis; drag settings are `rho=1.22`, `Cd=0.25`, `A=0.038`, `m=0.42`, `g=9.81`, controllable height `z_max=2`. The full-data parameters are `lambda_control=5.437830`, `s=0.294560`; isotonic knots are separate from those physical estimates. [Export provenance](docs/pass-risk-refit-provenance.json).
+
+The default drive artifact uses the verified additive splines and angle term, `v_max=7`, independent linear/turning acceleration settings, preserved initial overspeed, signed boundary distance, constant carrier velocity and exponential integration with partial final steps. The wrapper supplies native pitch dimensions. Only physics overrides are accepted; the historical log-linear implementation is archived outside the installed package. [Model and spline definitions](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb).
+
+The operational pass-selection model is the verified flat refit, with its saved vocabulary, xT surface and temperature. Candidate cells use the native one-metre grid at the default settings. Coarse/restricted grids are supported as explicit sensitivities and recorded as differing from the benchmark. Action selection and residual risk retain their native probabilities without scaling. No training occurs in these methods.
+
+### Composition
+
+For stored native P(pass) = p, drive loss d, destination-weighted pass failure f and conditional residual loss r:
+
+$$h=(1-p)d+pf,$$
+
+$$xLoss=pf+(1-p)\{d+(1-d)r\}.$$
+
+A completed pass terminates the **individual** possession without loss; h describes the **current action**, not the outcome of the whole individual possession. `PRESS.extras.compose_individual_xloss(*, p_pass, drive_loss, pass_failure, residual_loss)` exposes the same probability-only composition for scalar/broadcastable array inputs. It loads no model. [Residual risk and xLoss](vignettes/05_residual_risk/05_residual_risk.ipynb).
+
+## Numerical functions
+
+Low-level defaults can differ from fitted model settings. Use explicit parameters when reproducing an integration and prefer the match/model wrappers for pretrained inference. These functions expect valid, compatible arrays and physical parameters; they do not validate canonical match tables or manage dependency caches.
+
+### Pitch control
 
 Import `integrate_pitch_control` from `PRESS.model`.
 
@@ -15,9 +70,9 @@ integrate_pitch_control(r_grid, p_pos, p_vel, ball_carrier_idx, T_ball,
     integration_method="exponential")
 ```
 
-`r_grid` is `(N,2)` candidate positions; `p_pos` and `p_vel` are `(M,2)` players; `ball_carrier_idx` identifies the excluded carrier; `T_ball` is `(N,)` ball-arrival time. `lambda_control` is a rate in inverse seconds, `s` arrival dispersion in seconds, and `v_max`/`a_max` the motion settings. Returns player-by-target control **`(M,N)`**. Control begins when the ball arrives. Exponential Euler allocates the available uncontrolled mass exactly for rates frozen over each step, preserving total control at most one; it is first order for time-varying rates. The full configured horizon is used, including partial final steps. `tol` is a compatibility argument and no longer changes the integration schedule. Sum attacking rows, then use the saved isotonic map through `PassRiskModel` or the public class. `integration_method="euler"` is an explicit numerical sensitivity; archived sources preserve the original clipped solver. [Mathematics and frame example](vignettes/02_pass_probability/02_pass_probability.ipynb). [@spearman2017; @spearman2018beyond]
+`r_grid` is `(N,2)` candidate positions; `p_pos` and `p_vel` are `(M,2)` players; `ball_carrier_idx` identifies the excluded carrier; `T_ball` is `(N,)` ball-arrival time. `lambda_control` is a rate in inverse seconds, `s` arrival dispersion in seconds, and `v_max`/`a_max` the motion settings. Returns player-by-target control **`(M,N)`**. Control begins when the ball arrives [@spearman2017; @spearman2018beyond]. Exponential Euler allocates the available uncontrolled mass exactly for rates frozen over each step, preserving total control at most one; it is first order for time-varying rates. The full configured horizon is used, including partial final steps. `tol` is a compatibility argument and no longer changes the integration schedule. Sum attacking rows, then use the saved isotonic map through `PassRiskModel`. `integration_method="euler"` is an explicit numerical sensitivity; archived sources preserve the original clipped solver. [Mathematics and frame example](vignettes/02_pass_probability/02_pass_probability.ipynb).
 
-## Pass probability along a trajectory
+### Pass probability along a trajectory
 
 Import from `PRESS.model.solver_pitch_control`.
 
@@ -30,20 +85,34 @@ integrate_pass_prob(p_pos, p_vel, attacker_idx, ball_carrier_idx,
 
 `p_pos`, `p_vel` are `(M,2)`; `attacker_idx` selects attacking rows; `ball_trajectory` is `(T,3)` with x, y and height sampled every `dt`. Control accumulates at or below `z_max` metres; the carrier is excluded before sharing mass. Returns scalar attacking success. Each supplied sample starts one integration interval: the benchmark's 251 samples at 0..10 s retain its historical 10.04 s left-step schedule. There is no parameter-dependent cutoff. This reconstructed-path likelihood estimates parameters; candidate-field inference uses target PPCF and its separately fitted isotonic map. [Pass vignette](vignettes/02_pass_probability/02_pass_probability.ipynb).
 
-## Drive-loss integration
+### Drive-loss integration
 
-Import `integrate_loss_prob` from `PRESS.model`.
+The final ball-drive solver is `BallDriveModel`, imported from `PRESS.model`. It evaluates the saved penalized spline model, including the approach-angle term. The frame API calls the same solver.
 
 ```python
-integrate_loss_prob(p_pos, p_vel, x_bc0, v_bc0, delta_t,
-    lambda_0, beta_v, beta_B, s=0.45, v_max=5.0, a_max=7.0,
-    dt=0.04, tol=1e-6, pitch_length=105.0, pitch_width=68.0,
-    max_time=None, integration_method="exponential")
+from PRESS.model import BallDriveModel
+
+model = BallDriveModel.pretrained()
+result = model.predict(r_defs, v_defs, x_bc, v_bc, horizon=1.0)
+loss = result["loss_probability"]
+causes = result["cause_probabilities"]
 ```
 
-`p_pos`, `p_vel` describe `(M,2)` defenders; carrier position/velocity are `(2,)`; `delta_t` is the integration horizon. The default uses exponential Euler: with frozen cause hazards, it assigns only the available survival mass, via `S * (1 - exp(-H * dt))`, split in proportion to cause hazards. `integration_method="euler"` reproduces the historical update for comparison. Rates are evaluated again each step; stability does not imply timestep convergence. See [exponential integrators](https://doi.org/10.1017/S0962492910000048). The last integration step stops at the requested horizon, including nonmultiples of `dt`. For row-specific durations under JIT/vmap, supply a static `max_time` at least as large as every duration (1 s for the rate-training cohort); otherwise `delta_t` must be static. The intensity is `lambda_0 * exp(beta_v * carrier_speed + beta_B * minimum_boundary_distance)`, combined with defender arrival and shared remaining survival mass. Returns `(M,)` defender-specific cause probabilities; their sum is total drive loss. The [drive vignette](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb) executes this primitive and the frame-level class method. Intensity specification is **own derivation**; motion/control concepts are inspired by the cited literature.
+Defender positions and velocities are `(D, 2)` arrays; carrier position and velocity are `(2,)`. Positions are centred metres and velocities m/s. `predict_batch` adds a leading state dimension. `physics_kwargs` permits explicit physical sensitivities; spline coefficients, knots, normalization and arrival dispersion are loaded from the fitted artifact. `horizon` accepts any finite nonnegative duration in seconds, using those same fitted parameters. The calibrated benchmark target remains one second; other horizons are model-implied forecasts.
 
-## Ball flight and receiver arrival
+At each left integration endpoint, the carrier is projected as $x(t)=x_0+v_0t$. The solver evaluates the signed distance to the nearest boundary, each defender's arrival probability $F_j(t)$ and approach angle $\phi_j(t)$. The tackle rate is
+
+$$\lambda_j(t)=\exp\{\log\lambda_0+g_v(\|v_0\|)+g_B(B(t))+g_\phi(\phi_j(t))\},$$
+
+where the saved spline functions include their fitted linear and nonlinear components. The angular contribution is set to zero when the carrier's speed is below 1 m/s or the approach direction is undefined. The competing hazard is $q_j(t)=F_j(t)\lambda_j(t)$ and $H(t)=\sum_jq_j(t)$. Over a step of width $\Delta t$, the solver holds these hazards fixed and updates
+
+$$\Delta P_j=S\{1-\exp(-H\Delta t)\}\frac{q_j}{H},\qquad S_{\mathrm{new}}=S\exp(-H\Delta t).$$
+
+A zero total hazard gives zero loss increment. Rates are reevaluated at every step; the default step is 0.04 s, with a partial final step when needed. Returned cause probabilities sum to total loss, and `survival_curve` includes the initial survival of one. This exponential update preserves the shared remaining probability mass; timestep convergence is a separate numerical question. See [exponential integrators](https://doi.org/10.1017/S0962492910000048).
+
+The [drive vignette](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb) defines the spline model and uses this final solver. The superseded log-linear solver is retained only in `archive/legacy_package/model/solver_intensity.py` for research history; it is neither exported nor called by the package.
+
+### Ball flight and receiver arrival
 
 Import `time_flight` from `PRESS.physics`.
 
@@ -57,13 +126,10 @@ time_flight(r_bc, r_target, p_attackers, v_attackers,
     distance_mode="exact")
 ```
 
-The `linspace` notation describes default JAX arrays. Carrier position is `(2,)`; targets `(N,2)`; receivers `(M,2)`. The receiver nearest in initial position to each target supplies the desired arrival time. A candidate flight is selected by matching that time, subject to reachability and controllable height. Exact target distances are the default; `distance_mode="lookup"` enables the corrected regular radial grid as an approximation. `grid_step` affects that approximation only. Drag parameters are air density `rho`, drag coefficient `Cd`, cross-section `A`, mass `m`, and gravity `g`, in SI units. Returns `(N,)` flight times. No receiver or reachable candidate gives infinite time and zero control. The class uses its saved flight configuration; see [its defaults](api.qmd#pitch-control-and-pass-success).
+The `linspace` notation describes default JAX arrays. Carrier position is `(2,)`; targets `(N,2)`; receivers `(M,2)`. The receiver nearest in initial position to each target supplies the desired arrival time. A candidate flight is selected by matching that time, subject to reachability and controllable height. Exact target distances are the default; `distance_mode="lookup"` enables the corrected regular radial grid as an approximation. `grid_step` affects that approximation only. Drag parameters are air density `rho`, drag coefficient `Cd`, cross-section `A`, mass `m`, and gravity `g`, in SI units. Returns `(N,)` flight times. No receiver or reachable candidate gives infinite time and zero control. The class uses its saved flight configuration; see [its defaults](solvers.qmd#fitted-model-settings).
 
 The flight ODE includes gravity and constant-coefficient aerodynamic drag. Below 5 cm while descending, height is held and horizontal aerodynamic drag continues; there is no bounce, fitted rolling friction or Magnus force. The latent vertical velocity is not reset by this ODE and is not interpreted as a post-impact velocity. The model consumes simulated positions and height. [Flight equations and assumptions](vignettes/02_pass_probability/02_pass_probability.ipynb).
 
-These numerical functions expect valid, compatible arrays and physical parameters. They do not validate canonical match tables or manage dependency caches. Prefer the class APIs when the task is to compute a frame of a possession.
+### Fitted pass settings for the low-level solvers
 
-
-## Uniform final pass TTI
-
-The pretrained run41 pass model uses `v_max=5.5`, `a_max=7`, `a_turn=7` and `preserve_initial_overspeed=True` consistently. The lower-level trajectory and target-control solvers accept the same `a_turn` and `preserve_initial_overspeed` keyword arguments. Their compatibility defaults remain unchanged; pass the fitted artifact settings to reproduce it. Physical λ,s are MLE estimates along reconstructed paths; isotonic knots are learned separately on cross-fitted hypothetical PPCF scores.
+The fitted pass model uses `v_max=5.5`, `a_max=7`, `a_turn=7` and `preserve_initial_overspeed=True` consistently. The lower-level trajectory and target-control solvers accept the same `a_turn` and `preserve_initial_overspeed` keyword arguments. Their compatibility defaults remain unchanged; pass the fitted artifact settings to reproduce it. Physical λ,s are MLE estimates along reconstructed paths; isotonic knots are learned separately on cross-fitted hypothetical PPCF scores.

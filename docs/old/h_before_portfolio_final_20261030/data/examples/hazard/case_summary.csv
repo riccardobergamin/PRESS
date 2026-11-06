@@ -1,4 +1,0 @@
-case,possession_id,carrier_id,team,start_timestamp,end_timestamp,n_checkpoints,initial_h,peak_h,final_h,terminal_individual_loss,terminal_action,terminal_pass_outcome,selection_rule
-A,8_61,home_23,Brisbane FC,04:57.7,05:02.4,5,0.1707927692695466,0.34620627676292764,0.002898568474005122,0,pass,successful,"First chronological retained possession with >=3 canonical states, initial h>.16 and final h<.6*initial h."
-B,8_53,home_17,Brisbane FC,04:27.1,04:30.4,4,0.011774380327416034,0.349845009868363,0.349845009868363,0,pass,successful,"First chronological retained possession with >=3 canonical states, initial h<.15 and peak h>.25."
-C,8_301,home_26,Brisbane FC,24:49.2,24:52.4,4,0.11187360566632681,0.34356864698161577,0.34356864698161577,1,pass,unsuccessful,"First chronological lost possession with >=3 canonical states, initial h<.15 and peak h>.25."

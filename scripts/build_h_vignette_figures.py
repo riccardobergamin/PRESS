@@ -1,14 +1,12 @@
-"""Rebuild hazard teaching figures from formulas and exported OOF case summaries."""
+"""Rebuild hazard case figures from exported observed-match OOF summaries."""
 from pathlib import Path
 import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from PRESS.utils.hazard import compute_hazard_raw
 from PRESS.utils.possession import hazard_band_thresholds
 ROOT=Path(__file__).resolve().parents[1]
 COLORS=['#dceede','#fff0b8','#f9cf9e','#edb3b5']
@@ -20,15 +18,6 @@ def save(fig,name):
 
 def main():
     t=hazard_band_thresholds();edges=[0.,t[8],t[4],t[2],1.]
-    q=np.linspace(0,1,101);success=np.array([.7,.4,.2]);choice=np.array([.25,.5,.25]);d=.1
-    h=np.array([compute_hazard_raw(d,choice,success,x)[0] for x in q])
-    fig,ax=plt.subplots(figsize=(8,4.8))
-    for lo,hi,color,label in zip(edges[:-1],edges[1:],COLORS,LABELS):ax.axhspan(lo,hi,color=color,label=label)
-    ax.plot(q,h,color='#17293c',lw=2.4,label='h: carry/pass mixture')
-    ax.scatter([.4],[.29],s=65,color='#17293c',zorder=4)
-    ax.annotate('P(pass)=0.4; h=0.29',(.4,.29),xytext=(.45,.43),arrowprops={'arrowstyle':'->','color':'#17293c'},fontsize=9)
-    ax.set(xlabel='P(pass | current state)',ylabel='Probability of next-action loss',ylim=(0,1),xlim=(0,1),title='Operational bands and a transparent branch mixture')
-    ax.legend(ncol=3,loc='upper left',fontsize=8);fig.tight_layout();save(fig,'vignette_05_hazard_bands')
     cases=pd.read_csv(ROOT/'data/examples/hazard/cases.csv',dtype={'match_id':str});summary=pd.read_csv(ROOT/'data/examples/hazard/case_summary.csv')
     fig,axes=plt.subplots(3,1,figsize=(10,11),sharey=True)
     for ax,(case,g) in zip(axes,cases.groupby('case',sort=True)):

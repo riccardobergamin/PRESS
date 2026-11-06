@@ -18,7 +18,7 @@ def artifact(tmp_path):
     booster=xgb.train(dict(objective='reg:squarederror',max_depth=2,nthread=1,seed=7),
                       xgb.DMatrix(x,label=np.sin(x[:,0]),feature_names=names),num_boost_round=4)
     booster.save_model(tmp_path/'model.ubj')
-    a=dict(schema_version=1,model_type='pass_destination_choice',model_id='TEST_ONLY',family='flat',rho=1.,
+    a=dict(schema_version=1,model_type='pass_destination_choice',model_id='TEST_ONLY',family='flat',rho=1.,feature_contract='ahead_of_carrier_and_target_v1',
            calibration=dict(inverse_temperature=.8),vocabulary=vocabulary,feature_names=names,
            xt_grid=np.ones((10,6)).tolist(),booster_file='model.ubj',
            booster_sha256=hashlib.sha256((tmp_path/'model.ubj').read_bytes()).hexdigest())
@@ -47,8 +47,9 @@ def test_feature_semantics_and_missing_categories(artifact):
         pressure_lines=([0.,10.,20.],[-20.,-10.,0.]))
     columns={name:x[:,i] for i,name in enumerate(a['feature_names'])}
     assert np.all(columns['ball_drive_prob']==np.float32(.2))
-    assert np.array_equal(columns['opponents_bypassed'],[1,0])
-    assert np.array_equal(columns['teammates_bypassed'],[1,0])
+    for roster in ['opponents', 'teammates']:
+        np.testing.assert_array_equal(columns[roster+'_ahead_bc'], [1,1])
+        np.testing.assert_array_equal(columns[roster+'_ahead_target'], [0,1])
     assert np.array_equal(columns['opp_pressure_line_index'],[1,1])
     assert np.all(columns['start_type_raw=__missing__']==1)
     assert np.all(columns['previous_action_raw=__unseen__']==1)
@@ -57,6 +58,18 @@ def test_feature_semantics_and_missing_categories(artifact):
 def test_corrupt_artifact_and_column_order_are_rejected(artifact):
     path,a,x=artifact;a['booster_sha256']='0'*64;path.write_text(json.dumps(a))
     with pytest.raises(ValueError,match='checksum'):PassSelectionModel.from_json(path)
+
+
+@pytest.mark.parametrize('contract', [None, 'forward_bypass_v1'])
+def test_missing_or_historical_feature_contract_is_rejected(artifact, contract):
+    path, manifest, _ = artifact
+    if contract is None:
+        manifest.pop('feature_contract')
+    else:
+        manifest['feature_contract'] = contract
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match='feature contract'):
+        PassSelectionModel.from_json(path)
 
 
 @pytest.mark.parametrize('sign', [1, -1])
@@ -100,35 +113,35 @@ def test_installed_default_is_verified_flat_full_refit():
 
 def test_frame_api_uses_final_physics_and_granular_context():
     from PRESS import PRESS
-    from PRESS.datasets import load_demo_match
+    from _fixtures import load_test_match
     from PRESS.model import BallDriveModel
-    tracking,possessions,actions,xt=load_demo_match()
+    tracking,possessions,actions,xt=load_test_match()
     tracking['pitch_length']=104.
     press=PRESS(tracking,actions_data=actions,possessions_data=possessions)
     frame=5
     press.compute_ppcf(frame,r_max=12,step=6)
-    press.compute_ball_drive_loss(frame)
-    p=press.compute_transition_probabilities(frame,xt,match_clock_min=.5,score_difference_prefix=0)
-    state=press.get_state(frame);ppcf=press.get_ppcf_result(frame);pi=press.get_ball_drive_result(frame)
+    press.compute_ball_drive_risk(frame)
+    p=press.compute_pass_selection(frame,xt,match_clock_min=.5,score_difference_prefix=0)
+    state=press.get_state(frame);ppcf=press.get_ppcf_result(frame);pi=press.get_ball_drive_risk_result(frame)
     assert pi['params']['model_id']==BallDriveModel.pretrained().model_id
     assert pi['params']['physics_kwargs']['pitch_length']==104.
-    context=ppcf['transition_context'];row=actions.loc[(actions.frame_start<=frame)&(actions.frame_end>=frame)].iloc[0]
+    context=ppcf['pass_selection_context'];row=actions.loc[(actions.frame_start<=frame)&(actions.frame_end>=frame)].iloc[0]
     assert context['start_type_raw']==row.start_type and context['previous_action_raw']==row.previous_action
     model=PassSelectionModel.pretrained()
     matrix=model.build_features(x_bc=state['x_bc'],v_bc=state['v_bc'],r_atts=state['r_atts'],r_defs=state['r_defs'],
         targets=ppcf['grid'],attacking_side=state['attacking_side'],target_pitch_control=ppcf['Attacking pitch control field'],
-        ball_drive_prob=pi['Ball drive loss probability'],pitch_length=104.,pitch_width=68.,**context)
+        ball_drive_prob=pi['Ball drive risk'],pitch_length=104.,pitch_width=68.,**context)
     np.testing.assert_array_equal(p,model.predict_features(matrix))
     assert np.isclose(p.sum(),1) and ppcf['params']['choice_grid_matches_benchmark'] is False
-    press.compute_ball_drive_loss(frame,t_press=.4)
-    with pytest.raises(ValueError,match='one-second'):press.compute_transition_probabilities(frame,xt)
+    press.compute_ball_drive_risk(frame,t_press=.4)
+    with pytest.raises(ValueError,match='one-second'):press.compute_pass_selection(frame,xt)
 
 
 def test_default_grid_matches_native_training_cells(monkeypatch):
     from PRESS import PRESS
-    from PRESS.datasets import load_demo_match
+    from _fixtures import load_test_match
     from PRESS.model import PassRiskModel
-    tracking,*_=load_demo_match();tracking['pitch_length']=104.
+    tracking,*_=load_test_match();tracking['pitch_length']=104.
     def field(self,pos,vel,bc,targets,attackers,carrier,**kwargs):
         return dict(control=np.zeros((len(pos),len(targets))),raw=np.full(len(targets),.4),
                     calibrated=np.full(len(targets),.5),flight_time=np.zeros(len(targets)),

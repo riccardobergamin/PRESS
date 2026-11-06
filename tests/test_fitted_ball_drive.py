@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from PRESS import PRESS
-from PRESS.datasets import load_demo_match
+from _fixtures import load_test_match
 from PRESS.model import BallDriveModel
 
 FIXTURE=Path(__file__).parent/'data/ball_drive_cv_fold0.json'
@@ -70,15 +70,15 @@ def test_invalid_schema_or_physics_rejected():
 
 
 def test_fitted_model_frame_getter_and_pitch_contract():
-    tracking,possessions,actions,_=load_demo_match()
+    tracking,possessions,actions,_=load_test_match()
     fitted=BallDriveModel.from_json(FIXTURE)
     press=PRESS(tracking,possessions_data=possessions,actions_data=actions,ball_drive_model=fitted)
     frame=int(press.get_frames(valid_only=True).frame.iloc[0])
-    press.compute_ball_drive_loss(frame,t_press=.4)
-    result=press.get_ball_drive_result(frame)
+    press.compute_ball_drive_risk(frame,t_press=.4)
+    result=press.get_ball_drive_risk_result(frame)
     assert result['params']['model_id']==fitted.model_id
     assert result['params']['physics_kwargs']['pitch_length']==105
-    np.testing.assert_allclose(result['Ball drive loss probability'],np.sum(result['Individual tackle probabilities']),atol=1e-12)
+    np.testing.assert_allclose(result['Ball drive risk'],np.sum(result['Individual tackle probabilities']),atol=1e-12)
     # A path can also be supplied per call without changing the constructor.
-    press.compute_ball_drive_loss(frame,model=FIXTURE)
-    assert press.get_ball_drive_result(frame)['params']['t_press']==1.
+    press.compute_ball_drive_risk(frame,model=FIXTURE)
+    assert press.get_ball_drive_risk_result(frame)['params']['t_press']==1.

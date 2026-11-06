@@ -9,7 +9,6 @@ description = "A physics-informed framework for possession-loss hazard in footba
 requires-python = ">=3.11,<3.13"
 dependencies = [
   "jax==0.7.2",
-  "jaxopt==0.8.5",
   "numpy==2.4.6",
   "pandas==2.3.3",
   "scikit-learn==1.8.0",

@@ -1,4 +1,5 @@
 """Optional composition of local risk and individual-possession continuation."""
+
 from __future__ import annotations
 
 import numpy as np

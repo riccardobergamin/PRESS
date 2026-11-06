@@ -15,7 +15,7 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 
 1. [Ball-drive risk](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb)
 2. [Pass probability](vignettes/02_pass_probability/02_pass_probability.ipynb)
-3. [Pass selection](vignettes/03_transition_model/03_pass_selection.ipynb)
+3. [Pass selection](vignettes/03_pass_selection/03_pass_selection.ipynb)
 4. [Action selection](vignettes/04_action_selection/04_action_selection.ipynb)
 5. [Residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb)
 :::
@@ -23,7 +23,7 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 ::: {.directory-section}
 ### Risk profiles and reports {#risk-and-reports}
 
-- [hazard and risk bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb)
+- [Hazard and risk bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb)
 - [Possession difficulty](vignettes/07_case_studies/07_case_studies.ipynb)
 - [Pressure patterns and cases](vignettes/07_case_studies/07_case_studies.ipynb)
 - [Team and player report](vignettes/07_case_studies/07_case_studies.ipynb)
@@ -32,10 +32,9 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 ::: {.directory-section}
 ### Guides {#guides}
 
-- [Using the package](usage.qmd)
-- [Match → possession → frame](vignettes/00_match_workflow/00_match_workflow.ipynb)
-- [Possessions and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb)
-- [Data setup](data.qmd)
+1. [Dataset and preprocessing](data.qmd)
+2. [Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb)
+3. [Installation and use](vignettes/00_match_workflow/00_match_workflow.ipynb)
 :::
 
 ::: {.directory-section}
@@ -46,7 +45,7 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 - [Pass selection](benchmarks/03_pass_selection.qmd)
 - [Action selection](benchmarks/04_action_selection.qmd)
 - [Residual risk](benchmarks/05_residual_risk.qmd)
-- [Composed hazard and xLoss](benchmarks/06_composed_risk.qmd)
+- [Composed risk (h and xLoss)](benchmarks/06_composed_risk.qmd)
 :::
 
 ::: {.directory-section}
@@ -73,7 +72,7 @@ PRESS started as a personal portfolio project aimed at gaining hands-on experien
 
 The foundations of the framework explored in PRESS are largely drawn from established research on pitch control, action selection, action success probabilities, and possession valuation [@spearman2017; @fernandez2021]. In particular, the decomposition of possession outcomes into action-dependent components follows the general philosophy of existing EPV models. PRESS revisits these ideas from a possession-retention perspective, focusing on the risk of losing the ball, with particular emphasis on the vulnerability induced by defensive pressure.
 
-Beyond reproducing established approaches, the implementation also provides an opportunity to explore alternative formulations for individual components. One example is a physics-based model of ball-drive success. Building on the pressing-intensity formulation of Bekkers [@bekkers2025] and the pitch-control framework of Spearman [@spearman2017], we explore whether the relative movement and interception capabilities of defenders and the ball carrier can be used to construct a probabilistic model of retaining control during a ball drive. This provides a physically motivated alternative to estimating ball-drive success exclusively from observed outcomes.
+Beyond reproducing established approaches, the implementation also provides an opportunity to explore alternative formulations for individual components. One example is a physics-based model of ball-drive success. Building on the arrival formulation of Bekkers [@bekkers2025] and the pitch-control framework of Spearman [@spearman2017], we explore whether the relative movement and interception capabilities of defenders and the ball carrier can be used to construct a probabilistic model of retaining control during a ball drive. This provides a physically motivated alternative to estimating ball-drive success exclusively from observed outcomes.
 
 For action and destination selection, we experiment with tree-based discrete-choice models, using features derived from the underlying physics-based components alongside spatial, tactical, and contextual information. More generally, PRESS follows a hybrid modelling strategy: physical models characterize the feasibility and risk of potential actions, while learned tree-based models describe how players select among the available alternatives.
 
@@ -95,7 +94,7 @@ We consider two canonical on-ball actions: **ball drive** and **pass**. A ball d
 
 The framework combines four probabilistic components:
 
-1. **Action selection:** the probability of choosing a pass rather than a ball drive,
+1. **Action selection:** the probability of choosing a pass over a ball drive,
 
    $$
    q_t=P(A_t=\mathrm{pass}\mid s_t).
@@ -120,7 +119,7 @@ The pass-success and ball-drive components characterize the physical difficulty 
 
 ### Possession-loss hazard
 
-The canonical actions introduced above provide a conventional way to segment possession into a discrete sequence of on-ball action opportunities. Each opportunity is associated with a predefined checkpoint at which the current game state is evaluated. A successful ball drive allows the same player to continue controlling the ball, whereas a successful pass transfers control to a teammate. Since the event of interest is the loss of **team possession**, a completed pass does not terminate the process: the sequence continues across successive ball carriers until possession is lost.
+The canonical actions introduced above provide a conventional way to segment possession into a discrete sequence of on-ball action opportunities (see [Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb)). Each opportunity is associated with a predefined checkpoint at which the current game state is evaluated. A successful ball drive allows the same player to continue controlling the ball, whereas a successful pass transfers control to a teammate. Since the event of interest is the loss of **team possession**, a completed pass does not terminate the process: the sequence continues across successive ball carriers until possession is lost.
 
 This segmentation allows possession to be represented as a discrete survival process. Let $T$ denote the number of canonical on-ball actions until team possession is lost, and let $s_n$ represent the game state at the $n$-th checkpoint. The probability of losing possession during the next action, conditional on having retained it up to the current opportunity, defines the discrete hazard:
 
@@ -129,7 +128,7 @@ $$
 h_n=P(T=n+1\mid T>n,s_n).
 }
 $$
-PRESS estimates this probability by combining the action-specific risks through the average decision-making policy learned from observed play. The hazard is therefore marginalized over the possible actions and pass destinations, rather than conditioned on the action actually chosen by the player:
+PRESS estimates this probability by combining the action-specific risks through the average decision-making policy learned from observed play. The hazard is therefore marginalized over the possible actions and pass destinations, and not conditioned on the action actually chosen by the player:
 
 $$
 \boxed{
@@ -149,7 +148,7 @@ By combining the physical feasibility of available actions with the average deci
 
 The conventional segmentation of possession into canonical actions also allows the process to be interpreted within the framework of **survival analysis**. In particular, the hazard can be related to the expected lifetime and half-life of possession under the hypothetical assumption that the current level of difficulty remains constant across subsequent action opportunities. The half-life represents the number of actions required for the probability of retaining possession to decrease to $50\%$ if the same hazard were maintained. It therefore provides an intuitive interpretation of possession difficulty: the higher the hazard, the shorter the reference half-life. This is not a prediction of actual possession duration, since difficulty evolves throughout play.
 
-Inspired by SkillCorner's approach to classifying defensive pressure [@skillcorner2026], PRESS uses this survival-based interpretation to define **possession-difficulty bands**, whose construction and thresholds are described in the dedicated vignette.
+Inspired by SkillCorner's approach to classifying defensive pressure [@skillcorner2026], PRESS uses this survival-based interpretation to define **possession-difficulty bands**, whose construction and thresholds are described in the [hazard and risk bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb).
 
 The main application is to characterize the difficulty encountered by individual players and investigate their ability to retain possession under pressure. Evaluating the hazard throughout individual possessions produces risk profiles, while comparing observed outcomes across difficulty levels provides a basis for assessing player performance relative to the situations faced.
 
@@ -198,7 +197,7 @@ Together, $h(s_t)$ and $\mathrm{xLoss}(s_t)$ provide complementary measures of p
 
 The diagram illustrates how the individual model components are combined to estimate possession-loss hazard and xLoss. Each component is described in a dedicated vignette, covering its mathematical formulation, input variables, implementation, and application to real match situations using tracking and event data.
 
-Each modelling task is also accompanied by a dedicated benchmark vignette, where its predictive performance is evaluated and compared, whenever possible, with results reported in the academic literature for similar tasks. The main references for these comparisons are Fernández, Bornn and Cervone [@fernandez2019] and Stalpaert et al. [@stalpaert2022]. These benchmarks provide a basis for assessing the performance of individual components in relation to existing approaches, while accounting for differences in datasets, modelling assumptions, and evaluation protocols.
+Each modelling task is also accompanied by a dedicated benchmark page, where its predictive performance is evaluated and compared, whenever possible, with results reported in the academic literature for similar tasks. The main references for these comparisons are Fernández, Bornn and Cervone [@fernandez2019] and Stalpaert et al. [@stalpaert2022]. These benchmarks provide a basis for assessing the performance of individual components in relation to existing approaches, while accounting for differences in datasets, modelling assumptions, and evaluation protocols.
 
 Finally, the documentation includes **case studies and player-level reports** illustrating how PRESS can be applied to real match situations. These analyses explore possession vulnerability, defensive pressure, and individual performance, demonstrating how the framework's estimates can be used to characterize the difficulty players face and their ability to retain possession under pressure.
 
@@ -206,11 +205,11 @@ Finally, the documentation includes **case studies and player-level reports** il
 
 PRESS uses the publicly available [SkillCorner A-League sample](https://github.com/SkillCorner/opendata) as its primary source of tracking and event data. The analyses and examples are based on real match situations, allowing the framework to evaluate possession vulnerability in the context of observed player movements, defensive configurations, and on-ball decisions.
 
-Raw tracking files are not redistributed with the package. Analyses and notebooks can be reproduced using the pinned Python environment and the corresponding match data. Instructions for obtaining and preparing the dataset are provided in the [data setup guide](data.qmd), alongside installation and reproducibility information in the [repository README](README.md).
+Raw tracking files are not redistributed with the package. Analyses and notebooks can be reproduced using the pinned Python environment and the corresponding match data. Instructions for obtaining and preparing the dataset are provided in the [dataset and preprocessing guide](data.qmd), alongside installation and reproducibility information in the [repository README](README.md).
 
 ## Start using the package
 
-To get started with PRESS, follow the [match → possession → frame guide](usage.qmd) or explore the [workflow vignette](vignettes/00_match_workflow/00_match_workflow.ipynb), which illustrates the analysis of real match situations using tracking and event data.
+To get started with PRESS, follow the [user guide](usage.qmd) or explore the [installation and use example](vignettes/00_match_workflow/00_match_workflow.ipynb), which illustrates the analysis of real match situations using tracking and event data.
 
 The workflow begins by loading and validating a match, then selecting team possessions, individual frames, and canonical action checkpoints. The relevant model components can subsequently be evaluated to estimate possession vulnerability and generate risk profiles.
 

@@ -1,24 +1,31 @@
-import jax.numpy as jnp
+"""One-match interface to PRESS, independent of the tracking provider."""
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from .computation import ComputationMixin
+from .metadata import MatchInfo
+from .navigation import NavigationMixin
+from .results import ResultsMixin
 
 
-class PRESS:
+class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
+    """Load one match, navigate its states and evaluate possession risk.
+
+    Use canonical wide tracking directly, ``from_long`` for long tables from
+    another provider, or ``from_skillcorner`` for the project's processed
+    files. Initialization validates/copies inputs; it runs no predictions.
+    Individual/team possessions and action annotations are optional for
+    explicit-context frame calculations. Model instances or exported manifest
+    paths can replace the bundled pretrained models.
     """
-    One-match physics-informed model of next-action possession-loss risk.
-
-    Components
-    ----------
-    PPCF:
-        Physics-based Potential Pitch Control Field
-
-    PI:
-        Pressing Intensity
-    """
-
 
     def __init__(
         self,
         tracking_data,
-        events_data = None,
+        events_data=None,
         *,
         possessions_data=None,
         actions_data=None,
@@ -27,62 +34,81 @@ class PRESS:
         pass_risk_model=None,
         pass_selection_model=None,
         action_selection_model=None,
+        residual_risk_model=None,
+        fps=10.0,
+        pitch_length=None,
+        pitch_width=None,
+        match_id=None,
+        player_metadata=None,
     ):
-        """Initialize one match without running physics or model prediction.
+        """Initialize canonical centred-metre tracking for one match.
 
-        tracking_data is canonical wide tracking in metres. events_data is
-        an optional canonical event table (not raw SkillCorner events).
-        possessions_data contains explicit team intervals: possession_id,
-        team_id, frame_start, frame_end. Alternatively, player_possessions_data
-        can be linked through verified receptions. actions_data contains
-        frame_start, frame_end, action, start_type, previous_action. All
-        intervals and frame IDs belong to this one match. See api.qmd.
+        Parameters
+        ----------
+        tracking_data : pandas.DataFrame
+            Unique integer ``frame``; ``player_possession`` (home/away alias
+            or missing), ``attacking_side``, ``ball_x, ball_y`` and player
+            columns ``<alias>_x, _y, _vx, _vy``. Speed ``_v`` is optional and
+            is derived from the supplied velocity components when absent.
+        events_data : pandas.DataFrame, optional
+            Canonical events, not a provider's raw event table.
+        possessions_data : pandas.DataFrame, optional
+            Explicit team intervals with ``possession_id, team_id,
+            frame_start, frame_end``. Endpoints are inclusive.
+        player_possessions_data : pandas.DataFrame, optional
+            Individual intervals and verified pass links. Alternative to
+            team intervals; see ``link_team_possessions`` in the reference.
+        actions_data : pandas.DataFrame, optional
+            Canonical action intervals with ``frame_start, frame_end,
+            action, start_type, previous_action``. No segmentation is guessed.
+        fps : float
+            Input frame frequency. Default 10 Hz preserves the original
+            dataset; use the actual frequency for another tracking source.
+        pitch_length, pitch_width : float, optional
+            Native pitch dimensions in metres. Otherwise use constant input
+            columns, or 105 by 68 m when dimensions are not supplied.
+        match_id : str or int, optional
+            User/provider match identifier, retained in metadata and exports.
+        player_metadata : pandas.DataFrame, optional
+            Roster keyed by canonical ``player_id``; source IDs/names may be
+            included. ``from_long`` constructs the source-ID mapping itself.
+        ball_drive_model, pass_risk_model, pass_selection_model,
+        action_selection_model, residual_risk_model : model or path, optional
+            Explicit fitted model or JSON-manifest path. Bundled production
+            models are resolved lazily when their component is requested.
         """
-
-        from PRESS.utils.sanitizers import (
-            validate_tracking_data,
-            validate_events_data
+        from PRESS.io.validation import prepare_tracking
+        from PRESS.utils.match import link_team_possessions, validate_intervals
+        from PRESS.utils.sanitizers import validate_events_data
+        from PRESS.model import (
+            ActionSelectionModel,
+            BallDriveModel,
+            PassRiskModel,
+            PassSelectionModel,
+            ResidualRiskModel,
         )
 
-        validate_tracking_data(tracking_data)
-
-        self.tracking_data = tracking_data.copy()
-
+        self.tracking_data, self.match_info = prepare_tracking(
+            tracking_data, fps=fps, pitch_length=pitch_length,
+            pitch_width=pitch_width, match_id=match_id,
+        )
         if events_data is not None:
+            validate_events_data(events_data)
+        self.events_data = None if events_data is None else events_data.copy()
+        self.ball_drive_model = self._load_model(ball_drive_model, BallDriveModel)
+        self.pass_risk_model = self._load_model(pass_risk_model, PassRiskModel)
+        self.pass_selection_model = self._load_model(pass_selection_model, PassSelectionModel)
+        self.action_selection_model = self._load_model(action_selection_model, ActionSelectionModel)
+        self.residual_risk_model = self._load_model(residual_risk_model, ResidualRiskModel)
 
-          validate_events_data(events_data)
-
-
-        self.events_data = events_data
-
-        from PRESS.model.ball_drive import BallDriveModel
-        self.ball_drive_model = (ball_drive_model if isinstance(ball_drive_model, BallDriveModel)
-                                 else BallDriveModel.from_json(ball_drive_model) if ball_drive_model is not None
-                                 else None)
-
-        from PRESS.model.pass_risk import PassRiskModel
-        self.pass_risk_model = (pass_risk_model if isinstance(pass_risk_model, PassRiskModel)
-                                else PassRiskModel.from_json(pass_risk_model) if pass_risk_model is not None
-                                else None)
-
-        from PRESS.model.pass_selection import PassSelectionModel
-        self.pass_selection_model = (pass_selection_model if isinstance(pass_selection_model, PassSelectionModel)
-                                     else PassSelectionModel.from_json(pass_selection_model) if pass_selection_model is not None
-                                     else None)
-
-        from PRESS.model.action_selection import ActionSelectionModel
-        self.action_selection_model = (action_selection_model if isinstance(action_selection_model,ActionSelectionModel)
-            else ActionSelectionModel.from_json(action_selection_model) if action_selection_model is not None else None)
-
-        import numpy as np
-        from PRESS.utils.match import link_team_possessions, validate_intervals
-
+        self.player_metadata = self._prepare_roster(player_metadata)
         self.player_possessions_data = None
         if player_possessions_data is not None:
-            linked, self.player_possessions_data = link_team_possessions(player_possessions_data)
             if possessions_data is not None:
                 raise ValueError("Supply team intervals or player intervals, not both.")
-            possessions_data = linked
+            possessions_data, self.player_possessions_data = link_team_possessions(
+                player_possessions_data
+            )
         self.possessions_data = None
         if possessions_data is not None:
             table = validate_intervals(possessions_data, [
@@ -92,7 +118,10 @@ class PRESS:
                 raise ValueError("possession_id must be nonmissing and unique within a match.")
             if not table.team_id.isin(["home", "away"]).all():
                 raise ValueError("team_id must be home or away.")
-            if len(table) > 1 and np.any(table.frame_start.to_numpy()[1:] <= table.frame_end.to_numpy()[:-1]):
+            if (
+                len(table) > 1
+                and np.any(table.frame_start.to_numpy()[1:] <= table.frame_end.to_numpy()[:-1])
+            ):
                 raise ValueError("Team possession intervals must not overlap.")
             self.possessions_data = table
         self.actions_data = None
@@ -100,934 +129,114 @@ class PRESS:
             self.actions_data = validate_intervals(actions_data, [
                 "frame_start", "frame_end", "action", "start_type", "previous_action",
             ])
+        self.results = {name: {} for name in (
+            "PPCF", "BALL_DRIVE_RISK", "ACTION_SELECTION", "HAZARD", "BCOS", "RESIDUAL_RISK", "XLOSS",
+        )}
 
+    @property
+    def fps(self):
+        """Input frame frequency in Hz, independent of numerical solver steps."""
+        return self.match_info.fps
 
-        self.results = {
-            "PPCF": {},
-            "PI": {},
-            # Stores action selection output (P(pass)) per frame_id.
-            "ACTION_SELECTION": {},
-            # Raw next-action hazard per frame; no post-hoc calibrator.
-            "HAZARD": {},
-        }
+    @staticmethod
+    def _load_model(value, model_class):
+        """Validate a model instance or load its exported manifest."""
+        if value is None or isinstance(value, model_class):
+            return value
+        if isinstance(value, (str, Path)):
+            return model_class.from_json(value)
+        raise TypeError(f"Expected {model_class.__name__}, a manifest path, or None.")
+
+    def _prepare_roster(self, supplied):
+        """Merge optional player metadata with IDs present in tracking."""
+        import re
+
+        ids = [c[:-2] for c in self.tracking_data if re.fullmatch(r"(home|away)_\d+_x", c)]
+        roster = pd.DataFrame({"player_id": ids})
+        roster["team_id"] = roster.player_id.str.split("_").str[0]
+        if supplied is not None:
+            if not isinstance(supplied, pd.DataFrame) or "player_id" not in supplied:
+                raise ValueError("player_metadata must be a DataFrame keyed by player_id.")
+            if supplied.player_id.isna().any() or supplied.player_id.duplicated().any():
+                raise ValueError("player_metadata.player_id must be unique and nonmissing.")
+            if not supplied.player_id.isin(ids).all():
+                raise ValueError("Player metadata contains IDs absent from tracking.")
+            if "team_id" in supplied:
+                expected = supplied.player_id.str.split("_").str[0]
+                if not supplied.team_id.eq(expected).all():
+                    raise ValueError("Player metadata team_id conflicts with canonical IDs.")
+            roster = roster.merge(supplied.drop(columns="team_id", errors="ignore"),
+                                  on="player_id", how="left", validate="one_to_one")
+        return roster
 
     @classmethod
-    def from_skillcorner(cls, match_dir, *, actions_path=None):
-        """Load processed <match_id>_tracking/_possession.parquet files.
+    def from_long(cls, players, ball, context, *, home_team="home", away_team="away", **kwargs):
+        """Initialize from provider-independent long player/ball/context tables.
 
-        match_dir is one directory created by the preprocessing pipeline.
-        Optional actions_path points to multi-match actions.csv/parquet; rows
-        are filtered to this match before initialization. Requires the io
-        extra. Raw SkillCorner JSON/events CSV are not canonical inputs.
+        See ``PRESS.io.tracking_from_long`` for the three table schemas.
+        Source IDs are mapped to internal home/away aliases and retained by
+        ``get_players``. Optional player/event/team interval tables in kwargs
+        use source IDs too; they are remapped without inferring outcomes.
+        Rename source columns and convert coordinates/units before this call.
         """
-        from pathlib import Path
-        import pandas as pd
+        from PRESS.io import tracking_from_long
 
+        tracking, roster = tracking_from_long(
+            players, ball, context, home_team=home_team, away_team=away_team,
+        )
+        teams = {home_team: "home", away_team: "away"}
+        sources = roster.groupby("source_player_id", sort=False).player_id.agg(list).to_dict()
+        pairs = {(r.source_team_id, r.source_player_id): r.player_id for r in roster.itertuples()}
+        for name in ("player_possessions_data", "events_data", "possessions_data", "actions_data"):
+            if kwargs.get(name) is None:
+                continue
+            table = kwargs[name].copy()
+            for column in ("player_id", "target_pass", "receiver_player_id"):
+                if column not in table:
+                    continue
+                mapped = []
+                for _, row in table.iterrows():
+                    value = row[column]
+                    if pd.isna(value):
+                        mapped.append(None)
+                        continue
+                    alias = pairs.get((row.get("team_id"), value))
+                    candidates = sources.get(value, [])
+                    if alias is None and len(candidates) == 1:
+                        alias = candidates[0]
+                    if alias is None:
+                        raise ValueError(f"Unknown or ambiguous source ID in {name}.{column}.")
+                    mapped.append(alias)
+                table[column] = mapped
+            if "team_id" in table:
+                if not table.team_id.isin(teams).all():
+                    raise ValueError(f"Unknown source team in {name}.")
+                table["team_id"] = table.team_id.map(teams)
+            kwargs[name] = table
+        if "player_metadata" in kwargs:
+            raise ValueError("from_long builds player_metadata from the source roster.")
+        return cls(tracking, player_metadata=roster, **kwargs)
+
+    @classmethod
+    def from_skillcorner(cls, match_dir, *, actions_path=None, **kwargs):
+        """Load the project's processed SkillCorner parquet files at 10 Hz.
+
+        The directory contains ``<match_id>_tracking.parquet`` and
+        ``<match_id>_possession.parquet``. Optional multi-match actions are
+        filtered by match_id. This is a convenience file adapter, not a raw
+        SkillCorner preprocessing pipeline. Requires the ``io`` extra.
+        """
         match_dir = Path(match_dir)
         match_id = match_dir.name
         tracking = pd.read_parquet(match_dir / f"{match_id}_tracking.parquet")
         players = pd.read_parquet(match_dir / f"{match_id}_possession.parquet")
         actions = None
         if actions_path is not None:
-            actions = (pd.read_parquet(actions_path) if Path(actions_path).suffix == ".parquet"
+            actions_path = Path(actions_path)
+            actions = (pd.read_parquet(actions_path) if actions_path.suffix == ".parquet"
                        else pd.read_csv(actions_path, dtype={"match_id": str}))
             if "match_id" not in actions:
                 raise ValueError("Actions must contain match_id.")
             actions = actions.loc[actions.match_id.astype(str) == match_id].copy()
-        return cls(tracking, player_possessions_data=players, actions_data=actions)
-
-    def get_possessions(self, *, team_id=None):
-        """Return a copy of explicit team intervals, optionally filtered by team.
-
-        Raises ValueError when no team/player interval table was supplied.
-        Carrier labels alone do not define verified team possessions.
-        """
-        if self.possessions_data is None:
-            raise ValueError("Supply possessions_data or player_possessions_data to navigate possessions.")
-        table = self.possessions_data
-        if team_id is not None:
-            if team_id not in ("home", "away"):
-                raise ValueError("team_id must be home or away.")
-            table = table.loc[table.team_id == team_id]
-        return table.copy().reset_index(drop=True)
-
-    def get_possession(self, possession_id):
-        """Return one team interval as a copied Series; unknown ID raises KeyError."""
-        table = self.get_possessions()
-        selected = table.loc[table.possession_id == possession_id]
-        if selected.empty:
-            raise KeyError(f"Unknown possession_id {possession_id!r}.")
-        return selected.iloc[0].copy()
-
-    def get_player_possessions(self, possession_id=None):
-        """Return linked player intervals, optionally restricted to one team possession."""
-        if self.player_possessions_data is None:
-            raise ValueError("No player_possessions_data was supplied.")
-        table = self.player_possessions_data
-        if possession_id is not None:
-            self.get_possession(possession_id)
-            table = table.loc[table.team_possession_id == possession_id]
-        return table.copy().reset_index(drop=True)
-
-    def get_frame(self, frame_id):
-        """Return one wide tracking row as a copied DataFrame; unknown ID raises KeyError."""
-        frame = self.tracking_data.loc[self.tracking_data.frame == frame_id]
-        if frame.empty:
-            raise KeyError(f"Unknown frame_id {frame_id!r}.")
-        return frame.copy().reset_index(drop=True)
-
-    def get_frames(self, possession_id=None, *, valid_only=False):
-        """Return sorted wide tracking rows, optionally within a team interval.
-
-        Intervals include both endpoints and in-flight rows. valid_only
-        excludes frames lacking a carrier, direction, or finite carrier
-        position/velocity; it does not certify full tracking quality.
-        """
-        import numpy as np
-        table = self.tracking_data
-        if possession_id is not None:
-            interval = self.get_possession(possession_id)
-            table = table.loc[table.frame.between(interval.frame_start, interval.frame_end)]
-        if valid_only:
-            mask = table.player_possession.notna() & table.attacking_side.isin([
-                "left_to_right", "right_to_left",
-            ])
-            for player in table.loc[mask, "player_possession"].unique():
-                selected = table.player_possession == player
-                columns = [f"{player}_{suffix}" for suffix in ("x", "y", "vx", "vy")]
-                mask.loc[selected] &= np.isfinite(table.loc[selected, columns]).all(axis=1)
-            table = table.loc[mask]
-        return table.sort_values("frame").copy().reset_index(drop=True)
-
-    def get_checkpoints(self, possession_id=None, *, eligible_only=True, include_snapshots=False):
-        """Return canonical action starts, optionally with evaluation-only snapshots.
-
-        Adds frame_id, start_type_std, previous_action_std, eligible.
-        Canonical rows include drive attempts (also early failures) and pass
-        releases. Short non-loss control tails and other terminal snapshots
-        are optional and never action-selection training examples.
-        Source possession_id, if present, remains a PLAYER-possession ID.
-        """
-        from PRESS.utils.match import standardize_action_context
-        if self.actions_data is None:
-            raise ValueError("Supply actions_data to navigate action checkpoints.")
-        table = self.actions_data.copy()
-        if possession_id is not None:
-            interval = self.get_possession(possession_id)
-            table = table.loc[table.frame_start.between(interval.frame_start, interval.frame_end)].copy()
-        table["frame_id"] = table.frame_start
-        if "is_canonical" not in table:
-            table["is_canonical"] = table.action.isin(["ball_drive", "pass"])
-        table["checkpoint_kind"] = table.is_canonical.map({True: "canonical", False: "snapshot"})
-        table["start_type_std"] = table.start_type.map(standardize_action_context)
-        table["previous_action_std"] = table.previous_action.map(
-            lambda value: standardize_action_context(value, previous=True)
-        )
-        valid_frames = self.get_frames(possession_id, valid_only=True).frame
-        table["eligible"] = (
-            ((table.is_canonical & table.action.isin(["ball_drive", "pass"]))
-             | (include_snapshots & table.action.eq("snapshot")))
-            & table.frame_id.isin(valid_frames)
-        )
-        # The revised classifier has explicit unknown/missing buckets. The
-        # standardized columns remain useful to callers of historical models.
-        if self._action_model() is None:
-            table['eligible'] &= table.start_type_std.notna() & table.previous_action_std.notna()
-        if eligible_only:
-            table = table.loc[table.eligible]
-            if table.frame_id.duplicated().any():
-                raise ValueError("Ambiguous duplicate checkpoints; resolve actions_data first.")
-        return table.reset_index(drop=True)
-
-    def get_frame_context(self, frame_id, *, granular=None):
-        """Read action context for any annotated tracking frame.
-
-        Uses per-frame tracking context first, then an action interval
-        containing this frame. At shared boundaries the latest interval
-        start wins; conflicting contexts at that start raise ValueError.
-        With the revised model, default granular context retains unknown
-        labels and includes completed_canonical_drives when recoverable from
-        10Hz individual-control intervals or annotated action age. Set
-        granular=False for historical standardized categories. Context
-        extraction is independent of possession checkpoint selection.
-        """
-        if granular is None:granular=self._action_model() is not None
-        if granular:
-            return self._raw_action_context(frame_id)
-        from PRESS.utils.match import standardize_action_context
-
-        frame = self.get_frame(frame_id).iloc[0]
-        for start_column, previous_column in (
-            ("start_type_std", "previous_action_std"),
-            ("start_type", "previous_action"),
-        ):
-            if start_column in frame and previous_column in frame:
-                start = standardize_action_context(frame[start_column])
-                previous = standardize_action_context(frame[previous_column], previous=True)
-                if start is not None and previous is not None:
-                    return {"start_type": start, "previous_action": previous,
-                            "source": "tracking"}
-        if self.actions_data is not None:
-            intervals = self.actions_data.loc[
-                (self.actions_data.frame_start <= frame_id)
-                & (self.actions_data.frame_end >= frame_id)
-            ]
-            if not intervals.empty:
-                intervals = intervals.loc[intervals.frame_start == intervals.frame_start.max()]
-                contexts = {
-                    (standardize_action_context(row.start_type),
-                     standardize_action_context(row.previous_action, previous=True))
-                    for row in intervals.itertuples(index=False)
-                }
-                if len(contexts) != 1:
-                    raise ValueError("Conflicting action context for this frame; supply context explicitly.")
-                start, previous = contexts.pop()
-                return {"start_type": start, "previous_action": previous,
-                        "source": "action_interval"}
-        raise ValueError("No action context annotation covers this frame; supply start_type and previous_action explicitly.")
-
-    def _action_model(self):
-        if self.action_selection_model is not None:return self.action_selection_model
-        from PRESS.utils.action_selection import load_current_action_selection_model
-        return load_current_action_selection_model()
-
-    def _raw_action_context(self,frame_id):
-        """Resolve raw origin and integer past carry count at any usable frame."""
-        import numpy as np
-        import pandas as pd
-        frame=self.get_frame(frame_id).iloc[0]
-        context=dict(start_type=frame.get('start_type_raw',frame.get('start_type',None)),
-            previous_action=frame.get('previous_action_raw',frame.get('previous_action',None)),
-            completed_canonical_drives=frame.get('completed_canonical_drives',np.nan),
-            source='tracking_or_missing')
-        if self.player_possessions_data is not None:
-            candidates=self.player_possessions_data.loc[
-                (self.player_possessions_data.frame_start<=frame_id)&(self.player_possessions_data.frame_end>=frame_id)]
-            if len(candidates)>1:raise ValueError('Conflicting individual-control intervals.')
-            if len(candidates):
-                parent=candidates.iloc[0];count=int((frame_id-int(parent.frame_start))//10)
-                context.update(start_type=parent.get('start_type',None),
-                    previous_action='ball_drive' if count>=1 else parent.get('start_type',None),
-                    completed_canonical_drives=count,source='individual_possession')
-                return context
-        if self.actions_data is not None:
-            intervals=self.actions_data.loc[(self.actions_data.frame_start<=frame_id)&(self.actions_data.frame_end>=frame_id)]
-            if len(intervals):
-                intervals=intervals.loc[intervals.frame_start==intervals.frame_start.max()]
-                if len(intervals[['start_type','previous_action']].drop_duplicates())>1:
-                    raise ValueError('Conflicting raw action context.')
-                row=intervals.iloc[0]
-                context.update(start_type=row.start_type,previous_action=row.previous_action,source='action_interval')
-                if pd.notna(row.get('time_since_start',np.nan)):
-                    initial=float(row.frame_start)-10*float(row.time_since_start)
-                    count=int(np.floor((frame_id-initial)/10+1e-8))
-                    context.update(completed_canonical_drives=count,
-                        previous_action='ball_drive' if count>=1 else row.start_type)
-        return context
-
-    def compute_frame(
-        self, frame_id, xT_grid, *, start_type=None, previous_action=None,
-        bcos_value=None, ppcf_kwargs=None, ball_drive_kwargs=None, bcos_kwargs=None,
-        transition_kwargs=None, match_clock_min=None, score_difference_prefix=None,
-        completed_canonical_drives=None,
-    ):
-        """Compute all core outputs in dependency order for one frame.
-
-        Any usable tracking frame can be evaluated independently of the
-        possession sampling. Resolve missing context from frame annotations
-        or a containing action interval; explicit arguments override it.
-        The revised model accepts raw categories with missing/unseen buckets;
-        historical models retain standardized categories. Supply bcos_value
-        to reuse an external BCOS area; otherwise an optional BCOS computes
-        it. Keyword dictionaries are passed to their component methods.
-        Always recomputes this frame; returns all four core result mappings.
-        """
-        import numpy as np
-        from PRESS.utils.match import standardize_action_context
-
-        self.get_frame(frame_id)
-        modern=self._action_model() is not None
-        context=self.get_frame_context(frame_id,granular=modern) if start_type is None or previous_action is None else {}
-        if start_type is None:start_type=context.get('start_type')
-        if previous_action is None:previous_action=context.get('previous_action')
-        choice_start,choice_previous=start_type,previous_action
-        if not modern:
-            start_type=standardize_action_context(start_type)
-            previous_action=standardize_action_context(previous_action,previous=True)
-            if start_type is None or previous_action is None:
-                raise ValueError('Unsupported legacy action context; supply a trained category.')
-        grid = np.asarray(xT_grid, dtype=float)
-        if grid.ndim != 2 or 0 in grid.shape or not np.isfinite(grid).all() or (grid < 0).any():
-            raise ValueError("xT_grid must be a finite nonnegative (n_x, n_y) array.")
-        if bcos_value is not None and (not np.isfinite(bcos_value) or bcos_value < 0):
-            raise ValueError("bcos_value must be a finite nonnegative scalar.")
-        self.compute_ppcf(frame_id, **(ppcf_kwargs or {}))
-        self.compute_ball_drive_loss(frame_id, **(ball_drive_kwargs or {}))
-        choice_context = dict(transition_kwargs or {})
-        choice_context.setdefault('start_type_raw', choice_start)
-        choice_context.setdefault('previous_action_raw', choice_previous)
-        if match_clock_min is not None:choice_context['match_clock_min']=match_clock_min
-        if score_difference_prefix is not None:choice_context['score_difference_prefix']=score_difference_prefix
-        self.compute_transition_probabilities(frame_id, grid, **choice_context)
-        if bcos_value is None:
-            from PRESS.extras import BCOS
-            bcos = BCOS(self.tracking_data,ball_drive_model=self.ball_drive_model)
-            field = bcos.compute_bcos(frame_id, **(bcos_kwargs or {}))
-            bcos_value = float(field["BCOS area"])
-        self.compute_action_selection_probability(frame_id, grid, start_type, previous_action, bcos_value,
-            match_clock_min=match_clock_min,score_difference_prefix=score_difference_prefix,
-            completed_canonical_drives=completed_canonical_drives)
-        self.compute_hazard(frame_id)
-        return {key: self.get_result(key, frame_id) for key in self.results}
-
-    def compute_possession(self, possession_id, xT_grid, *, frame_ids=None,
-                           include_snapshots=True, **frame_kwargs):
-        """Evaluate a possession at a chosen sampling of tracking frames.
-
-        frame_ids=None selects canonical starts plus evaluation-only snapshots
-        by default. include_snapshots=False restricts this to canonical rows.
-        Explicit nonempty unique integer frame_ids choose another sampling;
-        all must be usable frames inside the selected possession. Returns
-        rows sorted by frame_id. Each row calls the same compute_frame API;
-        sampling does not change its physics horizon or predict the outcome.
-        checkpoint_kind/is_canonical distinguish additional evaluations;
-        their overlapping forecasts must not be multiplied into survival.
-        """
-        import numpy as np
-        import pandas as pd
-        self.get_possession(possession_id)
-        kinds = {}
-        if self.actions_data is not None:
-            checkpoint_table = self.get_checkpoints(possession_id, eligible_only=False, include_snapshots=True)
-            kinds = dict(zip(checkpoint_table.frame_id, checkpoint_table.checkpoint_kind))
-        if frame_ids is None:
-            frames = self.get_checkpoints(possession_id, include_snapshots=include_snapshots).frame_id.to_numpy()
-            if not len(frames):
-                raise ValueError("This possession has no eligible default checkpoints; supply frame_ids for another sampling.")
-        else:
-            frames = np.asarray(frame_ids)
-            if (frames.ndim != 1 or not frames.size
-                    or not np.issubdtype(frames.dtype, np.number)
-                    or np.issubdtype(frames.dtype, np.complexfloating)
-                    or not np.isfinite(frames).all() or np.any(frames != np.floor(frames))):
-                raise ValueError("frame_ids must be a nonempty one-dimensional sequence of integer frame IDs.")
-            if len(np.unique(frames)) != len(frames):
-                raise ValueError("frame_ids must not contain duplicate frames.")
-            valid = self.get_frames(possession_id, valid_only=True).frame
-            if not np.isin(frames, valid).all():
-                raise ValueError("All frame_ids must be usable tracking frames inside this possession.")
-        frames = np.sort(frames)
-        rows = []
-        for frame in frames:
-            result = self.compute_frame(int(frame), xT_grid, **frame_kwargs)
-            rows.append({"possession_id": possession_id, "frame_id": int(frame),
-                         "checkpoint_kind": kinds.get(frame, "custom"),
-                         "is_canonical": kinds.get(frame) == "canonical",
-                         "p_pass": result["ACTION_SELECTION"]["Pass probability"],
-                         **result["HAZARD"]})
-        return pd.DataFrame(rows)
-
-    def _invalidate(self, frame_id, *components):
-        """Discard dependent results when an upstream component is recomputed."""
-        for component in components:
-            self.results[component].pop(frame_id, None)
-
-
-    def get_state(
-        self,
-        frame_id,
-    ):
-        """
-        Extract physical state from frame.
-        """
-
-        from PRESS.utils.state import (
-            get_pv_players,
-        )
-
-
-        return get_pv_players(
-            frame_id,
-            self.tracking_data
-        )
-
-
-    def get_result(self, component, frame_id):
-        """Return a stored component result for one tracking frame.
-
-        ``component`` accepts the result keys ``PPCF``, ``PI``,
-        ``ACTION_SELECTION``, and ``HAZARD``. The returned value is the
-        stored result mapping; callers can inspect it without reaching
-        into the internal ``results`` structure directly.
-        """
-        component = str(component).upper()
-        if component not in self.results:
-            raise ValueError(
-                f"Unknown component {component!r}; expected one of "
-                f"{', '.join(self.results)}."
-            )
-        if frame_id not in self.results[component]:
-            raise KeyError(
-                f"No {component} result stored for frame {frame_id!r}."
-            )
-        return self.results[component][frame_id]
-
-
-    def get_ppcf_result(self, frame_id):
-        """Return pitch-control and pass output stored for ``frame_id``."""
-        return self.get_result("PPCF", frame_id)
-
-
-    def get_ball_drive_result(self, frame_id):
-        """Return ball-drive risk output stored for ``frame_id``."""
-        return self.get_result("PI", frame_id)
-
-
-    def get_action_selection_result(self, frame_id):
-        """Return action-selection output stored for ``frame_id``."""
-        return self.get_result("ACTION_SELECTION", frame_id)
-
-
-    def get_hazard_result(self, frame_id):
-        """Return composed hazard output stored for ``frame_id``."""
-        return self.get_result("HAZARD", frame_id)
-
-
-    # ============================================================
-    # PITCH CONTROL FIELD
-    # ============================================================
-
-    def _choice_model(self):
-        """Resolve an explicitly supplied or installed final choice refit."""
-        if self.pass_selection_model is None:
-            from pathlib import Path
-            from PRESS.model.pass_selection import PassSelectionModel
-            path = Path(__file__).resolve().parents[1]/'utils/data/pass_selection_model.json'
-            if path.is_file():
-                self.pass_selection_model = PassSelectionModel.from_json(path)
-        return self.pass_selection_model
-
-    def compute_ppcf(self,frame_id,r_max=150,step=1.0,physics_kwargs=None,model=None):
-        """Store raw control and isotonic-calibrated pass success on a pitch grid.
-
-        Uses the frozen trajectory-MLE PassRiskModel, exact target distances
-        and shared-survival exponential integration. model overrides the
-        instance model; otherwise the installed full-data refit is loaded.
-        Loading performs no training. Physics overrides are sensitivities,
-        recorded as outside the saved calibration when settings differ.
-        """
-        import numpy as np
-        from PRESS.model.pass_risk import PassRiskModel
-        from PRESS.utils.grid import generate_circular_grid
-        fitted=model if model is not None else self.pass_risk_model
-        if fitted is None:fitted=PassRiskModel.pretrained()
-        if not isinstance(fitted,PassRiskModel):fitted=PassRiskModel.from_json(fitted)
-        state=self.get_state(frame_id)
-        if self._choice_model() is not None and step == 1.0:
-            length,width=state['pitch_length'],state['pitch_width']
-            if abs(length-round(length))>1e-8 or abs(width-round(width))>1e-8:
-                raise ValueError('Final choice grid requires integer pitch dimensions.')
-            xx,yy=np.meshgrid(np.arange(round(length))+.5-length/2,
-                              np.arange(round(width))+.5-width/2,indexing='ij')
-            grid=np.column_stack([xx.ravel(),yy.ravel()]).astype(np.float32)
-            grid=grid[np.linalg.norm(grid-np.asarray(state['x_bc']),axis=1)<=r_max]
-        else:
-            grid=np.asarray(generate_circular_grid(r_max,step))+np.asarray(state['x_bc'])
-        bounds=np.array([[-state['pitch_length']/2,state['pitch_length']/2],
-                         [-state['pitch_width']/2,state['pitch_width']/2]])
-        targets=grid[np.all((grid>=bounds[:,0]) & (grid<=bounds[:,1]),axis=1)]
-        if not len(targets):
-            raise ValueError('The requested pitch grid has no candidate cells.')
-        positions=np.vstack([state['r_atts'],np.asarray(state['x_bc'])[None,:],state['r_defs']])
-        velocities=np.vstack([state['v_atts'],np.asarray(state['v_bc'])[None,:],state['v_defs']])
-        carrier=len(state['r_atts']);attackers=np.arange(carrier+1)
-        result=fitted.predict_field(positions,velocities,state['x_bc'],targets,attackers,carrier,
-                                   physics_kwargs=physics_kwargs)
-        self.results['PPCF'][frame_id]={
-            'Pitch control field':result['control'],
-            'Attacking pitch control field':result['raw'],
-            'Pass probability':result['calibrated'],
-            'attacker_idx':attackers,'ball_carrier_idx':carrier,
-            'grid':targets,'ball flight time':result['flight_time'],
-            'params':dict(model_id=fitted.model_id,lambda_control=fitted.lambda_control,s=fitted.s,
-                          physics=result['physics'],calibration='isotonic',
-                          calibration_matches_physics=result['calibration_matches_physics'],r_max=r_max,step=step,
-                          choice_grid_matches_benchmark=(step==1.0 and len(targets)==round(state['pitch_length'])*round(state['pitch_width'])))}
-        self._invalidate(frame_id,'ACTION_SELECTION','HAZARD')
-
-
-    def compute_transition_probabilities(
-        self,
-        frame_id,
-        xT_grid,
-        *, start_type_raw=None, previous_action_raw=None,
-        match_clock_min=None, score_difference_prefix=None,
-    ):
-        """
-        Compute the destination CHOICE probability distribution
-        (softmax over the trained XGBoost transition model) for the
-        ball carrier at frame_id.
-
-        Requires compute_ppcf() AND compute_ball_drive_loss() to have
-        already been run for this frame_id.
-
-        Stores in self.results["PPCF"][frame_id]["Transition probabilities"].
-        """
-
-        if frame_id not in self.results["PPCF"]:
-            raise ValueError(
-                "Compute PPCF before computing transition probabilities"
-            )
-
-        if (
-            frame_id not in self.results["PI"]
-            or "Ball drive loss probability"
-            not in self.results["PI"][frame_id]
-        ):
-            raise ValueError(
-                "Compute ball drive loss before computing transition "
-                "probabilities (ball_drive_prob is one of the model "
-                "features)."
-            )
-
-        from PRESS.utils.transition import (
-            build_transition_features,
-            predict_transition_probabilities,
-        )
-
-        state = self.get_state(frame_id)
-
-        ppcf = self.results["PPCF"][frame_id]
-
-        final_model = self._choice_model()
-        if final_model is not None:
-            import numpy as np
-            import pandas as pd
-            # Keep provider-level labels here; action selection separately
-            # standardizes its own context. Never infer score from future events.
-            frame = self.get_frame(frame_id).iloc[0]
-            context={'start_type_raw':start_type_raw,'previous_action_raw':previous_action_raw}
-            for raw_column,column in [('start_type_raw','start_type'),('previous_action_raw','previous_action')]:
-                if context[raw_column] is not None:continue
-                for candidate in [raw_column,column]:
-                    if candidate in frame and not pd.isna(frame[candidate]):
-                        context[raw_column]=frame[candidate];break
-                if context[raw_column] is None and self.actions_data is not None:
-                    intervals=self.actions_data.loc[(self.actions_data.frame_start<=frame_id)&(self.actions_data.frame_end>=frame_id)]
-                    if len(intervals):
-                        intervals=intervals.loc[intervals.frame_start==intervals.frame_start.max()]
-                        values=intervals[column].dropna().unique()
-                        if len(values)>1:raise ValueError('Conflicting raw choice context; supply '+raw_column+' explicitly.')
-                        if len(values):context[raw_column]=values[0]
-            if self.results['PI'][frame_id]['params']['t_press'] != 1.0:
-                raise ValueError('Pass selection requires the one-second ball-drive loss feature; recompute it with t_press=1.0.')
-            clock = frame.get('match_clock_min', np.nan) if match_clock_min is None else match_clock_min
-            score = frame.get('score_difference_prefix', np.nan) if score_difference_prefix is None else score_difference_prefix
-            matrix = final_model.build_features(x_bc=state['x_bc'], v_bc=state['v_bc'],
-                r_atts=state['r_atts'], r_defs=state['r_defs'], targets=ppcf['grid'],
-                attacking_side=state['attacking_side'],
-                target_pitch_control=ppcf['Attacking pitch control field'],
-                ball_drive_prob=self.results['PI'][frame_id]['Ball drive loss probability'],
-                start_type_raw=context['start_type_raw'], previous_action_raw=context['previous_action_raw'],
-                match_clock_min=clock, score_difference_prefix=score,
-                pitch_length=state['pitch_length'], pitch_width=state['pitch_width'])
-            membership = None
-            if final_model.family == 'cnl':
-                control = np.asarray(ppcf['Pitch control field'])[ppcf['attacker_idx']]
-                control = np.delete(control, ppcf['ball_carrier_idx'], axis=0).T
-                valid = np.linalg.norm(state['r_atts'], axis=1)<500
-                control[:,~valid] = 0.
-                total=control.sum(axis=1,keepdims=True)
-                if not valid.any(): raise ValueError('CNL needs at least one valid teammate.')
-                with np.errstate(divide='ignore',invalid='ignore'):
-                    membership=np.log(control)-np.log(total)
-                membership=np.where(total==0,np.where(valid,-np.log(valid.sum()),-np.inf),membership)
-            probabilities=final_model.predict_features(matrix,log_membership=membership)
-            ppcf['Transition probabilities']=probabilities
-            ppcf['transition_model_id']=final_model.model_id
-            ppcf['transition_context']=dict(context,match_clock_min=clock,score_difference_prefix=score)
-            self._invalidate(frame_id,'ACTION_SELECTION','HAZARD')
-            return probabilities
-
-        # CONFIRMED (25/9): the transition model's own original
-        # feature-engineering script (extract_pass_destination_dataset /
-        # compute_ball_drive) uses the LOSS probability directly,
-        # unflipped, for the "ball_drive_prob" training column -- no
-        # inversion here. (Different from the action_features/ pipeline
-        # used for action selection, which does invert it -- same
-        # column name, opposite convention across the two original
-        # training scripts. Each wrapper matches its own model's real
-        # training data.)
-        X = build_transition_features(
-            x_bc=state["x_bc"],
-            v_bc=state["v_bc"],
-            r_defs=state["r_defs"],
-            r_atts=state["r_atts"],
-            attacking_side=state["attacking_side"],
-            targets=ppcf["grid"],
-            target_pitch_control=ppcf["Attacking pitch control field"],
-            ball_drive_prob=self.results["PI"][frame_id][
-                "Ball drive loss probability"
-            ],
-            xT_grid=xT_grid,
-            pitch_length=state["pitch_length"],
-            pitch_width=state["pitch_width"],
-        )
-
-        transition_probabilities = predict_transition_probabilities(X)
-
-        self.results["PPCF"][frame_id][
-            "Transition probabilities"
-        ] = transition_probabilities
-
-        self._invalidate(frame_id, "ACTION_SELECTION", "HAZARD")
-
-        return transition_probabilities
-
-
-    # ============================================================
-    # PRESSING INTENSITY
-    # ============================================================
-
-    def compute_ball_drive_loss(
-        self,
-        frame_id,
-        t_press=1.0,
-        physics_kwargs=None,
-        model=None,
-    ):
-        """
-        Compute and store loss probabilities for one arbitrary frame.
-
-        model optionally supplies an exported BallDriveModel or JSON path;
-        otherwise the constructor's ball_drive_model or bundled final refit
-        is used. Explicit legacy coefficient keys without a fitted model
-        select the historical log-linear solver. With a fitted
-        model, physics_kwargs are explicit physics-only overrides (a_linear,
-        a_turn, v_max, dt, pitch_length/width, preserve_initial_overspeed).
-        Native frame dimensions are supplied to match choice-model features;
-        explicit pitch overrides remain available for sensitivity analysis.
-        """
-
-        from PRESS.model.solver_intensity import (
-            integrate_loss_prob,
-        )
-
-        from PRESS.model.ball_drive import BallDriveModel
-        fitted = self.ball_drive_model if model is None else model
-        legacy_parameters={'lambda_0','beta_v','beta_B','s','a_max'}
-        if fitted is None and not legacy_parameters.intersection(physics_kwargs or {}):
-            fitted=BallDriveModel.pretrained()
-        if fitted is not None:
-            if not isinstance(fitted, BallDriveModel):
-                fitted = BallDriveModel.from_json(fitted)
-            state = self.get_state(frame_id)
-            result = fitted.predict(state['r_defs'], state['v_defs'], state['x_bc'], state['v_bc'],
-                                    horizon=t_press, physics_kwargs=(dict(pitch_length=state['pitch_length'],pitch_width=state['pitch_width']) | dict(physics_kwargs or {})))
-            self.results['PI'][frame_id] = {
-                'Individual tackle probabilities': result['cause_probabilities'],
-                'Ball drive loss probability': result['loss_probability'],
-                'Survival probability': result['survival_probability'],
-                'Survival curve': result['survival_curve'],
-                'Times': result['times'],
-                'params': {'t_press': t_press, 'physics_kwargs': result['physics'],
-                           'model_id': fitted.model_id},
-            }
-            self.results['PPCF'].get(frame_id, {}).pop('Transition probabilities', None)
-            self._invalidate(frame_id, 'ACTION_SELECTION', 'HAZARD')
-            return
-
-        if physics_kwargs is None:
-
-            physics_kwargs = {
-
-                "v_max": 7.0,
-
-                "a_max": 7.0,
-
-                "lambda_0": 0.36,
-
-                "beta_v": 0.09,
-
-                "beta_B": -0.02,
-
-                "s": 0.43,
-            }
-
-        physics_kwargs = dict(physics_kwargs)
-        physics_kwargs.setdefault("integration_method", "exponential")
-        physics_kwargs.setdefault("dt", 0.04)
-
-        state = self.get_state(
-            frame_id,
-        )
-
-        p_loss = integrate_loss_prob(
-            state["r_defs"],
-            state["v_defs"],
-            state["x_bc"],
-            state["v_bc"],
-            t_press,
-            **(dict(physics_kwargs) | {"pitch_length": state["pitch_length"],
-                                      "pitch_width": state["pitch_width"]}),
-        )
-
-        self.results["PI"][frame_id] = {
-
-            "Individual tackle probabilities":
-                p_loss,
-
-            "Ball drive loss probability":
-                jnp.sum(p_loss),
-
-            "params": {
-                "t_press": t_press,
-                "physics_kwargs": physics_kwargs,
-            },
-        }
-
-        self.results["PPCF"].get(frame_id, {}).pop("Transition probabilities", None)
-        self._invalidate(frame_id, "ACTION_SELECTION", "HAZARD")
-
-
-    # ============================================================
-    # ACTION SELECTION
-    # ============================================================
-
-    def compute_action_selection_probability(
-        self,
-        frame_id,
-        xT_grid,
-        start_type,
-        previous_action,
-        bcos_value,
-        *, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None,
-    ):
-        """
-        Compute P(pass) vs P(ball_drive) for the ball carrier at
-        frame_id (trained XGBoost action selection model, single
-        sigmoid over the instantaneous state -- not a per-destination
-        choice set like compute_transition_probabilities).
-
-        Requires compute_ppcf(), compute_ball_drive_loss(), and
-        compute_transition_probabilities() to have already been run for
-        this frame_id. ``bcos_value`` is supplied by the optional
-        ``PRESS.extras.BCOS`` component because BCOS remains a trained
-        action-selection feature but is not part of the core PRESS class.
-
-        The revised model uses raw start/previous categories, e.g.
-        "pass_reception" and "ball_drive", preserving unknown/missing.
-        Optional clock, prefix score and completed canonical carries can be
-        supplied explicitly; otherwise resolve them from stored context.
-        Historical artifacts retain their standardized feature builder.
-
-        NOTE on ball_drive_prob polarity: this method's feature builder
-        (PRESS.utils.action_selection) uses 1 - "Ball drive loss
-        probability" (= P(success)), matching the action_features/
-        pipeline the action selection model was actually trained on --
-        the OPPOSITE convention from compute_transition_probabilities
-        above, which uses the loss probability directly. Confirmed
-        against both original training scripts, not a bug.
-
-        Stores in
-        self.results["ACTION_SELECTION"][frame_id]["Pass probability"].
-        """
-
-        if frame_id not in self.results["PPCF"]:
-            raise ValueError(
-                "Compute PPCF before computing action selection "
-                "probability."
-            )
-
-        if (
-            frame_id not in self.results["PPCF"]
-            or "Transition probabilities"
-            not in self.results["PPCF"][frame_id]
-        ):
-            raise ValueError(
-                "Compute transition probabilities before computing "
-                "action selection probability (rppcf / xT_*_pass / "
-                "*_pressure_line_index_pass all depend on it)."
-            )
-
-        if (
-            frame_id not in self.results["PI"]
-            or "Ball drive loss probability"
-            not in self.results["PI"][frame_id]
-        ):
-            raise ValueError(
-                "Compute ball drive loss before computing action "
-                "selection probability."
-            )
-
-        from PRESS.utils.action_selection import (
-            build_action_selection_features,
-            predict_action_selection_probability,
-        )
-
-        state = self.get_state(frame_id)
-
-        ppcf = self.results["PPCF"][frame_id]
-        ball_drive_loss = self.results["PI"][frame_id][
-            "Ball drive loss probability"
-        ]
-
-        final=self._action_model()
-        if final is not None:
-            import numpy as np
-            if self.results['PI'][frame_id]['params']['t_press']!=1.:
-                raise ValueError('Action selection requires one-second carry loss.')
-            frame=self.get_frame(frame_id).iloc[0]
-            prefix=ppcf.get('transition_context',{})
-            context=self._raw_action_context(frame_id)
-            raw_start=start_type if start_type is not None else context['start_type']
-            raw_previous=previous_action if previous_action is not None else context['previous_action']
-            clock=(prefix.get('match_clock_min',frame.get('match_clock_min',np.nan))
-                   if match_clock_min is None else match_clock_min)
-            score=(prefix.get('score_difference_prefix',frame.get('score_difference_prefix',np.nan))
-                   if score_difference_prefix is None else score_difference_prefix)
-            count=context['completed_canonical_drives'] if completed_canonical_drives is None else completed_canonical_drives
-            X=final.build_features(x_bc=state['x_bc'],v_bc=state['v_bc'],r_defs=state['r_defs'],r_atts=state['r_atts'],
-                attacking_side=state['attacking_side'],targets=ppcf['grid'],
-                transition_probabilities=ppcf['Transition probabilities'],pass_success_probability=ppcf['Pass probability'],
-                bcos=bcos_value,ball_drive_loss=ball_drive_loss,start_type_raw=raw_start,previous_action_raw=raw_previous,
-                match_clock_min=clock,score_difference_prefix=score,completed_canonical_drives=count,
-                pitch_length=state['pitch_length'],pitch_width=state['pitch_width'])
-            pass_probability=float(final.predict_features(X)[0])
-        else:
-            X = build_action_selection_features(
-                x_bc=state["x_bc"],
-                v_bc=state["v_bc"],
-                r_defs=state["r_defs"],
-                r_atts=state["r_atts"],
-                attacking_side=state["attacking_side"],
-                targets=ppcf["grid"],
-                transition_probabilities=ppcf["Transition probabilities"],
-                pass_success_probability=ppcf["Pass probability"],
-                bcos=bcos_value,
-                ball_drive_loss=ball_drive_loss,
-                xT_grid=xT_grid,
-                start_type=start_type,
-                previous_action=previous_action,
-                pitch_length=state["pitch_length"],
-                pitch_width=state["pitch_width"],
-            )
-    
-            pass_probability = predict_action_selection_probability(X)
-
-        self.results["ACTION_SELECTION"][frame_id] = {
-            "Pass probability": pass_probability,
-            "Ball drive probability": 1.0 - pass_probability,
-        }
-
-        self._invalidate(frame_id, "HAZARD")
-
-        return pass_probability
-
-
-    # ============================================================
-    # INSTANTANEOUS HAZARD
-    # ============================================================
-
-    def compute_hazard(
-        self,
-        frame_id,
-    ):
-        """
-        Compute the instantaneous hazard h(s_t) -- the marginal
-        (action-unconditional) risk of losing possession at this
-        checkpoint, mixing the drive and pass branches by the action
-        selection model's P(pass):
-
-            h(s_t) = P(drive|s_t) * drive_risk(s_t)
-                   + P(pass|s_t)  * pass_failure_expected(s_t)
-
-        where drive_risk(s_t) = Ball drive loss probability directly
-        (no inversion needed here -- see PRESS.utils.hazard docstring
-        for why the two inversions cancel out), and
-        pass_failure_expected(s_t) = 1 - rppcf (rppcf = sum(tr *
-        pass_prob) over the destination grid, using the same
-        softmax-sums-to-1 simplification already used elsewhere).
-
-        NOTE (25/9): NO post-hoc calibration is applied here. An
-        isotonic calibrator was fitted and evaluated (ECE 0.0201 ->
-        0.0032 out-of-fold), but the four components it calibrates
-        are all PRODUCTION models fit on all 10 matches -- so both
-        h(s_t) and its calibration are evaluated in-sample relative
-        to the underlying component training, not genuinely
-        out-of-fold. Fixing this properly would require rebuilding
-        h(s_t) from per-fold (not production) versions of all four
-        components on a shared match-level split. Decided not to do
-        that now (low cross-fold variance in all four components
-        suggests the effect is likely small) -- but also decided NOT
-        to ship an unvalidated calibration layer. h(s_t) is reported
-        raw.
-
-        Requires compute_ppcf(), compute_ball_drive_loss(),
-        compute_transition_probabilities() AND
-        compute_action_selection_probability() to have already been
-        run for this frame_id.
-
-        Stores in self.results["HAZARD"][frame_id]:
-            "Hazard"
-            "Drive risk"
-            "Pass failure expected"
-            "rppcf"
-
-        Returns the hazard (float).
-        """
-
-        if (
-            frame_id not in self.results["PI"]
-            or "Ball drive loss probability"
-            not in self.results["PI"][frame_id]
-        ):
-            raise ValueError(
-                "Compute ball drive loss before computing hazard."
-            )
-
-        if (
-            frame_id not in self.results["PPCF"]
-            or "Transition probabilities"
-            not in self.results["PPCF"][frame_id]
-        ):
-            raise ValueError(
-                "Compute transition probabilities before computing "
-                "hazard (rppcf depends on it)."
-            )
-
-        if frame_id not in self.results["ACTION_SELECTION"]:
-            raise ValueError(
-                "Compute action selection probability before computing "
-                "hazard (P(pass) is the mixing weight)."
-            )
-
-        from PRESS.utils.hazard import compute_hazard_raw
-
-        ppcf = self.results["PPCF"][frame_id]
-        ball_drive_loss = self.results["PI"][frame_id][
-            "Ball drive loss probability"
-        ]
-        action_selection_pass_probability = self.results[
-            "ACTION_SELECTION"
-        ][frame_id]["Pass probability"]
-
-        hazard_h, drive_risk, pass_failure_expected, rppcf = (
-            compute_hazard_raw(
-                ball_drive_loss=ball_drive_loss,
-                transition_probabilities=ppcf["Transition probabilities"],
-                pass_success_probability=ppcf["Pass probability"],
-                action_selection_pass_probability=(
-                    action_selection_pass_probability
-                ),
-            )
-        )
-
-        self.results["HAZARD"][frame_id] = {
-            "Hazard": hazard_h,
-            "Drive risk": drive_risk,
-            "Pass failure expected": pass_failure_expected,
-            "rppcf": rppcf,
-        }
-
-        return hazard_h
+        kwargs.setdefault("match_id", match_id)
+        return cls(tracking, player_possessions_data=players, actions_data=actions, **kwargs)

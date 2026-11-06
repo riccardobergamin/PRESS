@@ -1,20 +1,17 @@
-from .solver_pitch_control import integrate_pitch_control
-from .solver_intensity import integrate_loss_prob
+"""Fitted inference models and numerical integration entry points."""
+
+from .action_selection import ActionSelectionModel
 from .ball_drive import BallDriveModel
 from .pass_risk import PassRiskModel
 from .pass_selection import PassSelectionModel
-
+from .residual_risk import ResidualRiskModel
+from .solver_pitch_control import integrate_pitch_control
 
 __all__ = [
-    "integrate_pitch_control",
-    "integrate_loss_prob",
-    "BallDriveModel",
-    "PassRiskModel",
-    "PassSelectionModel",
+    'ActionSelectionModel',
+    'BallDriveModel',
+    'PassRiskModel',
+    'PassSelectionModel',
+    'ResidualRiskModel',
+    'integrate_pitch_control',
 ]
-
-from .action_selection import ActionSelectionModel
-__all__.append("ActionSelectionModel")
-
-from .residual_risk import ResidualRiskModel
-__all__.append("ResidualRiskModel")

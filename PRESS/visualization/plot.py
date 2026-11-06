@@ -1,886 +1,260 @@
+"""Shared pitch drawing for observed frames and previously computed fields."""
+
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import griddata
+from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.lines import Line2D
-from mplsoccer import Pitch
-from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import PercentFormatter
+from mplsoccer import Pitch
+from scipy.interpolate import griddata
+
 from PRESS.utils.frame import frame_to_long, resolve_pitch_size
 
-
-def plot_frame(
-    press,
-    frame_id,
-    pitch_length=None,
-    pitch_width=None,
-    figsize=(12, 8),
-    title_fontsize=9,
-    legend_fontsize=8,
-    *,
-    title=None,
-):
-    """
-    Plot a tracking frame.
-
-    Parameters
-    ----------
-    press : PRESS
-        PRESS object.
-
-    frame_id : int
-        Frame identifier.
-    """
-
-    frame_df = press.tracking_data[
-        press.tracking_data["frame"] == frame_id
-    ].copy()
-
-
-    if frame_df.empty:
-        raise ValueError(
-            f"Frame {frame_id} not found."
-        )
-
-
-    pitch_length, pitch_width = resolve_pitch_size(frame_df, pitch_length, pitch_width)
-    frame_df = frame_to_long(
-        frame_df
-    )
-
-
-    # ----------------------------------
-    # Pitch
-    # ----------------------------------
-
-    pitch = Pitch(
-        pitch_type="skillcorner",
-        pitch_length=pitch_length,
-        pitch_width=pitch_width,
-        pitch_color="#7fbf7f",
-        line_color="white",
-        linewidth=1.3,
-    )
-
-
-    fig, ax = plt.subplots(
-        figsize=figsize
-    )
-
-
-    pitch.draw(
-        ax=ax
-    )
-
-
-    # ----------------------------------
-    # Teams
-    # ----------------------------------
-
-    team_ids = (
-        frame_df["team_id"]
-        .dropna()
-        .unique()
-    )
-
-
-    if len(team_ids) != 2:
-        raise ValueError(
-            "Frame must contain two teams."
-        )
-
-
-    team_colors = {
-
-        "home": "steelblue",
-
-        "away": "indianred",
-
-    }
-
-
-    players = frame_df.dropna(
-        subset=["player_id"]
-    )
-
-
-    for team_id, color in team_colors.items():
-
-        team_players = players[
-            players.team_id == team_id
-        ]
-
-
-        pitch.scatter(
-            team_players.x,
-            team_players.y,
-            ax=ax,
-            s=45,
-            color=color,
-            edgecolors="white",
-            linewidth=0.6,
-            zorder=3,
-        )
-
-
-    # ----------------------------------
-    # Ball
-    # ----------------------------------
-
-    if (
-        "ball_x" in frame_df.columns
-        and "ball_y" in frame_df.columns
-    ):
-
-        pitch.scatter(
-            frame_df["ball_x"].iloc[0],
-            frame_df["ball_y"].iloc[0],
-            ax=ax,
-            s=20,
-            color="white",
-            edgecolors="black",
-            linewidth=0.8,
-            zorder=10,
-        )
-
-
-    # ----------------------------------
-    # Velocity vectors
-    # ----------------------------------
-
-    if (
-        "vx" in frame_df.columns
-        and "vy" in frame_df.columns
-    ):
-
-        for _, player in players.dropna(
-            subset=["vx", "vy"]
-        ).iterrows():
-
-            pitch.arrows(
-                player.x,
-                player.y,
-                player.x + player.vx * 1.5,
-                player.y + player.vy * 1.5,
-                ax=ax,
-                color="black",
-                width=0.5,
-                headwidth=3,
-                headlength=3,
-                alpha=0.55,
-                zorder=4,
-            )
-
-
-    # ----------------------------------
-    # Title
-    # ----------------------------------
-
-    ax.set_title(
-        title if title is not None else f"Tracking frame {frame_id}",
-        fontsize=title_fontsize,
-        fontweight="bold",
-        pad=12,
-    )
-
-
-    # ----------------------------------
-    # Legend
-    # ----------------------------------
-
-    legend_elements = [
-
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor=team_colors[team_ids[0]],
-            markeredgecolor="white",
-            markersize=9,
-            label=f"Team {team_ids[0]}",
-        ),
-
-
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor=team_colors[team_ids[1]],
-            markeredgecolor="white",
-            markersize=9,
-            label=f"Team {team_ids[1]}",
-        ),
-
-
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor="white",
-            markeredgecolor="black",
-            markersize=5,
-            label="Ball",
-        ),
-
-    ]
-
-
-    fig.legend(
-        handles=legend_elements,
-        loc="lower center",
-        fontsize=legend_fontsize,
-        frameon=True,
-        ncol=3,
-    )
-
-
-    fig.subplots_adjust(
-        bottom=0.08,
-        top=0.92,
-    )
-
-
-    plt.show()
-    
-def plot_bcos(
-    bcos,
-    frame_id,
-    pitch_length=None,
-    pitch_width=None,
-    figsize=(12, 8),
-    title_fontsize=9,
-    legend_fontsize=8,
-):
-    if frame_id not in bcos.results:
-        raise ValueError(f"BCOS frame {frame_id} not found.")
-
-    frame_df = bcos.tracking_data[bcos.tracking_data["frame"] == frame_id].copy()
-    if frame_df.empty:
-        raise ValueError(f"Frame {frame_id} not found.")
-
-    pitch_length, pitch_width = resolve_pitch_size(frame_df, pitch_length, pitch_width)
-    frame_df = frame_to_long(frame_df)
-
-    pitch = Pitch(
-        pitch_type="skillcorner",
-        pitch_length=pitch_length,
-        pitch_width=pitch_width,
-        pitch_color="#7fbf7f",
-        line_color="white",
-        linewidth=1.3,
-    )
-
-    fig, ax = plt.subplots(figsize=figsize)
-    pitch.draw(ax=ax)
-
-    result = bcos.results[frame_id]
-    grid = result["grid"]
-    values = result["Ball carrier open space"]
-
-    xi = np.linspace(grid[:, 0].min(), grid[:, 0].max(), 120)
-    yi = np.linspace(grid[:, 1].min(), grid[:, 1].max(), 120)
-    xx, yy = np.meshgrid(xi, yi)
-
-    potential = griddata(
-        grid,
-        values,
-        (xx, yy),
-        method="linear"
-    )
-
-    team_ids = frame_df["team_id"].dropna().unique()
-    if len(team_ids) != 2:
-        raise ValueError("Frame must contain two teams.")
-
-    t1, t2 = team_ids[0], team_ids[1]
-    team_colors = {
-        "home": "steelblue",
-        "away": "indianred"
-    }
-
-    possession_team = frame_df.loc[
-        frame_df["team_possession"].notna(),
-        "team_id"
-    ]
-
-    if not possession_team.empty:
-        attacking_team = possession_team.iloc[0]
+TEAM_COLORS = {"home": "steelblue", "away": "indianred"}
+
+
+def _canvas(press, frame_id, pitch_length, pitch_width, figsize, ax):
+    frame = press.tracking_data.loc[press.tracking_data.frame == frame_id].copy()
+    if len(frame) != 1:
+        raise ValueError(f"Frame {frame_id!r} not found or duplicated.")
+    length, width = resolve_pitch_size(frame, pitch_length, pitch_width)
+    # mplsoccer's skillcorner pitch means centred metric axes, independent
+    # of the provider used to initialize PRESS.
+    pitch = Pitch(pitch_type="skillcorner", pitch_length=length, pitch_width=width,
+                  pitch_color="#7fbf7f", line_color="white", linewidth=1.3)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     else:
-        attacking_team = t1
+        fig = ax.figure
+    pitch.draw(ax=ax)
+    return fig, ax, pitch, frame, frame_to_long(frame)
 
-    defending_team = t2 if attacking_team == t1 else t1
 
-    # ----------------------------------
-    # BCOS colormap
-    # ----------------------------------
+def _draw_state(pitch, ax, frame, players, *, velocity_scale=1.5, defender_shares=None):
+    for team, color in TEAM_COLORS.items():
+        selected = players[players.team_id.eq(team)]
+        colors = color
+        if defender_shares is not None:
+            defending_team, shares, cmap = defender_shares
+            if team == defending_team:
+                colors = [cmap(shares.get(player, 0.0)) for player in selected.player_id]
+        pitch.scatter(selected.x, selected.y, ax=ax, s=45, color=colors,
+                      edgecolors="white", linewidth=0.6, zorder=3)
+    ball = frame.iloc[0]
+    if np.isfinite([ball.ball_x, ball.ball_y]).all():
+        pitch.scatter(ball.ball_x, ball.ball_y, ax=ax, s=20, color="white",
+                      edgecolors="black", linewidth=0.8, zorder=10)
+    if velocity_scale:
+        for row in players.dropna(subset=["vx", "vy"]).itertuples():
+            pitch.arrows(row.x, row.y, row.x + velocity_scale * row.vx,
+                         row.y + velocity_scale * row.vy, ax=ax, color="black",
+                         width=0.5, headwidth=3, headlength=3, alpha=0.55, zorder=4)
 
-    bcos_cmap = plt.get_cmap("inferno")
 
-    contour = ax.contourf(
-        xx,
-        yy,
-        potential,
-        levels=np.linspace(0, 1, 11),
-        cmap=bcos_cmap,
-        alpha=0.5,
-        zorder=1,
+def _finish(fig, ax, title, title_fontsize, legend_fontsize, *, show, legend, pass_line=False):
+    ax.set_title(title, fontsize=title_fontsize, fontweight="bold", pad=12)
+    if legend:
+        handles = [Line2D([0], [0], marker="o", color="w", markerfacecolor=color,
+                          markeredgecolor="white", markersize=9, label=f"Team {team}")
+                   for team, color in TEAM_COLORS.items()]
+        handles.append(Line2D([0], [0], marker="o", color="w", markerfacecolor="white",
+                              markeredgecolor="black", markersize=5, label="Ball"))
+        if pass_line:
+            handles.append(Line2D([0], [0], color="#202020", linestyle="--",
+                                  linewidth=1.8, label="Observed pass"))
+        fig.legend(handles=handles, loc="lower center", fontsize=legend_fontsize,
+                   frameon=True, ncol=len(handles))
+    fig.subplots_adjust(bottom=0.10, top=0.90)
+    if show:
+        plt.show()
+    return fig, ax
+
+
+def _field(fig, ax, grid, values, *, label, cmap, legend_fontsize, scale=1.0):
+    grid, values = np.asarray(grid, float), np.asarray(values, float)
+    if grid.ndim != 2 or grid.shape[1] != 2 or values.shape != (len(grid),) or not len(grid):
+        raise ValueError("A field requires nonempty grid (N,2) and values (N,).")
+    if not np.isfinite(grid).all() or not np.isfinite(values).all():
+        raise ValueError("A plotted field must contain finite values.")
+    if len(grid) >= 3 and np.linalg.matrix_rank(grid - grid.mean(axis=0)) == 2:
+        xx, yy = np.meshgrid(np.linspace(grid[:, 0].min(), grid[:, 0].max(), 120),
+                             np.linspace(grid[:, 1].min(), grid[:, 1].max(), 120))
+        surface = griddata(grid, values, (xx, yy), method="linear")
+        artist = ax.contourf(xx, yy, surface, levels=np.linspace(0, scale, 11),
+                             cmap=cmap, alpha=0.6, zorder=1)
+    else:
+        artist = ax.scatter(grid[:, 0], grid[:, 1], c=values, cmap=cmap,
+                            vmin=0, vmax=scale, alpha=0.6, zorder=1)
+    bar = fig.colorbar(artist, ax=ax, fraction=0.03, pad=0.02)
+    bar.set_label(label, fontsize=legend_fontsize)
+    bar.ax.tick_params(labelsize=legend_fontsize)
+    return bar
+
+
+def plot_frame(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
+               title_fontsize=9, legend_fontsize=8, *, title=None, ax=None,
+               show=True, legend=True, velocity_scale=1.5):
+    """Draw an observed frame and return (figure, axes), without inference.
+
+    Accepts a PRESS or BCOS object exposing canonical tracking_data. Optional
+    ax draws into an existing panel; show=False supports batch exports. Vector
+    length is velocity_scale times velocity, not a predicted future position.
+    Missing carriers are allowed; player IDs and extra markers are not drawn.
+    """
+    fig, ax, pitch, frame, players = _canvas(
+        press,
+        frame_id,
+        pitch_length,
+        pitch_width,
+        figsize,
+        ax,
     )
+    _draw_state(pitch, ax, frame, players, velocity_scale=velocity_scale)
+    return _finish(fig, ax, title or f"Tracking frame {frame_id}", title_fontsize,
+                   legend_fontsize, show=show, legend=legend)
 
-    cbar = plt.colorbar(
-        contour,
-        ax=ax,
-        fraction=0.03,
-        pad=0.02,
-    )
 
-    cbar.set_label(
-        "Ball carrier open space",
-        fontsize=legend_fontsize
-    )
+def plot_pass_map(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
+                  title_fontsize=9, legend_fontsize=8, *, field="pass_success",
+                  pass_target=None, title=None, ax=None, show=True, legend=True,
+                  velocity_scale=1.5):
+    """Draw stored pitch_control, pass_success or pass_selection; return (fig, ax).
 
-    cbar.ax.tick_params(
-        labelsize=legend_fontsize
-    )
-
-    players = frame_df.dropna(subset=["player_id"])
-
-    for team_id, color in team_colors.items():
-        team_players = players[players.team_id == team_id]
-
-        pitch.scatter(
-            team_players.x,
-            team_players.y,
-            ax=ax,
-            s=45,
-            color=color,
-            edgecolors="white",
-            linewidth=0.6,
-            zorder=3,
-        )
-
-    if "ball_x" in frame_df.columns and "ball_y" in frame_df.columns:
-        pitch.scatter(
-            frame_df["ball_x"].iloc[0],
-            frame_df["ball_y"].iloc[0],
-            ax=ax,
-            s=20,
-            color="white",
-            edgecolors="black",
-            linewidth=0.8,
-            zorder=10,
-        )
-
-    if "vx" in frame_df.columns and "vy" in frame_df.columns:
-        for _, player in players.dropna(subset=["vx", "vy"]).iterrows():
-
-            pitch.arrows(
-                player.x,
-                player.y,
-                player.x + player.vx * 1.5,
-                player.y + player.vy * 1.5,
-                ax=ax,
-                color="black",
-                width=0.5,
-                headwidth=3,
-                headlength=3,
-                alpha=0.55,
-                zorder=4,
-            )
-
-    ax.set_title(
-        f"BCOS frame {frame_id}",
-        fontsize=title_fontsize,
-        fontweight="bold",
-        pad=12,
-    )
-
-    legend_elements = [
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor=team_colors[t1],
-            markeredgecolor="white",
-            markersize=9,
-            label=f"Team {t1}",
-        ),
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor=team_colors[t2],
-            markeredgecolor="white",
-            markersize=9,
-            label=f"Team {t2}",
-        ),
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor="white",
-            markeredgecolor="black",
-            markersize=5,
-            label="Ball",
-        ),
-    ]
-
-    fig.subplots_adjust(
-        left=0.03,
-        bottom=0.10,
-        right=0.91,
-        top=0.92,
-    )
-
-    fig.legend(
-        handles=legend_elements,
-        loc="lower center",
-        bbox_to_anchor=(0.5, 0),
-        fontsize=legend_fontsize,
-        frameon=True,
-        ncol=3,
-    )
-
-    plt.show()
-  
-    
-
-def plot_pass_map(
-    press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
-    title_fontsize=9, legend_fontsize=8, *, field="pass_success", pass_target=None,
-):
-    """Draw a stored pitch-control, calibrated pass-success or choice field.
-
-    ``field`` is ``pitch_control``, ``pass_success`` or ``pass_selection``.
-    Choice colors are 100 * cell probability / maximum cell probability;
-    the stored probability distribution is unchanged. Control/success colors
-    retain their absolute 0–1 scale. Optional ``pass_target=(x,y)`` draws a
-    dashed line from the observed ball to the real destination. Coordinates
-    are centred pitch metres. Returns ``(figure, axes)``; never runs inference.
+    Control/completion use absolute probabilities on 0–1. Choice colors are
+    100 * probability / maximum probability, without modifying stored values.
+    pass_target=(x,y) adds the observed pass as a dashed line in native metres.
+    No model calculation is triggered by this function.
     """
     keys = {"pitch_control": "Attacking pitch control field",
-            "pass_success": "Pass probability",
-            "pass_selection": "Transition probabilities"}
+            "pass_success": "Pass probability", "pass_selection": "Pass selection probabilities"}
     if field not in keys:
         raise ValueError("field must be pitch_control, pass_success or pass_selection.")
     if pass_target is not None:
-        pass_target = np.asarray(pass_target, dtype=float)
+        pass_target = np.asarray(pass_target, float)
         if pass_target.shape != (2,) or not np.isfinite(pass_target).all():
             raise ValueError("pass_target must contain two finite pitch coordinates.")
     result = press.get_ppcf_result(frame_id)
     if keys[field] not in result:
         raise ValueError("Compute the requested pass field before plotting it.")
-    frame = press.get_frame(frame_id)
-    pitch_length, pitch_width = resolve_pitch_size(frame, pitch_length, pitch_width)
-    players = frame_to_long(frame)
-    grid = np.asarray(result["grid"])
-    probabilities = np.asarray(result[keys[field]], dtype=float)
+    fig, ax, pitch, frame, players = _canvas(
+        press,
+        frame_id,
+        pitch_length,
+        pitch_width,
+        figsize,
+        ax,
+    )
+    values = np.asarray(result[keys[field]], float)
     if field == "pass_selection":
-        peak = probabilities.max()
-        values = 100 * probabilities / peak if peak > 0 else np.zeros_like(probabilities)
-        levels = np.linspace(0, 100, 11)
-        label = "Relative pass preference (% of maximum)"
-        title = "Pass destination choice"
-        cmap = "viridis"
+        peak = values.max()
+        values = 100 * values / peak if peak > 0 else np.zeros_like(values)
+        label, default_title, cmap, scale = (
+            "Relative pass preference (% of maximum)",
+            "Pass destination choice",
+            "viridis",
+            100,
+        )
     else:
-        values = probabilities
-        levels = np.linspace(0, 1, 11)
-        label = ("Pass-success probability" if field == "pass_success"
-                 else "Attacking pitch-control probability")
-        title = label
-        colors = (["indianred", "#f7f7f7", "steelblue"]
-                  if players.team_possession.iloc[0] == "home"
-                  else ["steelblue", "#f7f7f7", "indianred"])
+        label = (
+            "Pass-success probability"
+            if field == "pass_success"
+            else "Attacking pitch-control probability"
+        )
+        colors = ["indianred", "#f7f7f7", "steelblue"]
+        if frame.iloc[0].player_possession.startswith("away_"):
+            colors = colors[::-1]
         cmap = LinearSegmentedColormap.from_list("team_divergent", colors)
-    xx, yy = np.meshgrid(np.linspace(grid[:, 0].min(), grid[:, 0].max(), 120),
-                         np.linspace(grid[:, 1].min(), grid[:, 1].max(), 120))
-    surface = griddata(grid, values, (xx, yy), method="linear")
-    pitch = Pitch(pitch_type="skillcorner", pitch_length=pitch_length,
-                  pitch_width=pitch_width, pitch_color="#7fbf7f", line_color="white",
-                  linewidth=1.3)
-    fig, ax = plt.subplots(figsize=figsize)
-    pitch.draw(ax=ax)
-    field_artist = ax.contourf(xx, yy, surface, levels=levels, cmap=cmap,
-                              alpha=0.6, zorder=1)
-    colorbar = fig.colorbar(field_artist, ax=ax, fraction=0.03, pad=0.02)
-    colorbar.set_label(label, fontsize=legend_fontsize)
-    colorbar.ax.tick_params(labelsize=legend_fontsize)
-    colors = {"home": "steelblue", "away": "indianred"}
-    for team, color in colors.items():
-        selected = players[players.team_id.eq(team)]
-        pitch.scatter(selected.x, selected.y, ax=ax, s=45, color=color,
-                      edgecolors="white", linewidth=0.6, zorder=3)
-    ball = frame.iloc[0]
-    pitch.scatter(ball.ball_x, ball.ball_y, ax=ax, s=20, color="white",
-                  edgecolors="black", linewidth=0.8, zorder=10)
+        default_title, scale = label, 1
+    _field(fig, ax, result["grid"], values, label=label, cmap=cmap,
+           legend_fontsize=legend_fontsize, scale=scale)
+    _draw_state(pitch, ax, frame, players, velocity_scale=velocity_scale)
     if pass_target is not None:
+        ball = frame.iloc[0]
         if not np.isfinite([ball.ball_x, ball.ball_y]).all():
             raise ValueError("A pass line requires a finite observed ball position.")
         pitch.plot([ball.ball_x, pass_target[0]], [ball.ball_y, pass_target[1]],
                    ax=ax, color="#202020", linestyle="--", linewidth=1.8,
                    zorder=6, label="Observed pass")
-    if "vx" in players and "vy" in players:
-        for row in players.dropna(subset=["vx", "vy"]).itertuples():
-            pitch.arrows(row.x, row.y, row.x+1.5*row.vx, row.y+1.5*row.vy,
-                         ax=ax, color="black", width=0.5, headwidth=3,
-                         headlength=3, alpha=0.55, zorder=4)
-    ax.set_title(f"{title} · frame {frame_id}", fontsize=title_fontsize,
-                 fontweight="bold", pad=12)
-    legend = [Line2D([0], [0], marker="o", color="w", markerfacecolor=color,
-                     markeredgecolor="white", markersize=9, label=f"Team {team}")
-              for team, color in colors.items()]
-    legend.append(Line2D([0], [0], marker="o", color="w", markerfacecolor="white",
-                         markeredgecolor="black", markersize=5, label="Ball"))
-    if pass_target is not None:
-        legend.append(Line2D([0], [0], color="#202020", linestyle="--",
-                             linewidth=1.8, label="Observed pass"))
-    fig.legend(handles=legend, loc="lower center", fontsize=legend_fontsize,
-               frameon=True, ncol=len(legend))
-    fig.subplots_adjust(left=0.03, bottom=0.10, right=0.91, top=0.92)
-    plt.show()
-    return fig, ax
+    return _finish(fig, ax, title or f"{default_title} · frame {frame_id}", title_fontsize,
+                   legend_fontsize, show=show, legend=legend, pass_line=pass_target is not None)
 
 
-def plot_ppcf(press, frame_id, pitch_length=None, pitch_width=None,
-              figsize=(12, 8), title_fontsize=9, legend_fontsize=8, *,
-              field="pitch_control", pass_target=None):
-    """Compatibility entry point for :func:`plot_pass_map`; returns None."""
-    plot_pass_map(press, frame_id, pitch_length, pitch_width, figsize,
-                  title_fontsize, legend_fontsize, field=field, pass_target=pass_target)
+def plot_ppcf(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
+              title_fontsize=9, legend_fontsize=8, *, field="pitch_control", pass_target=None, **kwargs):
+    """Compatibility name for plot_pass_map, also returning (figure, axes)."""
+    return plot_pass_map(press, frame_id, pitch_length, pitch_width, figsize,
+                         title_fontsize, legend_fontsize, field=field,
+                         pass_target=pass_target, **kwargs)
 
 
-def plot_pi(
-    press,
-    frame_id,
-    pitch_length=None,
-    pitch_width=None,
-    figsize=(12, 8),
-    title_fontsize=9,
-    legend_fontsize=8,
-):
+def plot_ball_drive_risk(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
+            title_fontsize=9, legend_fontsize=8, *, title=None, ax=None, show=True,
+            legend=True, velocity_scale=1.5):
+    """Color defenders by their share of total drive risk; return (fig, ax).
+
+    The absolute loss probability appears in the title. Cause probabilities
+    are matched to defender IDs from the computed state, including missing
+    player padding. A zero total loss produces zero relative shares.
     """
-    Plot each defender's share of the stored ball-drive loss probability.
-
-    Colors show cause-specific probabilities divided by the total loss
-    probability, on a fixed 0–100% scale. Zero total risk gives zero shares.
-    The title reports the absolute drive-loss probability. Returns None.
-    """
-
-    if frame_id not in press.results["PI"]:
-        raise ValueError(
-            f"PI frame {frame_id} not found."
-        )
-
-
-    frame_df = press.tracking_data[
-        press.tracking_data["frame"] == frame_id
-    ].copy()
-
-
-    if frame_df.empty:
-        raise ValueError(
-            f"Frame {frame_id} not found."
-        )
-
-
-    pitch_length, pitch_width = resolve_pitch_size(frame_df, pitch_length, pitch_width)
-    frame_df = frame_to_long(
-        frame_df
+    result = press.get_ball_drive_risk_result(frame_id)
+    state = press.get_state(frame_id)
+    total = float(result["Ball drive risk"])
+    probabilities = np.asarray(result["Individual tackle probabilities"], float)
+    shares = probabilities / total if total > 0 else np.zeros_like(probabilities)
+    by_id = (
+        {player: float(value) for player, value in zip(state["defender_ids"], shares)
+        if player is not None}
     )
-
-
-    pitch = Pitch(
-        pitch_type="skillcorner",
-        pitch_length=pitch_length,
-        pitch_width=pitch_width,
-        pitch_color="#7fbf7f",
-        line_color="white",
-        linewidth=1.3,
+    defending_team = "away" if state["team_id"] == "home" else "home"
+    cmap = LinearSegmentedColormap.from_list(
+        "ball_drive_risk",
+        ["white", TEAM_COLORS[defending_team]],
     )
-
-
-    fig, ax = plt.subplots(
-        figsize=figsize
+    fig, ax, pitch, frame, players = _canvas(
+        press,
+        frame_id,
+        pitch_length,
+        pitch_width,
+        figsize,
+        ax,
     )
+    _draw_state(pitch, ax, frame, players, velocity_scale=velocity_scale,
+                defender_shares=(defending_team, by_id, cmap))
+    bar = fig.colorbar(plt.cm.ScalarMappable(norm=Normalize(0, 1), cmap=cmap), ax=ax,
+                       fraction=0.03, pad=0.02)
+    bar.set_label("Share of total loss risk", fontsize=legend_fontsize)
+    bar.ax.yaxis.set_major_formatter(PercentFormatter(xmax=1))
+    bar.ax.tick_params(labelsize=legend_fontsize)
+    return _finish(fig, ax, title or f"Ball drive risk · frame {frame_id} · P(loss)={total:.3f}",
+                   title_fontsize, legend_fontsize, show=show, legend=legend)
 
 
-    pitch.draw(
-        ax=ax
+def plot_bcos(bcos, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
+              title_fontsize=9, legend_fontsize=8, *, title=None, ax=None,
+              show=True, legend=True, velocity_scale=1.5):
+    """Draw a stored BCOS probability field from PRESS or BCOS; return (fig, ax)."""
+    result = (bcos.get_bcos_result(frame_id) if hasattr(bcos, "get_bcos_result")
+              else bcos.get_result(frame_id))
+    fig, ax, pitch, frame, players = _canvas(bcos, frame_id, pitch_length, pitch_width, figsize, ax)
+    _field(fig, ax, result["grid"], result["Ball carrier open space"],
+           label="Ball carrier open space", cmap="inferno", legend_fontsize=legend_fontsize)
+    _draw_state(pitch, ax, frame, players, velocity_scale=velocity_scale)
+    return _finish(fig, ax, title or f"BCOS frame {frame_id}", title_fontsize,
+                   legend_fontsize, show=show, legend=legend)
+
+
+def plot_risk(press, frame_id, *, field="hazard", title=None, **kwargs):
+    """Draw a real frame with stored hazard, residual_risk or xloss in the title."""
+    fields = {"hazard": ("HAZARD", "Hazard", "h"),
+              "residual_risk": ("RESIDUAL_RISK", "Residual loss probability", "Residual risk"),
+              "xloss": ("XLOSS", "xLoss", "xLoss")}
+    if field not in fields:
+        raise ValueError("field must be hazard, residual_risk or xloss.")
+    component, key, label = fields[field]
+    value = float(press.get_result(component, frame_id)[key])
+    return plot_frame(
+        press,
+        frame_id,
+        title=title or f"{label}={value:.2%} · frame {frame_id}",
+        **kwargs,
     )
-
-
-    # ----------------------------------
-    # Pressing intensity
-    # ----------------------------------
-
-    result = press.results["PI"][frame_id]
-    total_loss_probability = float(result["Ball drive loss probability"])
-    cause_probabilities = np.asarray(result["Individual tackle probabilities"], dtype=float)
-    pressing_intensity = (
-        cause_probabilities / total_loss_probability
-        if total_loss_probability > 0.0
-        else np.zeros_like(cause_probabilities)
-    )
-
-
-    # ----------------------------------
-    # Teams
-    # ----------------------------------
-
-    team_colors = {
-        "home": "steelblue",
-        "away": "indianred",
-    }
-
-
-    possession_team = (
-        frame_df["team_possession"]
-        .iloc[0]
-    )
-
-
-    defending_team = (
-        "away"
-        if possession_team == "home"
-        else "home"
-    )
-
-
-    players = frame_df.dropna(
-        subset=["player_id"]
-    )
-
-
-    # ----------------------------------
-    # Pressing intensity colormap
-    # ----------------------------------
-
-    base_color = team_colors[
-        defending_team
-    ]
-
-
-    pi_cmap = LinearSegmentedColormap.from_list(
-        "pressing_intensity",
-        [
-            "white",
-            base_color,
-        ],
-    )
-
-
-    norm = plt.Normalize(
-        vmin=0.0,
-        vmax=1.0,
-    )
-
-
-    # ----------------------------------
-    # Defenders
-    # ----------------------------------
-
-    defenders = players[
-        players.team_id == defending_team
-    ]
-
-
-    for i, (_, player) in enumerate(
-        defenders.iterrows()
-    ):
-
-        intensity = float(
-            pressing_intensity[i]
-        )
-
-
-        pitch.scatter(
-            player.x,
-            player.y,
-            ax=ax,
-            s=60,
-            color=pi_cmap(
-                norm(intensity)
-            ),
-            edgecolors="white",
-            linewidth=0.7,
-            zorder=3,
-        )
-
-    # ----------------------------------
-    # Attacking team
-    # ----------------------------------
-
-    attackers = players[
-        players.team_id == possession_team
-    ]
-
-
-    pitch.scatter(
-        attackers.x,
-        attackers.y,
-        ax=ax,
-        s=45,
-        color=team_colors[possession_team],
-        edgecolors="white",
-        linewidth=0.6,
-        zorder=3,
-    )
-
-
-    # ----------------------------------
-    # Ball
-    # ----------------------------------
-
-    if (
-        "ball_x" in frame_df.columns
-        and "ball_y" in frame_df.columns
-    ):
-
-        pitch.scatter(
-            frame_df["ball_x"].iloc[0],
-            frame_df["ball_y"].iloc[0],
-            ax=ax,
-            s=20,
-            color="white",
-            edgecolors="black",
-            linewidth=0.8,
-            zorder=10,
-        )
-
-
-    # ----------------------------------
-    # Velocity vectors
-    # ----------------------------------
-
-    if (
-        "vx" in frame_df.columns
-        and "vy" in frame_df.columns
-    ):
-
-        for _, player in players.dropna(
-            subset=["vx", "vy"]
-        ).iterrows():
-
-            pitch.arrows(
-                player.x,
-                player.y,
-                player.x + player.vx * 1.5,
-                player.y + player.vy * 1.5,
-                ax=ax,
-                color="black",
-                width=0.5,
-                headwidth=3,
-                headlength=3,
-                alpha=0.55,
-                zorder=4,
-            )
-
-
-    # ----------------------------------
-    # Colorbar
-    # ----------------------------------
-
-    sm = plt.cm.ScalarMappable(
-        cmap=pi_cmap,
-        norm=norm,
-    )
-
-    sm.set_array([])
-
-
-    cbar = plt.colorbar(
-        sm,
-        ax=ax,
-        fraction=0.03,
-        pad=0.02,
-    )
-
-
-    cbar.set_label(
-        "Share of total loss risk",
-        fontsize=legend_fontsize,
-    )
-
-    cbar.ax.yaxis.set_major_formatter(PercentFormatter(xmax=1.0))
-
-    cbar.ax.tick_params(
-        labelsize=legend_fontsize
-    )
-
-
-    # ----------------------------------
-    # Title
-    # ----------------------------------
-
-    ax.set_title(
-        f"Ball-drive loss · frame {frame_id} · P(loss)={float(press.results['PI'][frame_id]['Ball drive loss probability']):.3f}",
-        fontsize=title_fontsize,
-        fontweight="bold",
-        pad=12,
-    )
-
-
-    # ----------------------------------
-    # Legend
-    # ----------------------------------
-
-    legend_elements = [
-
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor=team_colors["home"],
-            markeredgecolor="white",
-            markersize=9,
-            label="Home",
-        ),
-
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor=team_colors["away"],
-            markeredgecolor="white",
-            markersize=9,
-            label="Away",
-        ),
-
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor="white",
-            markeredgecolor="black",
-            markersize=5,
-            label="Ball",
-        ),
-    ]
-
-
-    fig.legend(
-        handles=legend_elements,
-        loc="lower center",
-        fontsize=legend_fontsize,
-        frameon=True,
-        ncol=3,
-    )
-
-
-    fig.subplots_adjust(
-        bottom=0.10,
-        top=0.92,
-        right=0.90,
-    )
-
-
-    plt.show()    
-    
-    

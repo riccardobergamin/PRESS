@@ -2,10 +2,11 @@
 Arrival-time distributions.
 Defines event-time PDFs from physical motion models.
 """
+
 import jax
 import jax.numpy as jnp
-from .times import time_to_intercept
 
+from .times import time_to_intercept
 
 # def F(
 #     p,
@@ -76,8 +77,8 @@ def F(
     return jax.nn.sigmoid(
         a * (t - tau_int)
     )
-    
-    
+
+
 def p_bc(
     x_bc0,
     v_bc0,
@@ -147,11 +148,11 @@ def defender_F(
     a_def_max,
     a_bc_max
 ):
-  
+
     """
     Defender arrival distribution at bc position
     """
-    
+
     F_def = F(
         r_def,
         v_def,

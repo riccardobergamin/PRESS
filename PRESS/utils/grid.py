@@ -46,7 +46,6 @@ def generate_circular_grid(
         axis=-1,
     )
 
-
 # def lookup_kappa(
 #     speed,
 #     distance,
@@ -54,15 +53,15 @@ def generate_circular_grid(
 # ):
 #     """
 #     Return the data-derived kappa(v,d).
-# 
+#
 #     Parameters
 #     ----------
 #     speed : float
 #         Ball-carrier speed.
-# 
+#
 #     distance : jnp.ndarray (N,)
 #         Distance to each target.
-# 
+#
 #     kappa_surface : dict
 #         {
 #             "speed_edges": ...,
@@ -70,39 +69,39 @@ def generate_circular_grid(
 #             "kappa": ...
 #         }
 #     """
-# 
+#
 #     speed_edges = kappa_surface["speed_edges"]
 #     distance_edges = kappa_surface["distance_edges"]
-# 
+#
 #     K = kappa_surface["kappa"]
-# 
+#
 #     i = jnp.digitize(
 #         speed,
 #         speed_edges,
 #     ) - 1
-# 
+#
 #     j = jnp.digitize(
 #         jnp.asarray(distance),
 #         distance_edges,
 #     ) - 1
-# 
+#
 #     i = jnp.clip(
 #         i,
 #         0,
 #         K.shape[0] - 1,
 #     )
-# 
+#
 #     j = jnp.clip(
 #         j,
 #         0,
 #         K.shape[1] - 1,
 #     )
-# 
+#
 #     return jnp.asarray(
 #         K[i, j]
 #     )
-    
-    
+
+
 def compute_exit_point(x, v, bounds):
     """
     Compute the first pitch boundary reached
@@ -141,5 +140,3 @@ def compute_exit_point(x, v, bounds):
     valid=(exit>=jnp.maximum(entry,0.)) & jnp.isfinite(exit)
     # No forward intersection (including a stationary ray): preserve origin.
     return x+v*jnp.where(valid,exit,0.)
-  
-  

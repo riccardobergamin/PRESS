@@ -5,6 +5,7 @@ Ball flight physics and arrival matching utilities.
 import jax
 import jax.numpy as jnp
 from jax.experimental.ode import odeint
+
 from .times import time_to_intercept
 
 
@@ -12,7 +13,7 @@ def ball_trajectory(
     v0,
     theta,
     t_span,
-    z0 = 0.0,
+    z0=0.0,
     rho=1.2,
     Cd=0.25,
     A=0.038,
@@ -28,18 +29,15 @@ def ball_trajectory(
         y[2] : horizontal velocity
         y[3] : vertical velocity
 
-    Dynamics:
-        - aerodynamic drag during flight
-    - ground approximation: below 5 cm while descending, height is frozen
-      and horizontal drag continues. The latent vz STATE is not reset by
-      this ODE; it must not be interpreted as physical post-impact velocity.
-      Only position/height are used by the pass benchmark. Bounce and rolling
-      friction are not modelled. This preserves the historical forward model.
+    Airborne motion includes gravity and aerodynamic drag. Below 5 cm while
+    descending, height is frozen and horizontal drag continues. The latent vz
+    state is not reset and is not a physical post-impact velocity. Only position
+    and height are used by the pass benchmark. Bounce and rolling friction
+    are not modelled; this retains the fitted forward model.
     """
 
     # Aerodynamic drag coefficient
     k = 0.5 * rho * Cd * A / m
-
 
     def ode(y, t):
 
@@ -51,7 +49,6 @@ def ball_trajectory(
         v_norm = jnp.sqrt(
             v_d**2 + v_z**2
         )
-
 
         def airborne(_):
             """
@@ -70,17 +67,12 @@ def ball_trajectory(
                 ]
             )
 
-
         def ground_contact(_):
             """
-            Ground contact dynamics.
+            Freeze height and vertical acceleration after ground contact.
 
-            Vertical motion is constrained:
-                z = 0
-                vz = 0
-
-            Horizontal motion continues
-            with aerodynamic drag.
+            The latent vertical velocity is retained, not reset to zero.
+            Horizontal motion continues with aerodynamic drag.
             """
 
             return jnp.array(
@@ -92,15 +84,10 @@ def ball_trajectory(
                 ]
             )
 
-
         # Ground contact occurs when the ball
         # reaches the ground while moving downward.
-        on_ground = (
-            (z <= 0.05)
-            &
-            (v_z <= 0.0)
-        )
 
+        on_ground = (z <= 0.05) & (v_z <= 0.0)
 
         return jax.lax.cond(
             on_ground,
@@ -109,10 +96,10 @@ def ball_trajectory(
             operand=None,
         )
 
-
     # Initial state
     # odeint requires matching state/time dtypes. Mixed Python scalars and
     # float32 sample times otherwise crash when global x64 is enabled.
+
     dtype = jnp.result_type(v0, theta, z0, t_span)
     y0 = jnp.array(
         [
@@ -123,7 +110,6 @@ def ball_trajectory(
         ], dtype=dtype,
     )
     t_span = jnp.asarray(t_span, dtype=dtype)
-
 
     return odeint(
         ode,
@@ -151,14 +137,13 @@ def generate_ball_trajectories(
         theta_candidates,
     )
 
-
     def solve(v0, theta):
 
         return ball_trajectory(
             v0,
             theta,
             t_span,
-            z0 = 0,
+            z0=0,
             rho=rho,
             Cd=Cd,
             A=A,
@@ -166,14 +151,12 @@ def generate_ball_trajectories(
             g=g
         )
 
-
     return jax.vmap(
         solve
     )(
         vv.ravel(),
         tt.ravel(),
     )
-
 
 
 def build_flight_lookup(
@@ -191,16 +174,13 @@ def build_flight_lookup(
     dist_phys = trajectories[:, :, 0]
     z_phys = trajectories[:, :, 1]
 
-
     n_radii = (
         int(r_limit / grid_step)
         + 2
     )
 
-
     # Indexing uses round(distance/grid_step), requiring that exact spacing.
     radii = jnp.arange(n_radii) * grid_step
-
 
     def interpolate(radius):
 
@@ -221,20 +201,17 @@ def build_flight_lookup(
                 height,
             )
 
-
             valid = (
                 (z_hit <= z_max)
                 &
                 (radius <= jnp.max(distance))
             )
 
-
             return jnp.where(
                 valid,
                 t_hit,
                 jnp.inf,
             )
-
 
         return jax.vmap(
             single
@@ -243,17 +220,13 @@ def build_flight_lookup(
             z_phys,
         )
 
-
     lookup = jax.vmap(
         interpolate
     )(
         radii
     )
 
-
     return radii, lookup
-
-
 
 # def player_arrival_time(
 #     r_target,
@@ -265,33 +238,33 @@ def build_flight_lookup(
 # ):
 #     """
 #     Minimum player arrival time.
-# 
+#
 #     Computes the fastest player arrival
 #     for each target position.
 #     """
-# 
+#
 #     # position after reaction
 #     p_react =  p_attackers[:, None, :] + v_attackers[:, None, :] * tau_r
-# 
-# 
+#
+#
 #     # player-target vectors
 #     delta = r_target[None, :, :] - p_react
-# 
+#
 #     # distances
 #     distance = jnp.linalg.norm(delta, axis=-1)
-# 
-#     
+#
+#
 #     tau_move = distance / v_max
-# 
-# 
+#
+#
 #     # rotation time
 #     tau_theta = rotation_time(p_attackers, v_attackers, r_target, alpha)
-# 
+#
 #    # running time
-#    
+#
 #     tau_players =  tau_r + tau_theta + tau_move
-# 
-# 
+#
+#
 #     # fastest player per target
 #     return jnp.min(tau_players,axis=0)
 
@@ -389,6 +362,7 @@ def exact_ball_arrival_times(distances, player_times, trajectories, t_span, z_ma
         available=(heights<=z_max) & (radius<=trajectories[:,:,0].max(axis=1))
         times=jnp.where(available,times,jnp.inf)
         return jnp.where(jnp.isfinite(wanted),times[jnp.argmin(jnp.abs(times-wanted))],jnp.inf)
+
     return jax.vmap(select)(distances,player_times)
 
 
@@ -405,7 +379,6 @@ def match_ball_player_time(
 
     n_radii = lookup.shape[0]
 
-
     def select(
         distance,
         player_time,
@@ -421,9 +394,7 @@ def match_ball_player_time(
             )
         )
 
-
         candidate_times = lookup[idx]
-
 
         best_idx = jnp.argmin(
             jnp.abs(
@@ -433,9 +404,7 @@ def match_ball_player_time(
             )
         )
 
-
         return candidate_times[best_idx]
-
 
     return jax.vmap(
         select
@@ -443,8 +412,7 @@ def match_ball_player_time(
         distances,
         player_times,
     )
-    
-    
+
 
 def time_flight(
     r_bc,
@@ -498,7 +466,6 @@ def time_flight(
         dt_ball,
     )
 
-
     trajectories = generate_ball_trajectories(
         v0_candidates,
         theta_candidates,
@@ -510,9 +477,7 @@ def time_flight(
         g=g,
     )
 
-
     distances = jnp.linalg.norm(r_target - r_bc, axis=-1)
-
 
     tau_players = player_arrival_time(
         r_target,
@@ -533,11 +498,9 @@ def time_flight(
         t_span=t_span,grid_step=grid_step,z_max=z_max,
     )
 
-
     return match_ball_player_time(
         distances,
         tau_players,
         lookup,
         grid_step,
     )
-

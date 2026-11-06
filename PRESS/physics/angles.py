@@ -24,5 +24,3 @@ def compute_angle(p, v, r_target):
     )  # (N, M)
     degenerate = (v_mag < 0.1) | (d_act[..., 0] < 0.1)  # -> (N, M)
     return jnp.where(degenerate, 0.0, jnp.arccos(cos_theta))
-
-

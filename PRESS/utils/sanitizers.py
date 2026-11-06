@@ -1,420 +1,91 @@
+"""Validate canonical match tables without changing their values."""
+
 import re
+
+import numpy as np
 import pandas as pd
-import jax.numpy as jnp
 
 
-def validate_tracking_data(
-    tracking_data: pd.DataFrame,
-) -> None:
+def validate_tracking_data(tracking_data):
+    """Check wide tracking IDs, numeric columns and observed player states.
+
+    Missing players and missing carriers are allowed. An observed player
+    needs finite XY and velocity components; absent/padded players are not
+    treated as observed. Coordinates use centred metres. Derived speed is
+    optional in the public constructor and normalized before this validator.
     """
-    Validate canonical wide tracking format.
-
-    The function does not modify data.
-    It raises ValueError if the format is invalid.
-    """
-    
-    if not isinstance(
-        tracking_data,
-        pd.DataFrame,
-    ):
-        raise ValueError(
-            "tracking_data must be a pandas DataFrame."
-        )    
-
-    required = [
-        "frame",
-        "player_possession",
-        "attacking_side",
-        "ball_x",
-        "ball_y",
-    ]
-
-    missing = [
-        col for col in required
-        if col not in tracking_data.columns
-    ]
-
+    if not isinstance(tracking_data, pd.DataFrame):
+        raise ValueError("tracking_data must be a pandas DataFrame.")
+    required = {"frame", "player_possession", "attacking_side", "ball_x", "ball_y"}
+    missing = required - set(tracking_data.columns)
     if missing:
-        raise ValueError(
-            f"Missing required columns: {missing}"
-        )
-
-    # Frame integrity
-    frame_values = pd.to_numeric(tracking_data["frame"], errors="coerce")
-    if not pd.api.types.is_numeric_dtype(tracking_data["frame"]) or frame_values.isna().any() or not ((frame_values % 1) == 0).all():
+        raise ValueError(f"Missing required columns: {sorted(missing)}")
+    values = pd.to_numeric(tracking_data.frame, errors="coerce")
+    if (not pd.api.types.is_numeric_dtype(tracking_data.frame) or
+            not np.isfinite(values).all() or (values != np.floor(values)).any()):
         raise ValueError("frame must contain finite integer frame IDs.")
-    if tracking_data["frame"].duplicated().any():
-        raise ValueError(
-            "Frame column contains duplicates."
-        )
-
-    # Player columns
-    pattern = re.compile(
-        r"^(home|away)_(\d+)_(x|y|vx|vy|v)$"
-    )
-
+    if tracking_data.frame.duplicated().any():
+        raise ValueError("Frame column contains duplicates.")
     players = {}
-
-    for col in tracking_data.columns:
-
-        match = pattern.match(col)
-
+    for column in tracking_data:
+        match = re.fullmatch(r"(home|away)_(\d+)_(x|y|vx|vy|v)", column)
         if match:
-            player = (
-                f"{match.group(1)}_"
-                f"{match.group(2)}"
-            )
-
-            variable = match.group(3)
-
-            players.setdefault(
-                player,
-                set()
-            ).add(variable)
-
-    expected = {
-        "x",
-        "y",
-        "vx",
-        "vy",
-        "v",
-    }
-
-    for player, variables in players.items():
-
-        missing = expected - variables
-
+            players.setdefault(f"{match[1]}_{match[2]}", set()).add(match[3])
+    if not players:
+        raise ValueError("No player columns found.")
+    for player, columns in players.items():
+        missing = {"x", "y", "vx", "vy", "v"} - columns
         if missing:
-            raise ValueError(
-                f"{player} missing columns: {missing}"
-            )
+            raise ValueError(f"{player} missing columns: {sorted(missing)}")
+    if not tracking_data.player_possession.dropna().isin(players).all():
+        raise ValueError("player_possession contains unknown players.")
+    direction = tracking_data.attacking_side.dropna()
+    if not direction.isin(["left_to_right", "right_to_left"]).all():
+        raise ValueError("attacking_side must be left_to_right, right_to_left or missing.")
+    columns = ["ball_x", "ball_y"] + [f"{p}_{c}" for p, variables in players.items() for c in variables]
+    nonnumeric = [c for c in columns if not pd.api.types.is_numeric_dtype(tracking_data[c])]
+    if nonnumeric:
+        raise ValueError(f"Non numeric tracking columns: {nonnumeric}")
+    if np.isinf(tracking_data[columns].to_numpy(dtype=float)).any():
+        raise ValueError("Tracking positions and velocities cannot contain infinite values.")
+    for player in players:
+        xy = tracking_data[[f"{player}_x", f"{player}_y"]].to_numpy(float)
+        observed = np.isfinite(xy).all(axis=1) & (np.linalg.norm(xy, axis=1) < 500)
+        velocity = tracking_data[[f"{player}_vx", f"{player}_vy"]].to_numpy(float)
+        if not np.isfinite(velocity[observed]).all():
+            raise ValueError(f"Observed player {player} requires finite velocity components.")
 
-    if len(players) == 0:
-        raise ValueError(
-            "No player columns found."
-        )
 
-    # Possession consistency
-    valid_players = set(players.keys())
-
-    invalid_possession = (
-        tracking_data["player_possession"]
-        .dropna()
-        .loc[
-            lambda x:
-            ~x.isin(valid_players)
-        ]
-    )
-
-    if not invalid_possession.empty:
-        raise ValueError(
-            "player_possession contains "
-            "unknown players."
-        )
-
-    # Numeric check
-    numeric_cols = [
-        c for c in tracking_data.columns
-        if (
-            c.endswith("_x")
-            or c.endswith("_y")
-            or c.endswith("_vx")
-            or c.endswith("_vy")
-            or c.endswith("_v")
-        )
-    ]
-
-    non_numeric = [
-        c for c in numeric_cols
-        if not pd.api.types.is_numeric_dtype(
-            tracking_data[c]
-        )
-    ]
-
-    if non_numeric:
-        raise ValueError(
-            f"Non numeric tracking columns: {non_numeric}"
-        )
-        
-
-def validate_events_data(
-    events_data,
-):
-    """
-    Validate events data according to
-    PRESS conventions.
-    """
-
-    # ----------------------------------
-    # DataFrame
-    # ----------------------------------
-
-    if not isinstance(
-        events_data,
-        pd.DataFrame,
-    ):
-        raise ValueError(
-            "events_data must be a pandas DataFrame."
-        )
-    
-    # ----------------------------------
-    # Required columns
-    # ----------------------------------
-        
-    if "frame" not in events_data.columns:
-
-        raise ValueError(
-            "Missing required column: frame."
-        )
-
-    # ----------------------------------
-    # Player / team convention
-    # ----------------------------------
-
-    player_ids = (
-        events_data["player_id"]
-        .astype(str)
-    )
-
-    if not player_ids.str.match(
-        r"^(home|away)_\d+$"
-    ).all():
-
-        raise ValueError(
-            "Invalid player_id convention. "
-            "Expected home_<shirt_number> "
-            "or away_<shirt_number>."
-        )
-
-    if not events_data["team_id"].isin(
-        ["home", "away"]
-    ).all():
-
-        raise ValueError(
-            "Invalid team_id convention. "
-            "Expected 'home' or 'away'."
-        )
-
-    player_teams = (
-        player_ids
-        .str.split("_")
-        .str[0]
-    )
-
-    if not player_teams.eq(
-        events_data["team_id"]
-    ).all():
-
-        raise ValueError(
-            "player_id and team_id are inconsistent."
-        )
-
-    # ----------------------------------
-    # Pass
-    # ----------------------------------
-
-    passes = events_data[
-        events_data["event_type"] == "pass"
-    ]
-
+def validate_events_data(events_data):
+    """Validate optional canonical events; raw provider events need an adapter."""
+    if not isinstance(events_data, pd.DataFrame):
+        raise ValueError("events_data must be a pandas DataFrame.")
+    required = {"frame", "player_id", "team_id", "event_type"}
+    missing = required - set(events_data.columns)
+    if missing:
+        raise ValueError(f"Missing event columns: {sorted(missing)}")
+    frames = pd.to_numeric(events_data.frame, errors="coerce")
+    if not np.isfinite(frames).all() or (frames != np.floor(frames)).any():
+        raise ValueError("Event frame IDs must be finite integers.")
+    players = events_data.player_id.astype(str)
+    if not players.str.fullmatch(r"(home|away)_\d+").all():
+        raise ValueError("Events require canonical home_<id>/away_<id> player IDs.")
+    if not events_data.team_id.isin(["home", "away"]).all():
+        raise ValueError("Event team_id must be home or away.")
+    if not players.str.split("_").str[0].eq(events_data.team_id).all():
+        raise ValueError("player_id and team_id are inconsistent.")
+    passes = events_data[events_data.event_type.eq("pass")]
     if not passes.empty:
-
-        if passes["is_successful"].isna().any():
-
-            raise ValueError(
-                "Pass events require "
-                "is_successful."
-            )
-
-        if not passes["is_successful"].map(
-            lambda x:
-                isinstance(
-                    x,
-                    (bool, jnp.bool_),
-                )
-        ).all():
-
-            raise ValueError(
-                "Pass events require boolean "
-                "is_successful."
-            )
-
-        successful_passes = passes[
-            passes["is_successful"]
-        ]
-
-        if not successful_passes.empty:
-
-            if (
-                "receiver_player_id"
-                not in events_data.columns
-            ):
-                raise ValueError(
-                    "Successful pass events require "
-                    "receiver_player_id."
-                )
-
-            receivers = (
-                successful_passes[
-                    "receiver_player_id"
-                ]
-            )
-
-            if receivers.isna().any():
-
-                raise ValueError(
-                    "Successful pass events require "
-                    "receiver_player_id."
-                )
-
-            if not receivers.astype(str).str.match(
-                r"^(home|away)_\d+$"
-            ).all():
-
-                raise ValueError(
-                    "Invalid receiver_player_id "
-                    "convention."
-                )
-
-    return True
-  
-
-
-def validate_kappa_surface(
-    kappa_surface,
-):
-    """
-    Validate empirical kappa(v,d) surface.
-
-    Expected structure:
-
-    {
-        "speed_edges": jnp.ndarray,
-        "distance_edges": jnp.ndarray,
-        "kappa": jnp.ndarray,
-        "counts": jnp.ndarray (optional)
-    }
-
-    kappa shape:
-        (len(speed_edges)-1,
-         len(distance_edges)-1)
-    """
-
-    if not isinstance(
-        kappa_surface,
-        dict,
-    ):
-        raise ValueError(
-            "kappa_surface must be a dictionary."
-        )
-
-    required_keys = [
-        "speed_edges",
-        "distance_edges",
-        "kappa",
-    ]
-
-    for key in required_keys:
-
-        if key not in kappa_surface:
-
-            raise ValueError(
-                f"Missing key '{key}' in kappa_surface."
-            )
-
-    speed_edges = jnp.asarray(
-        kappa_surface["speed_edges"]
-    )
-
-    distance_edges = jnp.asarray(
-        kappa_surface["distance_edges"]
-    )
-
-    K = jnp.asarray(
-        kappa_surface["kappa"]
-    )
-
-    # ----------------------------------
-    # Edge validation
-    # ----------------------------------
-
-    for name, edges in [
-        ("speed_edges", speed_edges),
-        ("distance_edges", distance_edges),
-    ]:
-
-        if edges.ndim != 1:
-
-            raise ValueError(
-                f"{name} must be a 1D array."
-            )
-
-        if not jnp.issubdtype(
-            edges.dtype,
-            jnp.number,
+        if (
+            "is_successful" not in passes
+            or not passes.is_successful.map(lambda v: isinstance(v, (bool, np.bool_))).all()
         ):
-
-            raise ValueError(
-                f"{name} must be numeric."
-            )
-
-        if not jnp.isfinite(
-            edges
-        ).all():
-
-            raise ValueError(
-                f"{name} contains NaN or infinite values."
-            )
-
-        if not jnp.diff(
-            edges
-        ).__gt__(0).all():
-
-            raise ValueError(
-                f"{name} must be strictly increasing."
-            )
-
-    # ----------------------------------
-    # Kappa validation
-    # ----------------------------------
-
-    expected_shape = (
-        len(speed_edges) - 1,
-        len(distance_edges) - 1,
-    )
-
-    if K.shape != expected_shape:
-
-        raise ValueError(
-            f"kappa shape {K.shape} does not match "
-            f"expected {expected_shape}."
-        )
-
-    if not jnp.issubdtype(
-        K.dtype,
-        jnp.number,
-    ):
-
-        raise ValueError(
-            "kappa must be numeric."
-        )
-
-    if not jnp.isfinite(
-        K
-    ).all():
-
-        raise ValueError(
-            "kappa contains NaN or infinite values."
-        )
-
-    if jnp.any(
-        K < 0
-    ):
-
-        raise ValueError(
-            "kappa values must be non-negative."
-        )
-
+            raise ValueError("Pass events require boolean is_successful.")
+        completed = passes[passes.is_successful]
+        if not completed.empty:
+            if (
+                "receiver_player_id" not in completed
+                or not completed.receiver_player_id.astype(str).str.fullmatch(r"(home|away)_\d+").all()
+            ):
+                raise ValueError("Successful pass events require receiver_player_id.")
     return True
-  
-  

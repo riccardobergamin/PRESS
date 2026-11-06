@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 from PRESS import PRESS
-from PRESS.datasets import load_demo_match
+from _fixtures import load_test_match
 from PRESS.model import ActionSelectionModel
 from PRESS.model.action_features import aggregate
 
@@ -33,7 +33,7 @@ def test_hypothetical_success_failure_counts_and_mirrored_attack_agree():
     assert np.isclose(a['pass_success_mean'],q@p)
 
 def test_raw_unknown_context_and_completed_count_follow_individual_history():
-    tracking,teams,actions,_=load_demo_match();model=PRESS(tracking,possessions_data=teams,actions_data=actions)
+    tracking,teams,actions,_=load_test_match();model=PRESS(tracking,possessions_data=teams,actions_data=actions)
     model.player_possessions_data=pd.DataFrame([dict(frame_start=0,frame_end=29,start_type='unknown')])
     for frame,count,previous in [(4,0,'unknown'),(14,1,'ball_drive'),(24,2,'ball_drive')]:
         context=model.get_frame_context(frame)

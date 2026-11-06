@@ -1,0 +1,198 @@
+[
+  {
+    "source": "scripts/utils/possession_selection.py",
+    "source_sha256": "215c21a6d3dbcb32e04d248cd0e9cf9982206de95edfd6b7c0982983e61aec72",
+    "destination": "pipeline/library/preprocessing/possession_selection.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "scripts/utils/passes.py",
+    "source_sha256": "5950c265e03cec01558986b021f7a493908eadc88617c8ef29f9bcb49400b6a3",
+    "destination": "pipeline/library/preprocessing/passes.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "scripts/utils/preprocessing.py",
+    "source_sha256": "3770a587479ba97916337a524bc245b5a08da178c4ed9f56822e9dd13728e3dc",
+    "destination": "pipeline/library/preprocessing/events.py",
+    "selection": [
+      "annotate_possession"
+    ],
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "scripts/utils/base_pipeline.py",
+    "source_sha256": "a6c8f82abd80c080fca01295a49263a2043aa62bb75b06a176f9a7f948abcd8a",
+    "destination": "pipeline/library/preprocessing/tracking.py",
+    "selection": [
+      "FPS",
+      "POLICY",
+      "SCHEMA_VERSION",
+      "TRAINING_COHORT_POLICY",
+      "add_kinematics",
+      "annotate_state_quality",
+      "annotate_tracking",
+      "annotate_training_cohort",
+      "differentiate",
+      "drive_observations",
+      "load_raw_tracking",
+      "pass_curvature",
+      "segment_possessions"
+    ],
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/44_ball_drive_obe_filtered_20261022/02_bundle/44_ball_drive_obe_filtered_20261022/research/scripts/training/ball_drive/spline_model.py",
+    "source_sha256": "ef576083a405176f2c375ee4d948641cfd65f4afbb74eb02bfae3a0031d6677d",
+    "destination": "pipeline/library/ball_drive/splines.py",
+    "selection": [
+      "DT",
+      "MarginalBasis",
+      "SplineDesign",
+      "TIMES",
+      "_restricted_basis",
+      "paired_selection"
+    ],
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/44_ball_drive_obe_filtered_20261022/02_bundle/44_ball_drive_obe_filtered_20261022/research/scripts/training/ball_drive/integration_model.py",
+    "source_sha256": "50d43d2d4e6af78df42e375cc3aea2492cf89063abbac97d2db8f27ed6ceadb4",
+    "destination": "pipeline/library/ball_drive/likelihood.py",
+    "selection": [
+      "DEFAULT_DYNAMICS",
+      "_arrival_batch",
+      "_predict",
+      "arrival_times",
+      "fit_map",
+      "fitting_data",
+      "hessian",
+      "integrate_cause_rates",
+      "objective",
+      "posterior",
+      "predict",
+      "predict_jit",
+      "value_gradient"
+    ],
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/44_ball_drive_obe_filtered_20261022/02_bundle/44_ball_drive_obe_filtered_20261022/research/scripts/training/ball_drive/final_geometry.py",
+    "source_sha256": "fa376cc1443ea8e56959141a339dc2efcccce93ee4cf2fbf9836916c4f6b6582",
+    "destination": "pipeline/library/ball_drive/design.py",
+    "selection": [
+      "active",
+      "design_split",
+      "interception_angle",
+      "signed_boundary"
+    ],
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/44_ball_drive_obe_filtered_20261022/02_bundle/44_ball_drive_obe_filtered_20261022/research/scripts/training/ball_drive/export_ball_drive.py",
+    "source_sha256": "e2feed83090c1cc0db915ea6731dc847a6df015527293bc65ee247d94370aa56",
+    "destination": "pipeline/library/ball_drive/export.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_risk/precision.py",
+    "source_sha256": "39f9cd09d080a7a41bc9074f2bae929ac959b371cddb7e1b7d0afec23a1b2d4d",
+    "destination": "pipeline/library/pass_probability/precision.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_risk/stable_likelihood.py",
+    "source_sha256": "7d7392b42bf6cead44cbecb6eaa7b0027a9244d44ad6f1647af4801c0a01c4fb",
+    "destination": "pipeline/library/pass_probability/stable_likelihood.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_risk/trajectory_model.py",
+    "source_sha256": "ae7422e5076a455d0c121d70b9e9d4ed9291e915395b97e6c0ecff9a64ad0484",
+    "destination": "pipeline/library/pass_probability/trajectory_model.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_risk/boundary.py",
+    "source_sha256": "d12412a954e10b0fc445dbdffeacca08f2761b9c0205300bb4615cc951d8ca86",
+    "destination": "pipeline/library/pass_probability/boundary.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_risk/transfer.py",
+    "source_sha256": "842da63427f761baaf1d6fe69226bac40a28195c62f40d6405a19c3a3b9d6206",
+    "destination": "pipeline/library/pass_probability/transfer.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_risk/model.py",
+    "source_sha256": "7a25913e7023e8969dc89fd146504bce1a9578dd4ecae402f1062cc19a2e6b7f",
+    "destination": "pipeline/library/pass_probability/model.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_model/precompute_ball_tr.py",
+    "source_sha256": "143a36272bf662cc012363f121ef484d037219500fa31f73b8adc257414fd736",
+    "destination": "pipeline/library/pass_probability/original/precompute_ball_tr.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/41_pass_risk_uniform_tti_20261022/bundle/research/scripts/training/pass_model/precompute_ball_tr_avg.py",
+    "source_sha256": "2d8c2626703eca0e19aecee889262d08c0f549913b48b65f4efeae9bd642f617",
+    "destination": "pipeline/library/pass_probability/original/precompute_ball_tr_avg.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/56_pass_selection_corrected_counts_final_20261026/bundle/scripts/common.py",
+    "source_sha256": "f9146cb5b8c30c283a264edc71b32bf708bcf0885cc22ea599a3b3c703c37603",
+    "destination": "pipeline/library/pass_selection/common.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/56_pass_selection_corrected_counts_final_20261026/bundle/scripts/choice_likelihood.py",
+    "source_sha256": "25276dbfa42877efa08dcc15bb97a43eb7688632fc6167f35f1072a0d8fe903e",
+    "destination": "pipeline/library/pass_selection/choice_likelihood.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/56_pass_selection_corrected_counts_final_20261026/bundle/scripts/engine.py",
+    "source_sha256": "4a63543e589944122958e3d4f7a277d107c68b650d834f090b5cf66bc0fa5577",
+    "destination": "pipeline/library/pass_selection/engine.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/56_pass_selection_corrected_counts_final_20261026/bundle/scripts/training.py",
+    "source_sha256": "472512fee6d852c90408a18bf663565f7f7dc0de598e31425268cb373d951210",
+    "destination": "pipeline/library/pass_selection/training.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/56_pass_selection_corrected_counts_final_20261026/bundle/scripts/temperature.py",
+    "source_sha256": "6e234304e496761f7948edd0ac9c737eb8c26680dbd96fc2d24d628ef6872362",
+    "destination": "pipeline/library/pass_selection/temperature.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  },
+  {
+    "source": "experiments/56_pass_selection_corrected_counts_final_20261026/bundle/scripts/player_counts.py",
+    "source_sha256": "81f48d8afeb67f986dd82d9ef14e4779a75271598a788a49d6e14be9614f1087",
+    "destination": "pipeline/library/pass_selection/player_counts.py",
+    "selection": "module functions; CLI removed",
+    "format": "AST formatting; docstrings retained; imports made package-relative"
+  }
+]
