@@ -2,6 +2,8 @@ project:
   type: website
   output-dir: _site
   execute-dir: project
+  resources:
+  - pipeline/**
   render:
   - index.qmd
   - benchmark.qmd

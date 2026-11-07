@@ -17,7 +17,6 @@
       "player_counts": "ahead_of_carrier_and_target_v1"
     }
   ],
-  "grid": "1m cell centres over native integer pitch dimensions; every cell retained; nearest-centre observed label",
   "max_rounds": 2000,
   "early_stopping_rounds": 100,
   "seed": 20261019,
@@ -155,5 +154,35 @@
       ]
     }
   },
-  "fresh_run": true
+  "fresh_run": true,
+  "selected_by_family": {
+    "cnl": {
+      "name": "01_depth6_child5",
+      "max_depth": 6,
+      "min_child_weight": 5.0,
+      "reg_lambda": 3.0,
+      "eta": 0.05
+    },
+    "flat": {
+      "name": "03_depth4_child20",
+      "max_depth": 4,
+      "min_child_weight": 20.0,
+      "reg_lambda": 1.0,
+      "eta": 0.05
+    }
+  },
+  "fixed_parameters": {
+    "max_depth": 4,
+    "eta": 0.05,
+    "reg_lambda": 1.0,
+    "min_child_weight": 5.0,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "max_bin": 256,
+    "tree_method": "hist",
+    "device": "cpu",
+    "base_score": 0.0
+  },
+  "seed_per_iteration": true,
+  "target_grid": "One-metre native cell centres; nearest-centre label; all cells retained."
 }

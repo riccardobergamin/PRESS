@@ -5,6 +5,7 @@ import pandas as pd
 DT = 0.04
 TIMES = np.arange(25, dtype=np.float32) * np.float32(DT)
 
+
 def _restricted_basis(z, knots, derivative=0):
     """Restricted cubic basis: linear tails, no intercept or linear column."""
     z = np.asarray(z, float)[..., None]
@@ -17,6 +18,8 @@ def _restricted_basis(z, knots, derivative=0):
     return terms[..., :-2] - terms[..., -2, None] * a + terms[..., -1, None] * b
 
 @dataclass
+
+
 class MarginalBasis:
     offset: float
     scale: float
@@ -56,7 +59,14 @@ class MarginalBasis:
         penalty, rotation = np.linalg.eigh(whitening.T @ roughness @ whitening)
         if penalty.min() <= 0:
             raise ValueError('Nonpositive curvature penalty')
-        return cls(offset, scale, knots.tolist(), projection.tolist(), (whitening @ rotation).tolist(), (penalty / penalty.min()).tolist(), float(z.mean()), float(z.std()))
+        return cls(offset,
+            scale,
+            knots.tolist(),
+            projection.tolist(),
+            (whitening @ rotation).tolist(),
+            (penalty / penalty.min()).tolist(),
+            float(z.mean()),
+            float(z.std()))
 
     def evaluate(self, values):
         z = (np.asarray(values, float) - self.offset) / self.scale
@@ -65,9 +75,12 @@ class MarginalBasis:
 
     def full(self, values):
         z = (np.asarray(values, float) - self.offset) / self.scale
-        return np.concatenate([((z - self.linear_mean) / self.linear_sd)[..., None], self.evaluate(values)], axis=-1)
+        return np.concatenate([((z - self.linear_mean) / self.linear_sd)[..., None], self.evaluate(values)],
+            axis=-1)
 
 @dataclass
+
+
 class SplineDesign:
     variant: str
     speed_basis: dict | None
@@ -84,7 +97,10 @@ class SplineDesign:
             raise ValueError('Unknown spline variant')
         speed = np.broadcast_to(np.asarray(speed)[:, None], np.shape(boundary))
         v = MarginalBasis.fit(speed, n_knots) if variant in {'speed', 'additive', 'interaction'} else None
-        b = MarginalBasis.fit(boundary, n_knots) if variant in {'boundary', 'additive', 'interaction'} else None
+        b = MarginalBasis.fit(boundary,
+            n_knots) if variant in {'boundary',
+            'additive',
+            'interaction'} else None
         names = []
         penalty = []
         parts = []
@@ -98,13 +114,26 @@ class SplineDesign:
         projection = None
         if variant == 'interaction':
             main = np.concatenate(parts, axis=-1)
-            c = np.concatenate([np.ones((*speed.shape, 1)), speed[..., None], np.asarray(boundary)[..., None], main], axis=-1)
-            raw = (v.full(speed)[..., :interaction_rank, None] * b.full(boundary)[..., None, :interaction_rank]).reshape(*speed.shape, -1)
-            projection = np.linalg.lstsq(c.reshape(-1, c.shape[-1]), raw.reshape(-1, raw.shape[-1]), rcond=None)[0].tolist()
-            weights = 1 + np.asarray([0] + v.penalty)[:interaction_rank, None] + np.asarray([0] + b.penalty)[None, :interaction_rank]
+            c = np.concatenate([np.ones((*speed.shape, 1)), speed[..., None], np.asarray(boundary)[..., None], main],
+                axis=-1)
+            raw = (v.full(speed)[..., :interaction_rank, None] * b.full(boundary)[..., None, :interaction_rank]).reshape(*speed.shape,
+                -1)
+            projection = np.linalg.lstsq(c.reshape(-1, c.shape[-1]),
+                raw.reshape(-1, raw.shape[-1]),
+                rcond=None)[0].tolist()
+            weights = 1 + np.asarray([0] + v.penalty)[:interaction_rank,
+                None] + np.asarray([0] + b.penalty)[None,
+                :interaction_rank]
             names.extend((f'interaction_{i}_{j}' for i in range(weights.shape[0]) for j in range(weights.shape[1])))
             penalty.extend(weights.ravel().tolist())
-        return cls(variant, asdict(v) if v else None, asdict(b) if b else None, projection, names, count, penalty, interaction_rank)
+        return cls(variant,
+            asdict(v) if v else None,
+            asdict(b) if b else None,
+            projection,
+            names,
+            count,
+            penalty,
+            interaction_rank)
 
     def evaluate(self, speed, boundary):
         speed = np.broadcast_to(np.asarray(speed)[:, None], np.shape(boundary))
@@ -118,8 +147,10 @@ class SplineDesign:
         main = np.concatenate(parts, axis=-1) if parts else np.empty((*speed.shape, 0))
         if self.variant != 'interaction':
             return main
-        c = np.concatenate([np.ones((*speed.shape, 1)), speed[..., None], np.asarray(boundary)[..., None], main], axis=-1)
-        raw = (v.full(speed)[..., :self.interaction_rank, None] * b.full(boundary)[..., None, :self.interaction_rank]).reshape(*speed.shape, -1)
+        c = np.concatenate([np.ones((*speed.shape, 1)), speed[..., None], np.asarray(boundary)[..., None], main],
+            axis=-1)
+        raw = (v.full(speed)[..., :self.interaction_rank, None] * b.full(boundary)[..., None, :self.interaction_rank]).reshape(*speed.shape,
+            -1)
         return np.concatenate([main, raw - c @ np.asarray(self.interaction_projection)], axis=-1)
 
     def active(self, candidate):
@@ -130,6 +161,7 @@ class SplineDesign:
         if count > self.main_count:
             precision[self.main_count:] = np.asarray(self.penalty[self.main_count:]) * candidate['interaction']
         return (count, precision)
+
 
 def paired_selection(records, candidate_order):
     """Conservative paired one-SE rule across the eight inner validation matches.
@@ -159,4 +191,5 @@ def paired_selection(records, candidate_order):
         details.append(dict(candidate=name, mean_nll=scores[name], difference_to_best=difference, paired_match_jackknife_se=se, within_one_se=accepted))
         if accepted:
             eligible.append(name)
-    return (eligible[0], dict(best_score_candidate=best, selected=eligible[0], rule='First (strongest shrinkage) candidate within one paired-match SE of best inner OOF score', candidates=details))
+    return (eligible[0],
+        dict(best_score_candidate=best, selected=eligible[0], rule='First (strongest shrinkage) candidate within one paired-match SE of best inner OOF score', candidates=details))

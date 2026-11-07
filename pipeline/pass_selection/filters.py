@@ -2,5 +2,5 @@
 from pipeline.pass_probability.filters import verified_passes
 
 
-def select(events,tracking,players):
-    return verified_passes(events,tracking,players).query('pass_duration < 10').copy()
+def select(events, tracking, players):
+    return verified_passes(events, tracking, players).query('pass_duration < 10').copy()

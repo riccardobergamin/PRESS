@@ -3,6 +3,7 @@ import pandas as pd
 import jax.numpy as jnp
 from .possession_selection import is_matched, pass_receipt_link_reason
 
+
 def extract_pass_features(possession, tracking_data):
     """
     Extract ball carrier and receiver states for completed passes.
@@ -66,6 +67,7 @@ def extract_pass_features(possession, tracking_data):
     passes['receiver_y'] = receiver_y
     return passes
 
+
 def prepare_transition_input(passes, successful_only=True):
     """
     Convert pass dataframe into arrays required by
@@ -97,6 +99,7 @@ def prepare_transition_input(passes, successful_only=True):
     v_bc = jnp.array(passes[['passer_vx', 'passer_vy']].values)
     r_target = jnp.array(passes[['receiver_x', 'receiver_y']].values)
     return (x_bc, v_bc, r_target)
+
 
 def build_pass_dataframe(x_bc, v_bc, r_target, match_id):
     """
@@ -148,6 +151,7 @@ def build_pass_dataframe(x_bc, v_bc, r_target, match_id):
     theta = np.arctan2(cross, dot)
     return pd.DataFrame({'match_id': match_id, 'distance': distance, 'speed': speed, 'theta': theta})
 
+
 def to_absolute_coordinates(x, y, attacking_side):
     """
     Convert SkillCorner attacking-perspective coordinates
@@ -162,6 +166,7 @@ def to_absolute_coordinates(x, y, attacking_side):
     if attacking_side == 'right_to_left':
         return (-x, -y)
     raise ValueError(f'Unknown attacking_side: {attacking_side}')
+
 
 def reconstruct_pass_target(x_end, y_end, pass_distance, pass_angle, attacking_side):
     """
@@ -181,6 +186,7 @@ def reconstruct_pass_target(x_end, y_end, pass_distance, pass_angle, attacking_s
     x_target = x_end + pass_distance * np.cos(angle)
     y_target = y_end + pass_distance * np.sin(angle)
     return to_absolute_coordinates(x_target, y_target, attacking_side)
+
 
 def extract_passes(events, fps=10):
     """
@@ -219,9 +225,14 @@ def extract_passes(events, fps=10):
     subsequent player_possession.
     """
     possessions = events[events['event_type'].eq('player_possession')].copy()
-    possessions = possessions.sort_values([column for column in ('match_id', 'period', 'frame_start') if column in possessions.columns], kind='stable').reset_index(drop=True)
+    possessions = possessions.sort_values([column for column in ('match_id', 'period', 'frame_start') if column in possessions.columns],
+        kind='stable').reset_index(drop=True)
     passes = []
-    valid_interception_types = {'pass_interception', 'free_kick_interception', 'corner_interception', 'goal_kick_interception', 'recovery'}
+    valid_interception_types = {'pass_interception',
+        'free_kick_interception',
+        'corner_interception',
+        'goal_kick_interception',
+        'recovery'}
     pass_indices = possessions.index[possessions['end_type'].eq('pass')]
     for idx in pass_indices:
         row = possessions.loc[idx]
@@ -250,12 +261,18 @@ def extract_passes(events, fps=10):
                 y_receiver = row['player_targeted_y_reception']
                 if pd.isna(x_target) or pd.isna(y_target):
                     continue
-                x_target, y_target = to_absolute_coordinates(float(x_target), float(y_target), row['attacking_side'])
+                x_target, y_target = to_absolute_coordinates(float(x_target),
+                    float(y_target),
+                    row['attacking_side'])
                 x_receiver, y_receiver = (x_target, y_target)
             else:
                 if pd.isna(row['x_end']) or pd.isna(row['y_end']) or pd.isna(row['pass_distance']) or pd.isna(row['pass_angle']):
                     continue
-                x_target, y_target = reconstruct_pass_target(x_end=float(row['x_end']), y_end=float(row['y_end']), pass_distance=float(row['pass_distance']), pass_angle=float(row['pass_angle']), attacking_side=row['attacking_side'])
+                x_target, y_target = reconstruct_pass_target(x_end=float(row['x_end']),
+                    y_end=float(row['y_end']),
+                    pass_distance=float(row['pass_distance']),
+                    pass_angle=float(row['pass_angle']),
+                    attacking_side=row['attacking_side'])
             passes.append({'frame_start': row['frame_start'], 'frame_end': row['frame_end'], 'frame_reception': frame_reception, 'pass_duration': gap_frames / fps, 'team_id': row['team_id'], 'player_id': row['player_id'], 'receiver_id': row['player_targeted_id'], 'attacking_side': row['attacking_side'], 'x_target': float(x_target), 'y_target': float(y_target), 'x_receiver': float(x_receiver), 'y_receiver': float(y_receiver), 'outcome': 1, 'interception_type': None})
             continue
         if outcome != 'unsuccessful':
@@ -268,6 +285,9 @@ def extract_passes(events, fps=10):
         y_target = next_possession['y_start']
         if pd.isna(x_target) or pd.isna(y_target):
             continue
-        x_target, y_target = to_absolute_coordinates(float(x_target), float(y_target), next_possession['attacking_side'])
+        x_target, y_target = to_absolute_coordinates(float(x_target),
+            float(y_target),
+            next_possession['attacking_side'])
         passes.append({'frame_start': row['frame_start'], 'frame_end': row['frame_end'], 'frame_reception': frame_reception, 'pass_duration': gap_frames / fps, 'team_id': row['team_id'], 'player_id': row['player_id'], 'receiver_id': row['player_targeted_id'], 'attacking_side': row['attacking_side'], 'x_target': float(x_target), 'y_target': float(y_target), 'x_receiver': float(x_receiver), 'y_receiver': float(y_receiver), 'outcome': 0, 'interception_type': interception_type})
-    return pd.DataFrame(passes, columns=['frame_start', 'frame_end', 'frame_reception', 'pass_duration', 'team_id', 'player_id', 'receiver_id', 'attacking_side', 'x_target', 'y_target', 'x_receiver', 'y_receiver', 'outcome', 'interception_type'])
+    return pd.DataFrame(passes,
+        columns=['frame_start', 'frame_end', 'frame_reception', 'pass_duration', 'team_id', 'player_id', 'receiver_id', 'attacking_side', 'x_target', 'y_target', 'x_receiver', 'y_receiver', 'outcome', 'interception_type'])

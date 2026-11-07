@@ -80,7 +80,7 @@ All plot functions return figure and axes. Getters copy results by default. Save
 
 - [01 · Ball-drive risk](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb): geometry, carrier speed, boundary distance and competing defender causes.
 - [02 · Pass probability](vignettes/02_pass_probability/02_pass_probability.ipynb): simplified flight path and arrival and control accumulation.
-- [03 · Pass selection](vignettes/03_pass_selection/03_pass_selection.ipynb): destination choice across candidate cells.
+- [03 · Pass selection](vignettes/03_transition_model/03_pass_selection.ipynb): destination choice across candidate cells.
 - [04 · Action selection](vignettes/04_action_selection/04_action_selection.ipynb): pass-versus-carry choice and its calibration.
 - [05 · Residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb): conditional terminal outcome after a successful carry.
 
@@ -149,12 +149,13 @@ PRESS uses ten matches of the Australian A-League 2024/25 season from the [Skill
 - `benchmarks/`: one benchmark page per task, and `benchmark.qmd` for the shared protocol.
 - `index.qmd`, `data.qmd`, `usage.qmd`, `api.qmd`, `solvers.qmd`, `reference/`, `pipeline.qmd`, `roadmap.qmd`, `_quarto.yml`: site pages and navigation.
 - `docs/`, `figures/`, `data/`: provenance records, figures and data setup notes.
+- `pipeline/`: research code for preprocessing, features, training, evaluation and production refits.
 - `scripts/`, `examples/`, `tests/`: environment checks, notebook rebuild, command-line examples and tests.
 - `.github/workflows/publish-site.yml`: GitHub Pages build and deployment.
 - `references/refs.bib`, `REFERENCES.md`: citation records and unresolved references.
 - `archive/legacy_package/`: unused implementations, outside the installed package.
 
-The raw-to-base preprocessing pipeline lives in the sibling `skillcorner-analysis` checkout (`scripts/pipeline`). [pipeline.qmd](pipeline.qmd) documents its layout and conventions.
+The research pipeline, from raw tracking to the production refits, is in `pipeline/` and is documented in [pipeline.qmd](pipeline.qmd).
 
 ## AI assistance
 

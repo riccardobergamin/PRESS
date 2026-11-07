@@ -13,6 +13,7 @@ POLICY = 'one_second_actions_with_exposure_tails_v2'
 SCHEMA_VERSION = 'press_base_v4'
 TRAINING_COHORT_POLICY = 'outfield_carriers_no_shot_v1'
 
+
 def annotate_training_cohort(table, players, *, canonical_players=False):
     """Flag carrier eligibility while retaining all intervals for inference.
 
@@ -29,9 +30,12 @@ def annotate_training_cohort(table, players, *, canonical_players=False):
     shot = result.end_type.eq('shot')
     keeper = result.carrier_is_goalkeeper
     result['training_cohort_eligible'] = ~shot & ~keeper
-    result['training_cohort_exclusion_reason'] = np.select([shot & keeper, shot, keeper], ['shot_ending;goalkeeper_carrier', 'shot_ending', 'goalkeeper_carrier'], default='')
+    result['training_cohort_exclusion_reason'] = np.select([shot & keeper, shot, keeper],
+        ['shot_ending;goalkeeper_carrier', 'shot_ending', 'goalkeeper_carrier'],
+        default='')
     result['training_cohort_policy'] = TRAINING_COHORT_POLICY
     return result
+
 
 def differentiate(values, frames, periods, *, window, fps=FPS):
     """Differentiate finite contiguous runs, never across a gap or period.
@@ -52,8 +56,14 @@ def differentiate(values, frames, periods, *, window, fps=FPS):
         if not valid[start] or stop - start < 3:
             continue
         size = min(window, stop - start if (stop - start) % 2 else stop - start - 1)
-        result[start:stop] = savgol_filter(values[start:stop], size, min(2, size - 1), deriv=1, delta=1 / fps, mode='interp')
+        result[start:stop] = savgol_filter(values[start:stop],
+            size,
+            min(2, size - 1),
+            deriv=1,
+            delta=1 / fps,
+            mode='interp')
     return result
+
 
 def add_kinematics(table, axes, *, window, prefix=''):
     """Attach velocity and acceleration with explicit units m/s and m/s²."""
@@ -62,13 +72,17 @@ def add_kinematics(table, axes, *, window, prefix=''):
     for axis in axes:
         velocity = f'{prefix}v{axis}'
         acceleration = f'{prefix}a{axis}'
-        result[velocity] = differentiate(result[f'{prefix}{axis}'], result.frame, result.period, window=window)
+        result[velocity] = differentiate(result[f'{prefix}{axis}'],
+            result.frame,
+            result.period,
+            window=window)
         result[acceleration] = differentiate(result[velocity], result.frame, result.period, window=window)
         velocities.append(velocity)
         accelerations.append(acceleration)
     result[f'{prefix}v'] = np.linalg.norm(result[velocities].to_numpy(), axis=1)
     result[f'{prefix}a'] = np.linalg.norm(result[accelerations].to_numpy(), axis=1)
     return result
+
 
 def load_raw_tracking(match_dir):
     """Read JSONL once, preserve empty frames, provider carrier and detections."""
@@ -87,7 +101,8 @@ def load_raw_tracking(match_dir):
             frame_records.append((row['frame'], row.get('timestamp'), row.get('period'), ball.get('x'), ball.get('y'), ball.get('z'), ball.get('is_detected'), possession.get('player_id'), possession.get('group')))
             for player in row.get('player_data', []):
                 player_records.append((row['frame'], row.get('period'), player['player_id'], player.get('x'), player.get('y'), player.get('is_detected')))
-    frames = pd.DataFrame(frame_records, columns=['frame', 'timestamp', 'period', 'ball_x', 'ball_y', 'ball_z', 'is_detected_ball', 'provider_player_id', 'provider_possession_group']).sort_values('frame').reset_index(drop=True)
+    frames = pd.DataFrame(frame_records,
+        columns=['frame', 'timestamp', 'period', 'ball_x', 'ball_y', 'ball_z', 'is_detected_ball', 'provider_player_id', 'provider_possession_group']).sort_values('frame').reset_index(drop=True)
     del frame_records
     if frames.frame.duplicated().any():
         raise ValueError('Duplicate raw tracking frames.')
@@ -124,6 +139,7 @@ def load_raw_tracking(match_dir):
             frames[column] = pd.to_numeric(frames[column], errors='raise').astype(float)
     return (frames, players, metadata)
 
+
 def annotate_tracking(tracking, intervals, raw_possessions, player_map):
     """Assign disjoint inclusive individual intervals, then valid pass releases."""
     result = tracking.copy()
@@ -143,6 +159,7 @@ def annotate_tracking(tracking, intervals, raw_possessions, player_map):
         result.loc[selected, 'possession_source'] = 'matched_individual'
     return annotate_matched_pass_release_frames(result, raw_possessions, player_map)
 
+
 def annotate_state_quality(tracking):
     """Audit usable carrier/state without removing extrapolated observations."""
     result = tracking.copy()
@@ -158,8 +175,11 @@ def annotate_state_quality(tracking):
     for side, count in counts.items():
         result[f'n_{side}_usable'] = count
     result['state_eligible'] = carrier_ok & result.attacking_side.isin(['left_to_right', 'right_to_left']) & (counts['home'] > 0) & (counts['away'] > 0)
-    result['state_exclusion_reason'] = np.select([result.player_possession.isna(), ~carrier_ok, ~result.attacking_side.isin(['left_to_right', 'right_to_left']), (counts['home'] == 0) | (counts['away'] == 0)], ['no_selected_carrier', 'missing_carrier_kinematics', 'unknown_direction', 'empty_team_state'], default='')
+    result['state_exclusion_reason'] = np.select([result.player_possession.isna(), ~carrier_ok, ~result.attacking_side.isin(['left_to_right', 'right_to_left']), (counts['home'] == 0) | (counts['away'] == 0)],
+        ['no_selected_carrier', 'missing_carrier_kinematics', 'unknown_direction', 'empty_team_state'],
+        default='')
     return result
+
 
 def segment_possessions(intervals, *, fps=FPS, horizon_frames=10):
     """Canonical one-second attempts and passes; separate evaluation snapshots.
@@ -193,7 +213,20 @@ def segment_possessions(intervals, *, fps=FPS, horizon_frames=10):
             previous = 'ball_drive'
         if row.end_type == 'pass':
             records.append({'match_id': str(row.match_id), 'possession_id': row.possession_id, 'player_id': row.player_id, 'frame_start': row.frame_end, 'frame_end': row.frame_end, 'duration_frames': 0, 'duration': 0.0, 'action': 'pass', 'previous_action': previous, 'start_type': row.start_type, 'end_type': row.end_type, 'outcome': int(row.pass_outcome == 'successful'), 'game_interruption_after': row.game_interruption_after, 'time_since_start': duration / fps})
-    columns = ['match_id', 'possession_id', 'player_id', 'frame_start', 'frame_end', 'duration_frames', 'duration', 'action', 'previous_action', 'start_type', 'end_type', 'outcome', 'game_interruption_after', 'time_since_start']
+    columns = ['match_id',
+        'possession_id',
+        'player_id',
+        'frame_start',
+        'frame_end',
+        'duration_frames',
+        'duration',
+        'action',
+        'previous_action',
+        'start_type',
+        'end_type',
+        'outcome',
+        'game_interruption_after',
+        'time_since_start']
     result = pd.DataFrame(records, columns=columns)
     result['action_id'] = np.arange(1, len(result) + 1)
     result['segmentation_policy'] = POLICY
@@ -206,7 +239,17 @@ def segment_possessions(intervals, *, fps=FPS, horizon_frames=10):
             continue
         duration = row.frame_end - row.frame_start
         full, remainder = divmod(duration, horizon_frames)
-        common = dict(match_id=str(row.match_id), possession_id=row.possession_id, player_id=row.player_id, action='snapshot', start_type=row.start_type, end_type=row.end_type, outcome=1, game_interruption_after=row.game_interruption_after, is_canonical=False, segmentation_policy=POLICY, forecast_horizon=1.0)
+        common = dict(match_id=str(row.match_id),
+            possession_id=row.possession_id,
+            player_id=row.player_id,
+            action='snapshot',
+            start_type=row.start_type,
+            end_type=row.end_type,
+            outcome=1,
+            game_interruption_after=row.game_interruption_after,
+            is_canonical=False,
+            segmentation_policy=POLICY,
+            forecast_horizon=1.0)
         if remainder:
             start = row.frame_start + full * horizon_frames
             extras.append(dict(common, frame_start=start, frame_end=row.frame_end, duration_frames=remainder, duration=remainder / fps, time_since_start=(start - row.frame_start) / fps, previous_action='ball_drive' if full else row.start_type, snapshot_reason='short_control_tail'))
@@ -216,10 +259,12 @@ def segment_possessions(intervals, *, fps=FPS, horizon_frames=10):
         snapshots = pd.DataFrame(extras)
         snapshots['action_id'] = np.arange(len(result) + 1, len(result) + len(snapshots) + 1)
         result = pd.concat([result, snapshots], ignore_index=True)
-    result = result.sort_values(['frame_start', 'frame_end', 'action_id'], kind='stable').reset_index(drop=True)
+    result = result.sort_values(['frame_start', 'frame_end', 'action_id'],
+        kind='stable').reset_index(drop=True)
     result['start_type_std'] = result.start_type.map(standardize_action_context)
     result['previous_action_std'] = result.previous_action.map(lambda value: standardize_action_context(value, previous=True))
     return result
+
 
 def drive_observations(actions):
     """Observed exposure for rate training; distinct from canonical choice rows.
@@ -231,14 +276,21 @@ def drive_observations(actions):
     rows['action'] = 'ball_drive'
     rows['observed_duration'] = rows.duration
     rows['loss_observed'] = rows.outcome.eq(0)
-    rows['target_status'] = np.select([rows.loss_observed, ~rows.is_canonical], ['failure_interval', 'censored'], default='survived')
+    rows['target_status'] = np.select([rows.loss_observed, ~rows.is_canonical],
+        ['failure_interval', 'censored'],
+        default='survived')
     rows['observation_upper'] = np.where(rows.loss_observed & rows.duration.eq(0), 1 / FPS, rows.duration)
-    rows['observation_lower'] = np.where(rows.loss_observed, np.maximum(rows.observation_upper - 1 / FPS, 0), rows.observation_upper)
+    rows['observation_lower'] = np.where(rows.loss_observed,
+        np.maximum(rows.observation_upper - 1 / FPS, 0),
+        rows.observation_upper)
     rows['zero_frame_failure'] = rows.loss_observed & rows.duration.eq(0)
     rows['horizon_label_observed'] = rows.loss_observed | rows.duration.ge(1.0)
-    rows['stop_reason'] = np.where(rows.loss_observed, 'possession_loss', np.where(rows.is_canonical, 'one_second_completed', rows.end_type))
+    rows['stop_reason'] = np.where(rows.loss_observed,
+        'possession_loss',
+        np.where(rows.is_canonical, 'one_second_completed', rows.end_type))
     rows['drive_observation_id'] = np.arange(1, len(rows) + 1)
     return rows
+
 
 def pass_curvature(row, tracking):
     """Maximum lateral deviation (% of endpoint distance), requiring full coverage."""

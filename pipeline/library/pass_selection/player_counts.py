@@ -1,6 +1,10 @@
 """Counts ahead of transverse query lines, not forward-only bypass counts."""
 import numpy as np
-COUNT_COLUMNS = ['opponents_ahead_bc', 'teammates_ahead_bc', 'opponents_ahead_target', 'teammates_ahead_target']
+COUNT_COLUMNS = ['opponents_ahead_bc',
+    'teammates_ahead_bc',
+    'opponents_ahead_target',
+    'teammates_ahead_target']
+
 
 def ahead_counts(players, locations, direction):
     players = np.asarray(players)
@@ -15,6 +19,7 @@ def ahead_counts(players, locations, direction):
     counts = (px[:, None] > qx[None, :]).sum(axis=0)
     assert (counts <= 11).all()
     return counts.astype(np.uint8)
+
 
 def state_counts(bc, targets, player_positions, direction):
     """Cache schema: 0..9 teammates, 10 carrier, 11..21 opponents."""

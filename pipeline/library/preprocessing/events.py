@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from .possession_selection import matched_individual_mask, is_matched
 
+
 def annotate_possession(poss):
     """
     Annotate one match's individual possessions with both boundaries matched.
@@ -29,8 +30,10 @@ def annotate_possession(poss):
         player_id = p['player_id']
         end_type = p.get('end_type')
         pass_outcome = p.get('pass_outcome')
-        is_loss = end_type == 'pass' and pass_outcome == 'unsuccessful' or end_type in ['possession_loss', 'clearance']
-        is_non_loss = end_type == 'pass' and pass_outcome == 'successful' or end_type in ['shot', 'foul_suffered']
+        is_loss = end_type == 'pass' and pass_outcome == 'unsuccessful' or end_type in ['possession_loss',
+            'clearance']
+        is_non_loss = end_type == 'pass' and pass_outcome == 'successful' or end_type in ['shot',
+            'foul_suffered']
         if not (is_loss or is_non_loss):
             continue
         if end_type == 'pass' and pass_outcome == 'unsuccessful':
@@ -51,7 +54,24 @@ def annotate_possession(poss):
         if end_type == 'pass':
             target_pass = p.get('player_targeted_id')
         rows.append({'possession_id': p['event_id'], 'player_id': player_id, 'frame_start': int(p['frame_start']), 'frame_end': int(p['frame_end']), 'frame_receipt': frame_receipt, 'time_start': p['time_start'], 'time_end': p['time_end'], 'loss': is_loss, 'loss_reason': loss_reason, 'start_type': p['start_type'], 'end_type': end_type, 'pass_outcome': pass_outcome, 'target_pass': target_pass, 'game_interruption_after': p['game_interruption_after'], 'attacking_side': p['attacking_side'], 'is_player_possession_start_matched': True, 'is_player_possession_end_matched': True, 'receipt_start_matched': frame_receipt is not None, **{column: p[column] for column in ('period', 'match_id') if column in poss.columns}})
-    columns = ['possession_id', 'player_id', 'frame_start', 'frame_end', 'frame_receipt', 'time_start', 'time_end', 'loss', 'loss_reason', 'start_type', 'end_type', 'pass_outcome', 'target_pass', 'game_interruption_after', 'attacking_side', 'is_player_possession_start_matched', 'is_player_possession_end_matched', 'receipt_start_matched'] + [column for column in ('period', 'match_id') if column in poss.columns]
+    columns = ['possession_id',
+        'player_id',
+        'frame_start',
+        'frame_end',
+        'frame_receipt',
+        'time_start',
+        'time_end',
+        'loss',
+        'loss_reason',
+        'start_type',
+        'end_type',
+        'pass_outcome',
+        'target_pass',
+        'game_interruption_after',
+        'attacking_side',
+        'is_player_possession_start_matched',
+        'is_player_possession_end_matched',
+        'receipt_start_matched'] + [column for column in ('period', 'match_id') if column in poss.columns]
     result = pd.DataFrame(rows, columns=columns)
     result['target_pass'] = result['target_pass'].astype('Int64')
     return result

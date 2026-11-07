@@ -1,82 +1,133 @@
 ---
-title: "Pipeline and regenerated training bases"
+title: "Research pipeline"
 ---
 
-The raw-data pipeline lives in the sibling **`skillcorner-analysis`** repository. The input and output files live in **`opendata`**. This package consumes canonical processed tables and evaluates any usable frame independently of the segmentation or sampling policy.
+The research code lives in **`pipeline/` in this repository**. It prepares the observations, builds the features, evaluates the five components and refits the production models. The inference package, `PRESS/`, loads exported models and does not run this training code.
 
-## Actual layout
+The pipeline represents **one complete run**. Its inputs and outputs are explicit; it does not search previous experiments for interrupted fits or partially completed jobs.
+
+## Code layout
 
 ```text
-skillcorner-analysis/
-  scripts/utils/base_pipeline.py          # raw loading, kinematics, cohorts, validation
-  scripts/utils/possession_selection.py   # boundary matching and release provenance
-  scripts/utils/training_contracts.py     # data root, match folds, stable trajectory identity
-  scripts/pipeline/rebuild_base.py        # raw -> base tables
-  scripts/pipeline/build_ball_trajectories.py
-  scripts/pipeline/validate_base.py
-  scripts/pipeline/build_action_features.py
-  scripts/training/                      # fitting and model-dependent feature stages
-  docs/pipeline-review.md
-  README.md
-opendata/data/
-  matches/                              # original provider inputs
-  processed/2026-10-15_training_v5_outfield/           # regenerated, versioned output
-PRESS-portfolio-work/
-  PRESS/                                # inference, navigation, physics and pitch views
+pipeline/
+  run.py                       # complete dependency-ordered run
+  folds.json                   # fixed match partitions
+  preprocessing/
+    01_tracking.py             # raw observations and tracking derivatives
+    02_possessions.py          # matched control intervals and segmentation
+    03_bases.py                # broad action and drive observations
+    04_context_inputs.py       # event tables for fold-specific xT
+    library.py
+  <task>/                      # ball_drive, pass_probability, pass_selection,
+                               # action_selection, residual_risk
+    01_features.py
+    02_train.py
+    03_scores.py
+    04_refit.py
+    filters.py                 # task-specific selection rules
+    library.py                 # task orchestration
+    protocol.json              # fixed settings and search grids
+  composed_risk/
+    01_compute.py              # held-out h and xLoss
+    02_scores.py               # metrics, calibration and band bootstrap
+  library/
+    common.py                  # paths, encoding, checksums and metrics
+    states.py                  # initial states and known-at-frame context
+    expected_threat.py         # fit-match-only 10 × 6 xT
+    option_features.py         # physical and hypothetical pass fields
+    binary_training.py         # native binary XGBoost training
+    ball_drive/                # spline bases, MAP likelihood and export
+    pass_probability/          # flight boundaries, trajectory MLE and transfer
+    pass_selection/            # grouped choice likelihood and utility fitting
+    preprocessing/             # source adapters and segmentation helpers
 ```
 
-The former preprocessing, segmentation and pass-extraction entry points in `scripts/analysis` call the same portable rebuild command. Their previous implementations are preserved under `scripts/analysis/old`. No raw-data pipeline has been moved into this package.
+Each task has the same four entry points. Shared functions live in `library/`; the `filters.py` beside a task states its own eligibility rules. The raw-data adapter is specific to the SkillCorner release. The [package input interfaces](api.qmd) also accept canonical tables from other tracking providers.
 
-## Stages and contracts
+## Four stages per task
 
-| Stage | Output and contract |
-|---|---|
-| Read raw tracking | Preserve every frame, native centred metre coordinates, pitch dimensions, provider carrier and nullable detection flags. |
-| Estimate kinematics | Offline centred Savitzky–Golay derivatives; split at periods, gaps and nonfinite values. Extrapolated finite players are allowed. |
-| Select individual intervals | Both start and end must be explicitly matched. Retain the complete raw event table with eligibility reasons separately. |
-| Extract passes | Match release and the immediate next raw possession start within the same match/period; sender start and receiver end are not mandatory. |
-| Annotate carrier | Disjoint selected intervals plus eligible release-only points; retain provider labels and provenance separately. |
-| Segment | Canonical one-second drives and release passes; short non-loss exposure tails and terminal snapshots distinguished explicitly. Frame evaluation remains independent. |
-| Export component bases | Actions, drives, passes, destination/action/residual cohorts with match-local IDs, state eligibility and standardized context. |
-| Reconstruct ball trajectories | Same mean-first-five-velocity physical method, with stable pass identity and checked provenance. This uses post-release observations. |
-| Validate | Hashes, cross-table contracts, every exported training state through the real package extractor, and trajectory shape/identity. |
-| Build features and fit | Separate downstream stages; no old feature matrices or predictions are copied into the new base root. |
-
-## Regeneration completed
-
-The ten-match output contains 642,687 tracking frames, 9,106 selected individual intervals, 3,027 conservative team intervals, 24,073 action/snapshot rows and 7,467 extracted passes. The v5 component bases contain 9,148 one-second drive labels, 5,279 straight-pass rows, 7,010 destination examples, 16,583 action-selection rows and 8,541 optional residual-risk rows. Goalkeeper carriers are excluded from training; goalkeeper defenders/receivers remain in model states. All inference intervals and checkpoints are retained. These are coverage counts, not predictive benchmarks.
-
-All 16,901 distinct v5 training states passed the package state extractor, including canonical/snapshot selection and event context. All ten tracking files are byte-identical to v4. The v5 output includes `manifest.json`, `coverage.csv`, `folds.json` and `validation.json`. The historical v4 root retains its 5,608 validated trajectories; trajectories and downstream features have not been regenerated for the filtered v5 indices. Ball-drive training does not require them. Previous raw/processed files and distributed model artifacts were retained.
-
-The new base tables are complete. The final booster feature matrices have **not** been regenerated in bulk: they depend on physical parameters, calibration, pass-selection artifacts and xT. The new action-feature command was smoke-tested on real tracking with a reduced grid; its partial outputs are kept outside the training feature directory. Review fitting and dependencies per fold before reporting out-of-sample component performance.
-
-## Accepted boundary policy
-
-Individual intervals require both provider boundaries matched. Passes require a matched sender end and the immediate next possession's matched start. Search the full chronological provider stream before selecting individual intervals; never skip an unmatched neighbor to substitute a later receiver. **design choice**
-
-Interception/recovery points remain observed endpoints, with no inferred passer intention. The Spearman-style target assumption and pass-probability benchmark will be reviewed separately. The target geometry convention was retained.
-
-## Accepted segmentation convention
-
-Policy `one_second_actions_with_exposure_tails_v2` keeps drives anchored to the individual start: 0–1, 1–2, etc. All failed drives remain, including early failures. Pass rows occur at release; previous action is the start type before one second of control, otherwise drive. Short non-loss tails remain inference checkpoints and do not enter the one-second training benchmark. Shot/foul/clearance preserve preceding control and have additional terminal snapshots. **design choice**
-
-There are 18,266 canonical rows and 5,807 additional snapshots. The outfield-only drive training cohort contains 8,672 full successes and all 476 outfield failures, including 40 zero-frame failures. The target is loss within one second for every failure, even when observed earlier. Individual shot-ending possessions and goalkeeper carriers are excluded from all training components. The previous timing/censoring run is a separate experiment; the historical 9,845-row benchmark has been reproduced and remains frozen in v4.
-
-| Example | Canonical evaluation times (s) | Additional snapshots (s) |
+| Stage | Purpose | Saved outputs |
 |---|---|---|
-| Pass at 0.4 | 0.4 | 0 |
-| Pass at 2.4 | 0; 1; 2.4 | 2 |
-| Loss at 2.4 | 0; 1; 2 | None |
-| Clearance at 1.4 | 0 | 1; 1.4 |
+| `01_features.py` | Apply the task's cohort rules and calculate features from the current run's inputs. | Stable observation keys, feature tables or matrices, physical arrays, feature specifications. |
+| `02_train.py` | Fit and select models using the declared match splits. | Fold models, validation choices, learning curves or optimization diagnostics, posterior quantities where applicable, held-out predictions. |
+| `03_scores.py` | Combine the held-out predictions and calculate final scores. | Pooled predictions, metrics and calibration bins. Pass selection reports both flat and cross-nested families. |
+| `04_refit.py` | Fit operational models on the full development sample using the selected procedure. | Exported JSON manifests, adjacent UBJ ensembles, or the physical model's parameters and posterior. |
 
-For clearance at 1.4, the 0–1 drive is successful for drive execution and eligible for choice. The 1–1.4 tail remains an evaluation checkpoint without entering training. Only the full successful drive enters the optional residual cohort, whose final individual outcome is loss because clearance is conventionally loss there. The v5 residual cohort contains 25 clearance rows; short tails do not enter it. Shot-ending possessions are excluded from all training cohorts; their tracking and evaluation checkpoints remain available.
+The [general benchmark protocol](benchmark.qmd) explains the distinction between validation, held-out evaluation and production refitting. The individual benchmark pages document the task-specific targets and selection procedures: [ball drive](benchmarks/01_ball_drive_risk.qmd), [pass probability](benchmarks/02_pass_probability.qmd), [pass selection](benchmarks/03_pass_selection.qmd), [action selection](benchmarks/04_action_selection.qmd), [residual risk](benchmarks/05_residual_risk.qmd) and [composed risk](benchmarks/06_composed_risk.qmd).
 
-`get_checkpoints()` returns canonical rows; `include_snapshots=True` also returns extras. `compute_possession()` evaluates both by default, with `checkpoint_kind` and `is_canonical`; `include_snapshots=False` selects canonical rows only. These snapshots do not alter the one-second prediction horizon. Do not multiply extra overlapping forecasts into survival; even canonical aggregation requires coherent conditional steps. See [framework interpretation](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb). **model scope**
+## Dependency order
 
-The previous `2026-10-14_base_v1` root is retained as historical preprocessing validation. Full details and the literature comparison live in `skillcorner-analysis/docs/segmentation-review.md`. The next fitting protocol is the outfield-only ball-drive baseline, followed by penalized splines in the tackle log-rate and kinematic tests with the logistic arrival structure retained. The target remains loss within one second, including early failures.
+1. Prepare tracking, matched individual possessions and canonical checkpoints. Preserve the broad observations; outcome-based task filters are applied later.
+2. Fit **ball-drive risk** and **pass probability**. These two components can be run independently.
+3. Calculate **pass-selection** features using the physical models fitted on the six training matches of the corresponding fold and fit-match-only xT. Fit both choice families; the flat family supplies the downstream models.
+4. Calculate **action-selection** features using the matching physical and pass-selection models, calibrated pass success and BCOS. Fit the native binary classifier.
+5. Calculate **residual-risk** features from the same state summaries, observed elapsed time and P(carry). Training P(carry) is cross-fitted inside the six fit matches; validation and test use the corresponding action-selection model.
+6. Compose held-out **h and xLoss**, then calculate their scores and the fixed-threshold match bootstrap.
+7. Refit the production stack in the same dependency order. Full-data features are generated separately with `01_features.py --production-features` for the three tree-model tasks. Production residual-risk features use five eight-fit/two-held action models for P(carry).
 
-Native dimensions now flow through pass candidates, drive boundary distance, BCOS, xT lookup and pitch views; legacy data without dimensions uses 105×68. `ball_drive_prob` is a legacy model feature with opposite historical meanings in the two original training paths. New derived outputs also expose explicit `drive_loss_probability` and `drive_success_probability`; existing boosters retain their trained aliases until refitted.
+A production model never substitutes for a fold-specific model in the benchmark feature stack. The final refits are exports for inference, not additional held-out evaluations.
 
-## Carry mathematics follow-up
+## Run the pipeline
 
-The v5 base retains the v2 checkpoint convention and one-second Bernoulli target, excluding short non-loss tails, shot-ending possessions and goalkeeper carriers from training. Producer source hashes and consumer source snapshots are now recorded separately, so a change to model fitting or numerical integration does not pretend to change the base observations. Carry inference/training now supports exponential Euler and explicit historical Euler. No distributed weights have been refitted. The research report `skillcorner-analysis/docs/ball-drive-review.md` maps the paper covariates to snapshot features and records the mathematical audit and historical diagnostic scope.
+From the repository checkout, install the package and parquet support in the documented Python environment:
+
+```bash
+python -m pip install -e '.[io]'
+```
+
+The [runner](pipeline/run.py) first prints the complete command sequence. Supply a **new output directory**:
+
+```bash
+python -m pipeline.run \
+  --raw-root /path/to/opendata/data/matches \
+  --output-root /path/to/research_outputs/press_final \
+  --threads 8
+```
+
+Add `--execute` to execute that sequence. The runner stops at the first failed command and does not submit cluster jobs or install new weights into `PRESS/utils/data`.
+
+The numbered scripts can also be launched separately. For example:
+
+```bash
+python pipeline/ball_drive/01_features.py \
+  --base-root /path/to/research_outputs/press_final/base \
+  --output-root /path/to/research_outputs/press_final
+
+python pipeline/ball_drive/02_train.py \
+  --base-root /path/to/research_outputs/press_final/base \
+  --output-root /path/to/research_outputs/press_final \
+  --fold 0
+```
+
+`--fold` selects a fitting fold; omitting it runs all five. Feature calculation can be partitioned with repeatable `--match` arguments. The fold partitions and the fit-only vocabularies remain fixed when feature jobs are split across workers. Run a scores stage only after every required fold has finished. `JAX_ENABLE_X64=1` is required for fitting the physical models; the complete runner sets it explicitly.
+
+## Output layout
+
+```text
+research_outputs/press_final/
+  base/
+    matches/<match_id>/         # observations, identities, intervals and actions
+    xt/                        # event tables; xT itself is fitted per split
+    manifest.json
+    coverage.csv
+  ball_drive/
+    features/<match_id>/
+    training/fold_<n>/
+    scores/
+    production/
+  pass_probability/
+  pass_selection/
+  action_selection/
+  residual_risk/
+  composed_risk/
+    features/
+    scores/
+```
+
+Every task has dedicated folders. JSON files record settings, feature order, learned category levels and model dependencies; numerical arrays use NPZ/NPY or Parquet, and tree ensembles use UBJ. Stage manifests record completed outputs and their checksums. Existing nonempty outputs are protected against accidental replacement.
+
+## Verification
+
+Feature construction was checked against the accepted cohorts: **9,114 ball-drive observations, 6,706 pass-probability observations, 6,810 pass-selection choices, 16,918 action-selection decisions and 7,820 residual-risk observations**. A raw-to-base reconstruction was checked on an observed match, and the reconstructed production xT surface matches the saved surface. Numerical checks compare the extracted physical likelihood with the public evaluator. The distributed model files are checksum-protected and are not refitted by these checks.
+
+A full research rerun is an explicit, computationally expensive operation and is not part of these checks, which do not constitute a new benchmark.

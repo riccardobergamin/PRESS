@@ -1,6 +1,7 @@
 """Scoped precision across JAX versions used locally and on Orfeo."""
 import jax
 
+
 def enable_x64(enabled=True):
     """Return the public precision context, with support for older JAX.
 

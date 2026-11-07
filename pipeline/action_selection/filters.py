@@ -2,5 +2,4 @@
 
 
 def select(actions):
-    return actions.loc[actions.is_canonical & actions.state_eligible &
-        actions.training_cohort_eligible].copy()
+    return actions.loc[actions.is_canonical & actions.state_eligible & actions.training_cohort_eligible].copy()

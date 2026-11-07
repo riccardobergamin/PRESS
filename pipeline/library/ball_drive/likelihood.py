@@ -8,6 +8,8 @@ from .splines import TIMES, DT
 DEFAULT_DYNAMICS = dict(v_max=7.0, a_linear=7.0, a_turn=7.0, preserve_initial_overspeed=False)
 
 @partial(jax.jit, static_argnames=('v_max', 'a_linear', 'a_turn', 'preserve_initial_overspeed'))
+
+
 def _arrival_batch(r, v, x, vx, *, v_max, a_linear, a_turn, preserve_initial_overspeed):
     from PRESS.physics.times import time_to_intercept
     from PRESS.physics.angles import compute_angle
@@ -30,6 +32,7 @@ def _arrival_batch(r, v, x, vx, *, v_max, a_linear, a_turn, preserve_initial_ove
         return jax.vmap(at_time)(jnp.asarray(TIMES))
     return jax.vmap(snapshot)(r, v, x, vx)
 
+
 def arrival_times(raw, dynamics):
     """Use package TTI arithmetic; alter only the declared physical parameter.
 
@@ -42,6 +45,7 @@ def arrival_times(raw, dynamics):
         raise ValueError('Invalid arrival dynamics')
     arrays = [jnp.asarray(raw[key], dtype=jnp.float32) for key in ['r_defs', 'v_defs', 'x_bc', 'v_bc']]
     return np.asarray(_arrival_batch(*arrays, **cfg))
+
 
 def integrate_cause_rates(cause_rates, integration='exponential', dt=DT):
     """Shared survival and cause probabilities, piecewise constant hazards.
@@ -70,6 +74,7 @@ def integrate_cause_rates(cause_rates, integration='exponential', dt=DT):
         return (jnp.exp(log_survival), causes)
     raise ValueError('Unknown integration method: ' + str(integration))
 
+
 def _predict(theta, data, matrix, kind, scale, integration='exponential'):
     k = matrix.shape[-1]
     eta = theta[1] * data['speed'][:, None] + theta[2] * data['boundary'] + matrix @ theta[4:4 + k]
@@ -95,10 +100,11 @@ def _predict(theta, data, matrix, kind, scale, integration='exponential'):
     return (jnp.clip(nonloss, 1e-06, 1 - 1e-06), exposure)
 predict_jit = jax.jit(_predict, static_argnames=('kind', 'integration'))
 
+
 def posterior(theta, data, matrix, precision, ratio, aware, kind, scale, integration='exponential'):
     nonloss, _ = _predict(theta, data, matrix, kind, scale, integration)
     if aware or ratio != 1.0:
-        raise ValueError("The final physical model uses natural class proportions.")
+        raise ValueError('The final physical model uses natural class proportions.')
     probability = nonloss
     y = data['outcome']
     nll = -jnp.sum(y * jnp.log(probability) + (1 - y) * jnp.log1p(-probability))
@@ -108,10 +114,24 @@ value_gradient = jax.jit(jax.value_and_grad(posterior), static_argnames=('aware'
 objective = jax.jit(posterior, static_argnames=('aware', 'kind', 'integration'))
 hessian = jax.jit(jax.hessian(posterior), static_argnames=('aware', 'kind', 'integration'))
 
-def fitting_data(data):
-    return {key: jnp.asarray(value, dtype=jnp.float64) for key, value in data.items() if key != 'valid_defenders'}
 
-def fit_map(data, matrix, precision, *, kind, scale, ratio=1.0, aware=False, seed=10, initializations=32, maxiter=2000, integration='exponential'):
+def fitting_data(data):
+    return {key: jnp.asarray(value, dtype=jnp.float64) for key,
+        value in data.items() if key != 'valid_defenders'}
+
+
+def fit_map(data,
+    matrix,
+    precision,
+    *,
+    kind,
+    scale,
+    ratio=1.0,
+    aware=False,
+    seed=10,
+    initializations=32,
+    maxiter=2000,
+    integration='exponential'):
     if not jax.config.x64_enabled:
         raise ValueError('Set JAX_ENABLE_X64=1')
     batch = fitting_data(data)
@@ -145,15 +165,30 @@ def fit_map(data, matrix, precision, *, kind, scale, ratio=1.0, aware=False, see
 
     def record(result, method):
         val, grad = fun(result.x)
-        return dict(theta=result.x, objective=val, converged=bool(result.success and val < 1e+99 and (np.max(abs(grad)) < 0.01)), gradient_max=float(np.max(abs(grad))), iterations=int(result.nit), message=str(result.message), method=method)
+        return dict(theta=result.x,
+            objective=val,
+            converged=bool(result.success and val < 1e+99 and (np.max(abs(grad)) < 0.01)),
+            gradient_max=float(np.max(abs(grad))),
+            iterations=int(result.nit),
+            message=str(result.message),
+            method=method)
 
     def optimize(point, recovery_start=False):
-        result = minimize(fun, point, jac=True, method='L-BFGS-B', options=dict(maxiter=maxiter, ftol=1e-12, gtol=1e-05, maxls=40))
+        result = minimize(fun,
+            point,
+            jac=True,
+            method='L-BFGS-B',
+            options=dict(maxiter=maxiter, ftol=1e-12, gtol=1e-05, maxls=40))
         primary = record(result, 'L-BFGS-B')
         attempts.append(primary)
         primary['recovery_start'] = recovery_start
         if not primary['converged'] and primary['objective'] < 1e+99:
-            retry = minimize(fun, result.x, jac=True, hess=curvature, method='trust-exact', options=dict(maxiter=200, gtol=1e-05))
+            retry = minimize(fun,
+                result.x,
+                jac=True,
+                hess=curvature,
+                method='trust-exact',
+                options=dict(maxiter=200, gtol=1e-05))
             refined = record(retry, 'trust-exact stationarity refinement')
             refined['primary_attempt'] = {k: v for k, v in primary.items() if k != 'theta'}
             refined['recovery_start'] = recovery_start
@@ -185,8 +220,14 @@ def fit_map(data, matrix, precision, *, kind, scale, ratio=1.0, aware=False, see
     fit['covariance'] = np.linalg.inv(h) if fit['laplace_valid'] else np.full_like(h, np.nan)
     return fit
 
+
 def predict(data, matrix, theta, kind, scale, integration='exponential'):
-    probability, exposure = predict_jit(jnp.asarray(theta), fitting_data(data), jnp.asarray(matrix), kind, scale, integration)
+    probability, exposure = predict_jit(jnp.asarray(theta),
+        fitting_data(data),
+        jnp.asarray(matrix),
+        kind,
+        scale,
+        integration)
     probability = np.asarray(probability)
     exposure = float(exposure)
     if not np.isfinite(probability).all() or not np.isfinite(exposure) or (integration == 'euler' and exposure >= 1):

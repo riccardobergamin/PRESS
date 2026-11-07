@@ -7,9 +7,18 @@ import pandas as pd
 from pipeline.library.pass_selection.common import sha
 from pipeline.library.pass_selection.choice_likelihood import nll, flat_derivatives, reference_derivatives
 
+
 class Engine:
 
-    def __init__(self, membership_root, ids, sizes, chosen, fold, mode, membership_protocol_sha256, smoke=False):
+    def __init__(self,
+        membership_root,
+        ids,
+        sizes,
+        chosen,
+        fold,
+        mode,
+        membership_protocol_sha256,
+        smoke=False):
         self.blocks = []
         self.mode = mode
         self.count = len(ids)
@@ -24,7 +33,7 @@ class Engine:
             nc = int(sizes[offset])
             assert (sizes[offset:offset + count] == nc).all()
             if mode == 'cnl':
-                folder = Path(membership_root) / str(match)
+                folder = Path(membership_root) / f'fold_{fold}' / str(match)
                 done = json.loads((folder / 'completion.json').read_text())
                 assert done['status'] == 'complete' and (not (folder / 'INCOMPLETE').exists())
                 assert smoke or not done['smoke']
@@ -83,7 +92,9 @@ class Engine:
         output = np.empty(self.n_rows, np.float64)
         for obs, rows, a, y in self.blocks:
             z = np.asarray(scores[rows], np.float64).reshape(len(y), -1)
-            values = z - logsumexp(z, axis=1, keepdims=True) if self.mode == 'flat' else np.asarray(full_log_probabilities(z, a, rho))
+            values = z - logsumexp(z,
+                axis=1,
+                keepdims=True) if self.mode == 'flat' else np.asarray(full_log_probabilities(z, a, rho))
             assert np.isfinite(values).all()
             assert np.allclose(logsumexp(values, axis=1), 0.0, atol=2e-10)
             output[rows] = values.ravel()

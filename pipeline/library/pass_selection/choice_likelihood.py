@@ -13,6 +13,7 @@ from jax.scipy.special import logsumexp
 from scipy.optimize import minimize
 jax.config.update('jax_enable_x64', True)
 
+
 def _parts(scores, log_alpha, chosen, rho):
     scores = jnp.asarray(scores, jnp.float64)
     log_alpha = jnp.asarray(log_alpha, jnp.float64)
@@ -30,10 +31,14 @@ def _parts(scores, log_alpha, chosen, rho):
     return (-log_py, b, jnp.exp(log_w), jnp.exp(joint - log_py[:, None]))
 
 @jax.jit
+
+
 def nll(scores, log_alpha, chosen, rho):
     return _parts(scores, log_alpha, chosen, rho)[0]
 
 @jax.jit
+
+
 def derivatives(scores, log_alpha, chosen, rho):
     loss, b, w, posterior = _parts(scores, log_alpha, chosen, rho)
     p = jnp.sum(b * w[:, None, :], axis=-1)
@@ -49,6 +54,8 @@ def derivatives(scores, log_alpha, chosen, rho):
     return (loss, g, exact_h * count / (count - 1.0), exact_h, p)
 
 @jax.jit
+
+
 def reference_derivatives(scores, log_alpha, chosen, rho):
     """Exact gradient and literal upstream CNL curvature, in stable form.
 
@@ -65,7 +72,9 @@ method. It is intentionally not advertised as the exact Hessian diagonal.
     g = g.at[jnp.arange(len(scores)), chosen].add(-rho)
     pb = p[:, :, None]
     second_not_chosen = -rho * rho * b + rho * (-b2 + b) + (b - pb) ** 2 - dp[:, :, None]
-    second_chosen = rho * rho * (2 * b2 - 3 * b + 1) + rho * (-3 * b2 + 3 * b + 2 * (b * pb - pb)) + b2 - 2 * b * pb + pb * pb - dp[:, :, None]
+    second_chosen = rho * rho * (2 * b2 - 3 * b + 1) + rho * (-3 * b2 + 3 * b + 2 * (b * pb - pb)) + b2 - 2 * b * pb + pb * pb - dp[:,
+        :,
+        None]
     mask = jnp.arange(scores.shape[1])[None, :] == chosen[:, None]
     second = jnp.where(mask[:, :, None], second_chosen, second_not_chosen)
     curvature = g * g - jnp.sum(posterior[:, None, :] * second, axis=-1)
@@ -74,6 +83,8 @@ method. It is intentionally not advertised as the exact Hessian diagonal.
     return (loss, g, curvature, p)
 
 @jax.jit
+
+
 def flat_derivatives(scores, chosen):
     scores = jnp.asarray(scores, jnp.float64)
     p = jax.nn.softmax(scores, axis=1)
@@ -82,6 +93,7 @@ def flat_derivatives(scores, chosen):
     h = jnp.maximum(p * (1.0 - p) * count / (count - 1.0), 1e-06)
     loss = logsumexp(scores, axis=1) - scores[jnp.arange(len(scores)), chosen]
     return (loss, g, h)
+
 
 def fit_rho(engine, scores, current, bounds=(1.0, 10.0), relaxation=0.1, restarts=(), scan=()):
     """Fit-only SLSQP with the reference relaxation in inverse scale.
@@ -118,9 +130,12 @@ def fit_rho(engine, scores, current, bounds=(1.0, 10.0), relaxation=0.1, restart
     after = fun([relaxed])
     accepted = bool(np.isfinite(after) and after <= before + 1e-12)
     rho = relaxed if accepted else float(current)
-    return (rho, dict(previous_rho=float(current), rho=rho, mu_run31_convention=1.0 / rho, fit_ce_before=before, fit_ce_after=after if accepted else before, candidate_fit_ce=candidate_value, candidate_rho=candidate, relaxation=relaxation, trials=trials, accepted=accepted, evaluations=len(cache), conditional_scan=profile, slsqp_initial_rho=initial, near_lower_bound=bool(rho <= bounds[0] + 0.002), near_upper_bound=bool(rho >= bounds[1] - 0.002)))
+    return (rho,
+        dict(previous_rho=float(current), rho=rho, mu_run31_convention=1.0 / rho, fit_ce_before=before, fit_ce_after=after if accepted else before, candidate_fit_ce=candidate_value, candidate_rho=candidate, relaxation=relaxation, trials=trials, accepted=accepted, evaluations=len(cache), conditional_scan=profile, slsqp_initial_rho=initial, near_lower_bound=bool(rho <= bounds[0] + 0.002), near_upper_bound=bool(rho >= bounds[1] - 0.002)))
 
 @jax.jit
+
+
 def full_log_probabilities(scores, log_alpha, rho):
     """Stable final CNL distribution, for post-training output calibration only."""
     scores = jnp.asarray(scores, jnp.float64)

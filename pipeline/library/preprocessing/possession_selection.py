@@ -4,10 +4,12 @@ import pandas as pd
 START_MATCHED = 'is_player_possession_start_matched'
 END_MATCHED = 'is_player_possession_end_matched'
 
+
 def pass_duration_eligible(release_frame, receipt_frame, *, fps=10):
     """Training flight duration in the inclusive interval [0.5, 10] seconds."""
     gap = receipt_frame - release_frame
     return (gap >= 0.5 * fps) & (gap <= 10 * fps)
+
 
 def is_matched(value) -> bool:
     """Accept an explicit true flag; missing values and strings are unmatched.
@@ -16,6 +18,7 @@ def is_matched(value) -> bool:
     must not pass through Python's bool(NaN) == True conversion.
     """
     return False if pd.isna(value) else bool(value == True)
+
 
 def matched_individual_mask(possessions: pd.DataFrame) -> pd.Series:
     """Select individual intervals only when both boundary flags are true.
@@ -28,6 +31,7 @@ def matched_individual_mask(possessions: pd.DataFrame) -> pd.Series:
     if missing:
         raise ValueError(f'Missing possession boundary flags: {sorted(missing)}')
     return (possessions[START_MATCHED].eq(True) & possessions[END_MATCHED].eq(True)).fillna(False).astype(bool)
+
 
 def pass_receipt_link_reason(sender, receiver):
     """Explain why the next possession cannot identify this pass's endpoint.
@@ -56,6 +60,7 @@ def pass_receipt_link_reason(sender, receiver):
             return 'previous_pass_not_matched'
     return ''
 
+
 def matched_pass_pairs(events: pd.DataFrame) -> pd.DataFrame:
     """Pair matched pass release with the immediate next matched start.
 
@@ -80,11 +85,14 @@ def matched_pass_pairs(events: pd.DataFrame) -> pd.DataFrame:
             keep.loc[index] = False
     result = rows.loc[keep].copy()
     result['frame_receipt'] = following.loc[keep, 'frame_start']
-    for source, destination in (('event_id', 'receipt_event_id'), ('player_id', 'receipt_player_id'), (END_MATCHED, 'receipt_end_matched')):
+    for source, destination in (('event_id', 'receipt_event_id'),
+        ('player_id', 'receipt_player_id'),
+        (END_MATCHED, 'receipt_end_matched')):
         if source in following:
             result[destination] = following.loc[keep, source]
     result['receipt_start_matched'] = True
     return result.reset_index(drop=True)
+
 
 def annotate_matched_pass_release_frames(tracking, events, player_map):
     """Retain usable release states without inventing an individual interval.

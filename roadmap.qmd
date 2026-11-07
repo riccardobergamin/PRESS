@@ -12,6 +12,8 @@ PRESS combines a reusable inference package with a portfolio documenting its fiv
 - **User-facing API:** the [three-part user guide](usage.qmd) covers preprocessing, segmentation and an end-to-end real-match workflow. The reference is organized into [initialization and classes](api.qmd), [solvers](solvers.qmd), [getters](reference/getters.qmd) and [plots](reference/plots.qmd). Match input tables have explicit contracts, and result exports can be saved and reloaded.
 - **Descriptive extras:** [BCOS](vignettes/extras/bcos/10_bcos.ipynb) and [xT](vignettes/extras/expected_threat/11.expected_threat.ipynb) have separate definitions, examples and numerical or resolution checks.
 
+- **Research pipeline:** numbered feature, fitting, scoring and production-refit stages live in `pipeline/`. The [pipeline page](pipeline.qmd) gives the dependency order, commands and output layout. Historical baselines and experimental runs remain separate.
+
 ## Possible research extensions
 
 **A richer description of accessible space.** Explore directional, radial and spatial summaries of the BCOS field beyond its total area. Their additional value for action selection and residual risk would need held-out evaluation. The current scalar already combines movement and defensive reachability; richer summaries should demonstrate useful information beyond the existing features.

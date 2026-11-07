@@ -1,8 +1,6 @@
-"""Fixed in-process XGBoost utility paths and fit-only scale updates.
+"""In-process utility fitting with fit-only scale updates and validation stopping.
 
-Keep live Booster objects across budget rungs: model serialization does not
-restore all native stochastic state. Disk checkpoints are audit artifacts,
-not permission to resume a stochastic trajectory in a different process.
+The selected tree prefix retains its contemporaneous nesting scale.
 """
 import json
 from pathlib import Path
@@ -12,9 +10,18 @@ import xgboost as xgb
 from pipeline.library.pass_selection.choice_likelihood import fit_rho
 from pipeline.library.pass_selection.common import write
 
+
 class Trajectory:
 
-    def __init__(self, folder, params, fit_matrix, validation_matrix, fit_engine, validation_engine, protocol, restore=False):
+    def __init__(self,
+        folder,
+        params,
+        fit_matrix,
+        validation_matrix,
+        fit_engine,
+        validation_engine,
+        protocol,
+        restore=False):
         self.folder = Path(folder)
         self.params = params
         self.df, self.dv = (fit_matrix, validation_matrix)
@@ -23,7 +30,17 @@ class Trajectory:
         assert not restore, 'Disk resume would not preserve native stochastic state.'
         self.folder.mkdir(parents=True, exist_ok=False)
         self.model = xgb.Booster(params=params, cache=[self.df, self.dv])
-        self.state = dict(rounds=0, rho=1.0, best_round=0, best_rho=1.0, best_validation_ce=1e+99, stopped=False, history=[], updates=[], seconds=0.0, parameters=params, fit_history=[])
+        self.state = dict(rounds=0,
+            rho=1.0,
+            best_round=0,
+            best_rho=1.0,
+            best_validation_ce=1e+99,
+            stopped=False,
+            history=[],
+            updates=[],
+            seconds=0.0,
+            parameters=params,
+            fit_history=[])
         assert self.model.num_boosted_rounds() == self.state['rounds']
 
     def advance(self, limit):
@@ -34,11 +51,19 @@ class Trajectory:
         while self.state['rounds'] < limit and (not self.state['stopped']):
             epoch = self.state['rounds']
             rho = self.state['rho']
-            self.model.update(self.df, iteration=epoch, fobj=lambda scores, matrix: self.fit.gradient(scores, rho))
+            self.model.update(self.df,
+                iteration=epoch,
+                fobj=lambda scores,
+                matrix: self.fit.gradient(scores, rho))
             step = epoch + 1
             if self.fit.mode == 'cnl' and step % interval == 0:
                 scores = self.model.predict(self.df, output_margin=True)
-                updated, record = fit_rho(self.fit, scores, rho, bounds=tuple(cfg['rho_bounds']), relaxation=cfg['relaxation'], scan=tuple(cfg['conditional_scan']))
+                updated, record = fit_rho(self.fit,
+                    scores,
+                    rho,
+                    bounds=tuple(cfg['rho_bounds']),
+                    relaxation=cfg['relaxation'],
+                    scan=tuple(cfg['conditional_scan']))
                 self.state['rho'] = updated
                 record['after_tree'] = step
                 self.state['updates'].append(record)
@@ -62,7 +87,16 @@ class Trajectory:
                 fit_ce = float(self.fit.losses(self.model.predict(self.df, output_margin=True), self.state['rho']).mean())
                 assert np.isfinite(fit_ce)
                 self.state['fit_history'].append(dict(round=step, fit_ce=fit_ce, validation_ce=ce, rho=self.state['rho']))
-                print('TREE', self.folder.name, step, 'fit', fit_ce, 'validation', ce, 'best', self.state['best_validation_ce'], flush=True)
+                print('TREE',
+                    self.folder.name,
+                    step,
+                    'fit',
+                    fit_ce,
+                    'validation',
+                    ce,
+                    'best',
+                    self.state['best_validation_ce'],
+                    flush=True)
             if step % 100 == 0:
                 self.save()
         self.state['seconds'] += time.monotonic() - start_time
