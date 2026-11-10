@@ -33,7 +33,7 @@ pipeline/
   library/
     common.py                  # paths, encoding, checksums and metrics
     states.py                  # initial states and known-at-frame context
-    expected_threat.py         # fit-match-only 10 × 6 xT
+    expected_threat.py         # fitting-only smoothing selection and 10 × 6 xT
     option_features.py         # physical and hypothetical pass fields
     binary_training.py         # native binary XGBoost training
     ball_drive/                # spline bases, MAP likelihood and export
@@ -66,6 +66,18 @@ The [general benchmark protocol](benchmark.qmd) explains the distinction between
 7. Refit the production stack in the same dependency order. Full-data features are generated separately with `01_features.py --production-features` for the three tree-model tasks. Production residual-risk features use five eight-fit/two-held action models for P(carry).
 
 A production model never substitutes for a fold-specific model in the benchmark feature stack. The final refits are exports for inference, not additional held-out evaluations.
+
+### Following the xT calculation
+
+The xT implementation is in [expected_threat.py](pipeline/library/expected_threat.py). Its reading order is:
+
+1. `prepare`: build the four event tables using the archived extraction rules.
+2. `rebin`, `transition`, `goal_probability`, `xt_model`: assign cells, estimate destination distributions and goal probability, then solve the Bellman equation. Event frequencies are not smoothed.
+3. `component_scores`, `select_bandwidth`: evaluate the candidate Gaussian bandwidths by leave-one-match-out on the fitting matches. Select the largest bandwidth within one paired-match standard error of the best score.
+4. `fit_on_matches`: apply that selection separately to passes, carries and goal given shot, then fit the surface on all requested fitting matches. Its result includes the surface, component arrays, chosen bandwidths and validation tables.
+5. `fit`: load the event tables and return the surface to the downstream feature builder.
+
+The same procedure uses the six fitting matches for each feature fold and all ten matches for production. The production bandwidths (8, 5 and 5 m) are results of selection, not constants imposed on every fold. In the accepted six-match fits, the goal bandwidth is 8 m in folds 0 and 4 and 5 m in the remaining folds; the pass and carry bandwidths are 8 and 5 m throughout. The [xT vignette](vignettes/extras/expected_threat/11.expected_threat.ipynb) distinguishes the event frequencies from the transition matrices and explains both uses of Gaussian smoothing.
 
 ## Run the pipeline
 

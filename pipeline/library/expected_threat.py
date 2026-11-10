@@ -1,7 +1,21 @@
-"""Fixed 10×6 xT, estimated exclusively on the requested fit matches."""
+"""10×6 xT: event counts -> component smoothing -> Bellman iteration.
+
+The grid is fixed. The three smoothing bandwidths are selected again inside
+the requested fitting matches, as in the accepted six-match and production
+fits. They are not fixed to the all-ten-match production values.
+
+Reading order after event preparation:
+    rebin -> transition / goal_probability -> xt_model
+    component_scores -> select_bandwidth -> fit_on_matches -> fit
+"""
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from scipy.ndimage import gaussian_filter
+
+
+BANDWIDTHS_M = [0., 3., 5., 8., 12., 18.]
 
 
 def prepare_skillcorner_events(df, pitch_length=105, pitch_width=68, n_x=10, n_y=6):
@@ -76,6 +90,12 @@ def rebin(frame, kind, nx, ny):
 
 
 def transition(frame, nx, ny, bandwidth):
+    """T[i,j]: destination given one event type and one fixed origin i.
+
+    `frame` contains either completed passes or within-possession displacements.
+    Smooth destination counts only; the zero sigma leaves origins separate.
+    Each row sums to one. This matrix contains no extra success probability.
+    """
     counts = np.zeros((nx * ny, nx, ny))
     np.add.at(counts, (frame.origin, frame.target // ny, frame.target % ny), 1.0)
     unseen = counts.sum(axis=(1, 2)) == 0
@@ -91,6 +111,7 @@ def transition(frame, nx, ny, bandwidth):
 
 
 def goal_probability(frame, nx, ny, bandwidth):
+    """P(goal | shot,cell): smooth goal and shot counts, then take their ratio."""
     shots = np.bincount(frame.origin, minlength=nx * ny).reshape(nx, ny).astype(float)
     goals = np.bincount(frame.loc[frame.goal, 'origin'], minlength=nx * ny).reshape(nx, ny).astype(float)
     if bandwidth:
@@ -101,6 +122,13 @@ def goal_probability(frame, nx, ny, bandwidth):
 
 
 def xt_model(tables, nx, ny, sigmas):
+    """p_a[i]=n_a[i]/n_total[i]; xT=q+M@xT.
+
+    p_pass counts completed passes, not successes divided by attempted passes.
+    The carry table contains start-to-end displacements regardless of the
+    terminal outcome. These event frequencies p_a are NOT smoothed.
+    Only destination counts (T) and goal/shot counts use Gaussian smoothing.
+    """
     counts = {k: np.bincount(v.origin, minlength=nx * ny).astype(float) for k, v in tables.items()}
     total = sum(counts.values())
     probabilities = {k: np.divide(v, total, out=np.zeros_like(total), where=total > 0) for k,
@@ -130,8 +158,114 @@ def xt_model(tables, nx, ny, sigmas):
         bellman_residual=float(np.max(abs(value - reward - operator @ value))))
 
 
+# Smoothing selection: use only the matches available for this xT fit.
+
+def component_scores(validation, fitting, component, nx, ny, bandwidth):
+    """Held-out score for one component estimated on `fitting` events.
+
+    Pass/carry: -log(T[i,j] / cell_area), a destination-density score.
+    Shots: Bernoulli CE of the goal outcome. Neither scores the full xT target.
+    """
+    if component == 'shots':
+        p_goal = goal_probability(fitting, nx, ny, bandwidth)
+        probability = np.clip(p_goal[validation.origin], 1e-6, 1 - 1e-6)
+        goal = validation.goal.to_numpy(float)
+        return -(goal * np.log(probability) + (1 - goal) * np.log1p(-probability))
+
+    T = transition(fitting, nx, ny, bandwidth)
+    probability = T[validation.origin, validation.target]
+    cell_area = (105 / nx) * (68 / ny)
+    return -np.log(probability / cell_area)
+
+
+def select_bandwidth(events, component, fitting_matches, nx=10, ny=6):
+    """Leave one fitting match out; choose the largest h within one paired SE.
+
+    Returns the chosen bandwidth, per-match scores and the candidate comparison.
+    The jackknife below removes match score groups; it does not refit a model.
+    """
+    records = []
+    for held_match in sorted(fitting_matches):
+        fitting = events.loc[events.match_id.isin(fitting_matches)
+                             & events.match_id.ne(held_match)]
+        validation = events.loc[events.match_id.eq(held_match)]
+        if validation.empty:
+            continue
+        for bandwidth in BANDWIDTHS_M:
+            losses = component_scores(validation, fitting, component, nx, ny, bandwidth)
+            records.append(dict(match_id=held_match, bandwidth=bandwidth,
+                                n=len(losses), nll=float(losses.mean())))
+
+    scores = pd.DataFrame(records)
+
+    # Pool held-out match scores with event counts as weights.
+    pooled = scores.groupby('bandwidth', sort=True).apply(
+        lambda group: np.average(group.nll, weights=group.n), include_groups=False,
+    )
+    best = float(pooled.idxmin())
+    reference = scores.loc[scores.bandwidth.eq(best)].set_index('match_id')
+
+    comparisons = []
+    for bandwidth in BANDWIDTHS_M:
+        candidate = scores.loc[scores.bandwidth.eq(bandwidth)]
+        candidate = candidate.set_index('match_id').reindex(reference.index)
+        weights = candidate.n.to_numpy(float)
+        differences = (candidate.nll - reference.nll).to_numpy(float)
+
+        # Delta = sum_m n_m*d_m / sum_m n_m.
+        weighted_total = np.sum(weights * differences)
+        delta = np.average(differences, weights=weights)
+
+        # Delete-one-match Delta and its jackknife standard error.
+        leave_one_out = (weighted_total - weights * differences) / (weights.sum() - weights)
+        n_matches = len(weights)
+        se = np.sqrt((n_matches - 1) / n_matches
+                     * np.sum((leave_one_out - leave_one_out.mean()) ** 2))
+        comparisons.append(dict(
+            bandwidth=bandwidth, pooled_nll=float(pooled.loc[bandwidth]),
+            delta_from_best=float(delta), paired_se=float(se),
+            admitted=bool(delta <= se + 1e-12),
+        ))
+
+    comparison = pd.DataFrame(comparisons)
+    selected = float(comparison.loc[comparison.admitted, 'bandwidth'].max())
+    comparison['selected'] = comparison.bandwidth.eq(selected)
+    return selected, scores, comparison
+
+
+def fit_on_matches(event_tables, fitting_matches, nx=10, ny=6):
+    """Select smoothing and fit xT on exactly the requested matches.
+
+    Input: four event DataFrames with match_id and continuous coordinates.
+    Output: all fitted components plus the actual smoothing choices and scores.
+    Six-match feature fits and the ten-match production fit use the same steps.
+    """
+    fitting_matches = sorted(str(match) for match in fitting_matches)
+    tables = {}
+    for name, events in event_tables.items():
+        events = events.copy()
+        events['match_id'] = events.match_id.astype(str)
+        events = events.loc[events.match_id.isin(fitting_matches)]
+        tables[name] = rebin(events, name, nx, ny)
+
+    bandwidths, tuning_scores, comparisons = {}, {}, {}
+    for component in ['passes', 'carries', 'shots']:
+        bandwidth, scores, comparison = select_bandwidth(
+            tables[component], component, fitting_matches, nx, ny,
+        )
+        bandwidths[component] = bandwidth
+        tuning_scores[component] = scores
+        comparisons[component] = comparison
+
+    fitted = xt_model(tables, nx, ny, bandwidths)
+    fitted.update(
+        bandwidth_m=bandwidths, fitting_matches=fitting_matches,
+        tuning_scores=tuning_scores, bandwidth_comparisons=comparisons,
+    )
+    return fitted
+
+
 def prepare(base, matches):
-    from pathlib import Path
     destination = Path(base) / 'xt'
     destination.mkdir(parents=True, exist_ok=False)
     tables = {name: [] for name in ['carries', 'passes', 'shots', 'losses']}
@@ -145,10 +279,13 @@ def prepare(base, matches):
 
 
 def fit(base, matches):
-    from pathlib import Path
-    tables = {}
-    for name in ['carries', 'passes', 'shots', 'losses']:
-        frame = pd.read_parquet(Path(base) / 'xt' / (name + '.parquet'))
-        frame = frame.loc[frame.match_id.astype(str).isin(matches)]
-        tables[name] = rebin(frame, name, 10, 6)
-    return xt_model(tables, 10, 6, dict(passes=8.0, carries=5.0, shots=5.0))['xt']
+    """Load the four event tables and return the fitting-only 10×6 xT surface.
+
+    Downstream callers keep receiving the same (10,6) array. The component fit
+    remains inspectable through fit_on_matches; no installed model is replaced.
+    """
+    event_tables = {
+        name: pd.read_parquet(Path(base) / 'xt' / (name + '.parquet'))
+        for name in ['carries', 'passes', 'shots', 'losses']
+    }
+    return fit_on_matches(event_tables, matches)['xt']
