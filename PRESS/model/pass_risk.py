@@ -178,7 +178,7 @@ class PassRiskModel:
                     'distance_mode',
                 ]},
                 a_turn=p.get('a_turn', p['a_max']),
-                preserve_initial_overspeed=p.get('preserve_initial_overspeed', False),
+                preserve_initial_overspeed=p.get('preserve_initial_overspeed', True),
             )
             from PRESS.physics.times import time_to_intercept
             tau = time_to_intercept(
@@ -188,7 +188,7 @@ class PassRiskModel:
                 v_max=p['v_max'],
                 a_max=p['a_max'],
                 a_turn=p.get('a_turn', p['a_max']),
-                preserve_initial_overspeed=p.get('preserve_initial_overspeed', False),
+                preserve_initial_overspeed=p.get('preserve_initial_overspeed', True),
             )
         valid = np.broadcast_to((np.linalg.norm(pos, axis=-1) < 500)[:, None], tau.shape).copy()
         valid[ball_carrier_idx] = False

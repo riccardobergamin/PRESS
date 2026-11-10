@@ -50,7 +50,7 @@ def pass_prob_step(
     integration_method='exponential',
     *,
     a_turn=None,
-    preserve_initial_overspeed=False,
+    preserve_initial_overspeed=True,
 ):
     """One frozen-hazard step along a supplied 3D ball path.
 
@@ -88,7 +88,7 @@ def integrate_pass_prob(
     integration_method='exponential',
     *,
     a_turn=None,
-    preserve_initial_overspeed=False,
+    preserve_initial_overspeed=True,
 ):
     """Attacking control along T ball positions sampled dt seconds apart.
 
@@ -147,7 +147,7 @@ def ppcf_step(
     integration_method='exponential',
     *,
     a_turn=None,
-    preserve_initial_overspeed=False,
+    preserve_initial_overspeed=True,
 ):
     """One shared-survival control update at hypothetical target locations."""
     gates = F(
@@ -185,7 +185,7 @@ def integrate_pitch_control(
     integration_method='exponential',
     *,
     a_turn=None,
-    preserve_initial_overspeed=False,
+    preserve_initial_overspeed=True,
 ):
     """Player-specific control, shape (n_players,n_targets).
 

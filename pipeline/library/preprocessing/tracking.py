@@ -18,7 +18,7 @@ def annotate_training_cohort(table, players, *, canonical_players=False):
     """Flag carrier eligibility while retaining all intervals for inference.
 
     Only the carrier role is filtered: goalkeepers remain in tracking and in
-    defensive/receiving states. Unknown roles fail rather than default outfield.
+    defensive/receiving states. Unknown roles fail.
     """
     result = table.copy()
     key = 'player_possession' if canonical_players else 'player_id'

@@ -8,8 +8,10 @@ from PRESS.physics.times import time_to_intercept
 def test_observed_overspeed_is_preserved_without_further_acceleration():
     p=jnp.array([[0.,0.]]);v=jnp.array([[8.,0.]])
     target=jnp.array([[16.,0.]])
-    legacy=float(time_to_intercept(p,v,target,v_max=7.,a_max=7.)[0,0])
+    legacy=float(time_to_intercept(p,v,target,v_max=7.,a_max=7.,preserve_initial_overspeed=False)[0,0])
     kept=float(time_to_intercept(p,v,target,v_max=7.,a_max=7.,preserve_initial_overspeed=True)[0,0])
+    default=float(time_to_intercept(p,v,target,v_max=7.,a_max=7.)[0,0])
+    assert default == kept
     # Historical compute_angle adds epsilons to normalized vector norms;
     # float64 retains a tiny nonzero turn even for exactly aligned vectors.
     assert legacy==pytest.approx(16/7,abs=1e-4)

@@ -1,63 +1,156 @@
 ---
-title: "Appendix: construction of the spline bases of the ball-drive risk model"
+title: "Appendix: construction of the restricted cubic spline bases"
 ---
 
-This appendix describes how the nonlinear terms of the tackle-rate model are built. The model and the role of the smoothing strengths are in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb), and the selection procedure is in the [benchmark](../benchmarks/01_ball_drive_risk.qmd).
+This appendix describes the change of basis used for the nonlinear effects in the [ball-drive risk model](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). The construction separates the constant and linear components, improves the empirical scaling and conditioning of each nonlinear block, and diagonalizes its curvature penalty. The resulting penalty can be expressed through independent Gaussian priors on the transformed coefficients. The [benchmark](../benchmarks/01_ball_drive_risk.qmd) describes the selection of the smoothing strengths.
 
-## 1. Effects
+## 1. Normalization and knots
 
-For each covariate $j\in\{v,B,\phi\}$, with $v$ the carrier speed, $B$ the signed distance to the pitch boundary and $\phi$ the approach angle, the effect combines a linear term and a nonlinear spline component,
+For one covariate $x$, let $x_1,\ldots,x_n$ be the fitting values. Normalize them using their fitting-set range,
 
-$$g_v(v)=\beta_v v+\sum_{k=1}^{3}\gamma_{vk}b_{vk}(v),\qquad
-g_B(B)=\beta_B B+\sum_{k=1}^{3}\gamma_{Bk}b_{Bk}(B),$$
+$$
+z_i=\frac{x_i-x_{\min}}{x_{\max}-x_{\min}}.
+$$
 
-$$g_\phi(\phi)=\beta_\phi z_\phi(\phi)+\sum_{k=1}^{2}\gamma_{\phi k}b_{\phi k}(\phi),\qquad z_\phi(\phi)=\frac{\phi-\mu_\phi}{\sigma_\phi},$$
+The $K$ knots $\kappa_1<\cdots<\kappa_K$ are empirical quantiles of $z$. PRESS uses $K=5$ for carrier speed and boundary distance, and $K=4$ for the approach angle. The quantile levels are $0,1/4,1/2,3/4,1$ and $0,1/3,2/3,1$, respectively, so $\kappa_1=0$ and $\kappa_K=1$. There are $q=K-2$ nonlinear basis functions: three for speed and boundary distance, and two for angle.
 
-where $\mu_\phi$ and $\sigma_\phi$ are the mean and standard deviation of the angle in the fitting data (valid directions only). Speed and boundary distance keep their original units. The speed and boundary effects have three nonlinear basis components each, and the angle has two. This appendix concerns the nonlinear basis functions $b_{jk}$.
+All knots, normalizations and transformations below are determined from the fitting data and reused for new observations. Angle values are restricted to observations with a valid direction.
 
-All basis transformations, knot locations, means and scales are learned from the fitting data only and reused for validation, test and prediction.
+## 2. Restricted cubic basis
 
-## 2. Rescaling and knots
+Define $t_j(z)=(z-\kappa_j)_+^3$, where $(u)_+=\max(u,0)$. For $j=1,\ldots,K-2$, let
 
-For the construction of each nonlinear basis, the covariate is first rescaled to its fitting-data range,
+$$
+c_j(z)=t_j(z)
+-\frac{\kappa_K-\kappa_j}{\kappa_K-\kappa_{K-1}}\,t_{K-1}(z)
++\frac{\kappa_{K-1}-\kappa_j}{\kappa_K-\kappa_{K-1}}\,t_K(z).
+$$
 
-$$\tilde x=\frac{x-x_{\min,\mathrm{train}}}{x_{\max,\mathrm{train}}-x_{\min,\mathrm{train}}}.$$
+These combinations are piecewise cubic between knots and linear beyond the boundary knots. A general function in the spline space can be written as
 
-The bases are restricted cubic splines with five knots for carrier speed and boundary distance, and four knots for the approach angle. Knots are placed at equally spaced empirical quantiles: 0, 25, 50, 75 and 100% for the five-knot bases, and 0, one-third, two-thirds and 100% for the four-knot basis. Restricted cubic splines have linear tails beyond the boundary knots, and they do not impose monotonicity.
+$$
+f(z)=a_0+a_1z+\sum_{j=1}^{q}\delta_jc_j(z).
+$$
 
-## 3. Removal of the constant and linear part
+Here $\boldsymbol\delta$ denotes coefficients in the raw basis; $\boldsymbol\gamma$ below denotes coefficients in the final transformed basis. The change of basis preserves the represented spline space when the constant and linear components are retained separately.
 
-Let $\mathbf C_j$ be the raw nonlinear basis matrix and $\mathbf L_j=[\mathbf 1,\tilde x]$ the constant and linear design. The fitted projection $\mathbf A_j$ is removed,
+## 3. Orthogonalization against the constant and linear terms
 
-$$\mathbf H_j=\mathbf C_j-\mathbf L_j\mathbf A_j.$$
+Let $C_{ij}=c_j(z_i)$ and $L=[\mathbf 1,z]$. Remove the least-squares projection onto the constant and linear design,
 
-## 4. Normalization, orthogonalization and rotation
+$$
+A=\operatorname*{arg\,min}_A\|C-LA\|_F^2,
+\qquad B=C-LA,
+\qquad L^\top B=0.
+$$
 
-The remaining nonlinear columns are normalized to unit empirical variance, made mutually orthogonal and rotated to diagonalize the curvature penalty. For the resulting training design matrix $\mathbf B_j$,
+For full-column-rank $L$,
 
-$$\frac1n\mathbf B_j^\top\mathbf B_j=I.$$
+$$
+A=(L^\top L)^{-1}L^\top C.
+$$
 
-The positive curvature eigenvalues $\eta_{jk}$ are divided by their minimum, giving the normalized penalty
+Thus, $B$ represents nonlinear deviations that are empirically orthogonal to the separate constant and linear terms. Separating linear and nonlinear components is a standard motivation for reparameterizing penalized spline effects; see @scheipl2012functionselection [Section 2.1]. The matrix $A$ is retained for evaluating the same transformation on new observations.
 
-$$\Omega_j=\operatorname{diag}\!\left(\frac{\eta_{j1}}{\eta_{j,\min}},\ldots,\frac{\eta_{jK_j}}{\eta_{j,\min}}\right).$$
+## 4. Empirical whitening
 
-## 5. Curvature penalty and smoothing multipliers
+The Gram matrix of the residualized basis is
 
-Let $\boldsymbol\gamma_j$ denote the nonlinear coefficients of covariate $j$. The quadratic curvature penalty is
+$$
+G=\frac{B^\top B}{n}.
+$$
 
-$$\frac{\rho_j}{2}\boldsymbol\gamma_j^\top\Omega_j\boldsymbol\gamma_j,$$
+Assuming $G$ is positive definite, write $G=U\Lambda U^\top$ and define
 
-where $\Omega_j$ is the normalized curvature penalty matrix associated with the basis and $\rho_j$ controls the regularization. The penalty applies only to the nonlinear coefficients, and the linear coefficients have their own priors, defined in the model vignette.
+$$
+W=U\Lambda^{-1/2},
+\qquad B_w=BW.
+$$
 
-Speed and boundary distance share one smoothing multiplier, and the angle has a separate one,
+Then
 
-$$\rho_v=\rho_B=\rho_{\mathrm{bc}},\qquad \rho_\phi\ \text{separate}.$$
+$$
+\frac1n B_w^\top B_w
+=W^\top GW
+=I_q.
+$$
 
-The complete nonlinear penalty is
+The columns are orthonormal under the empirical inner product on the fitting set. Because they are already centered by the projection onto $L$, they also have unit empirical variance. This removes scale differences and empirical correlations within the nonlinear block, improving its numerical conditioning. It is the PCA-whitening transformation written for observations arranged in rows [@kessy2018whitening].
 
-$$\frac{\rho_{\mathrm{bc}}}{2}\left(
-\boldsymbol\gamma_v^\top\Omega_v\boldsymbol\gamma_v+
-\boldsymbol\gamma_B^\top\Omega_B\boldsymbol\gamma_B\right)
-+\frac{\rho_\phi}{2}\boldsymbol\gamma_\phi^\top\Omega_\phi\boldsymbol\gamma_\phi.$$
+## 5. Curvature penalty and rotation
 
-The basis functions, curvature matrices and fitted coefficients of speed and boundary remain distinct, so the shared multiplier does not force the two effects to have the same shape. The deployed model uses $\rho_{\mathrm{bc}}=1$ and $\rho_\phi=100$, selected by the validation procedure of the benchmark. The multipliers refer to different basis-specific penalties, and their magnitudes are not used to compare covariate importance.
+Define the curvature matrix with derivatives taken with respect to the normalized coordinate $z$,
+
+$$
+R_{jk}=\int_0^1 c_j''(z)c_k''(z)\,dz.
+$$
+
+Subtracting a constant and a linear function leaves second derivatives unchanged, so residualization does not change this curvature matrix. The second derivatives $c_j''$ vanish outside $[\kappa_1,\kappa_K]=[0,1]$, so the integral over $[0,1]$ covers the whole line. The integral is evaluated over consecutive knot intervals. Within each interval the second derivatives are linear and their products are quadratic; two-point Gauss–Legendre quadrature therefore evaluates these integrals exactly, apart from floating-point rounding.
+
+Diagonalize the penalty in the whitened coordinates,
+
+$$
+W^\top RW
+=V\operatorname{diag}(\eta_1,\ldots,\eta_q)V^\top,
+\qquad V^\top V=I_q.
+$$
+
+Set $T=WV$. The final basis is $\widetilde B=BT$ and satisfies
+
+$$
+\frac1n\widetilde B^\top\widetilde B=I_q,
+\qquad
+T^\top RT=\operatorname{diag}(\eta_1,\ldots,\eta_q).
+$$
+
+With the row vector $\boldsymbol c(z)=[c_1(z),\ldots,c_q(z)]$, the final basis functions evaluated at $z$ are
+
+$$
+\widetilde{\boldsymbol c}(z)=\bigl[\boldsymbol c(z)-[1,z]A\bigr]T,
+$$
+
+and the nonlinear component of the covariate effect is $f_{\mathrm{nonlinear}}(z)=\widetilde{\boldsymbol c}(z)\boldsymbol\gamma$, where $\boldsymbol\gamma$ are the coefficients in the final basis. The rotation preserves empirical orthonormality while making the curvature penalty diagonal. This is a Demmler–Reinsch-type change of basis [@demmler1975oscillation]; an explicit matrix derivation of simultaneous design and penalty diagonalization is also given by @lang2012multilevel [Section 4].
+
+## 6. Independent Gaussian priors in the transformed basis
+
+For nonlinear coefficients $\boldsymbol\gamma$ in the final basis, the integrated squared curvature is
+
+$$
+\int_0^1\left[f_{\mathrm{nonlinear}}''(z)\right]^2\,dz
+=\boldsymbol\gamma^\top T^\top RT\boldsymbol\gamma
+=\sum_{j=1}^{q}\eta_j\gamma_j^2.
+$$
+
+PRESS normalizes the eigenvalues by their minimum,
+
+$$
+\omega_j=\frac{\eta_j}{\min_k\eta_k},
+\qquad \Omega=\operatorname{diag}(\omega_1,\ldots,\omega_q).
+$$
+
+For a fixed smoothing strength $\rho>0$, this gives the independent Gaussian priors
+
+$$
+\gamma_j\sim\mathcal N\!\left(0,\frac1{\rho\omega_j}\right),
+$$
+
+with negative log density
+
+$$
+-\log p(\boldsymbol\gamma\mid\rho)
+=\frac{\rho}{2}\boldsymbol\gamma^\top\Omega\boldsymbol\gamma
++\text{constant}
+=\frac{\rho}{2}\sum_{j=1}^{q}\omega_j\gamma_j^2
++\text{constant}.
+$$
+
+The constant is independent of $\boldsymbol\gamma$ for fixed $\rho$ and basis. Directions with greater curvature receive stronger shrinkage. Dividing by the smallest eigenvalue is a normalization convention: it rescales the overall curvature penalty while preserving its relative weights. The diagonal representation simplifies the prior specification; it does not imply independence of the coefficients in the posterior.
+
+## 7. Evaluation on new observations
+
+For a new value $x$, use the fitting-set normalization $z=(x-x_{\min})/(x_{\max}-x_{\min})$ and evaluate $\widetilde{\boldsymbol c}(z)$ as defined in Section 5. The fitting-set matrices $A$ and $T$ are unchanged. Orthogonality and unit empirical variance hold on the fitting set; they need not hold on a different sample. Values outside the fitting range are evaluated using the spline's linear tails.
+
+## References
+
+::: {#refs}
+:::

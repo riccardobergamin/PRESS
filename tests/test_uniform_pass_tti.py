@@ -19,7 +19,10 @@ def test_final_receiver_tti_keeps_initial_overspeed():
     actual=player_arrival_time(target,jnp.asarray(p[1:2]),jnp.asarray(v[1:2]),5.5,7.,
         a_turn=7.,preserve_initial_overspeed=True)
     np.testing.assert_allclose(actual,[1.],atol=1e-3)
-    legacy=player_arrival_time(target,jnp.asarray(p[1:2]),jnp.asarray(v[1:2]),5.5,7.)
+    default=player_arrival_time(target,jnp.asarray(p[1:2]),jnp.asarray(v[1:2]),5.5,7.)
+    np.testing.assert_allclose(default,actual,atol=1e-7)
+    legacy=player_arrival_time(target,jnp.asarray(p[1:2]),jnp.asarray(v[1:2]),5.5,7.,
+        preserve_initial_overspeed=False)
     assert float(legacy[0])-float(actual[0])>.4
 
 

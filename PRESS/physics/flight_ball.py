@@ -277,7 +277,7 @@ def player_arrival_time(
     a_max,
     *,
     a_turn=None,
-    preserve_initial_overspeed=False,
+    preserve_initial_overspeed=True,
 ):
     """
     Arrival time of the player closest to each target position.
@@ -442,7 +442,7 @@ def time_flight(
     g=9.81,
     distance_mode="exact",
     a_turn=None,
-    preserve_initial_overspeed=False,
+    preserve_initial_overspeed=True,
 ):
     """
     Compute final ball arrival time.

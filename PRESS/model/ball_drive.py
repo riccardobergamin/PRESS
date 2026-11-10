@@ -34,24 +34,20 @@ def _basis(spec, values, *, full=False):
 
 @partial(jax.jit, static_argnames=('v_max', 'a_linear', 'a_turn', 'preserve_initial_overspeed'))
 def _arrivals(r, v, x, vx, times, *, v_max, a_linear, a_turn, preserve_initial_overspeed):
-    """Retain benchmark float32 arithmetic, including the overspeed correction."""
+    """Evaluate the shared TTI using the model's saved physical conventions."""
     from PRESS.physics.times import time_to_intercept
-    from PRESS.physics.angles import compute_angle
 
     def snapshot(r, v, x, vx):
 
         def at_time(t):
             target = (x + vx * t)[None, :]
-            result = time_to_intercept(r, v, target, v_max=v_max, a_max=a_linear).squeeze(-1)
-            speed = jnp.linalg.norm(v, axis=-1)
-            distance = jnp.linalg.norm(target - r, axis=-1)
-            if a_turn != a_linear:
-                theta = compute_angle(r, v, target).squeeze(-1)
-                result = result + speed * theta * (1 / a_turn - 1 / a_linear)
-            if preserve_initial_overspeed:
-                correction = distance * (1 / jnp.maximum(speed, v_max) - 1 / v_max)
-                result = result + jnp.where(speed > v_max, correction, 0.0)
-            return jnp.where(distance <= 0.1, 0.0, result)
+            return time_to_intercept(
+                r, v, target,
+                v_max=v_max,
+                a_max=a_linear,
+                a_turn=a_turn,
+                preserve_initial_overspeed=preserve_initial_overspeed,
+            ).squeeze(-1)
 
         return jax.vmap(at_time)(times)
 

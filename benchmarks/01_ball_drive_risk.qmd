@@ -9,7 +9,7 @@ This benchmark documents the selection, estimation, and predictive evaluation of
 
 ## 1. Cohort and task-specific evaluation {#ball-drive-benchmark}
 
-The final cohort comprises **9,114 carry attempts**, including **456 losses (5.003%)**, from ten SkillCorner matches. The one-second segmentation of individual possessions is described in [Possessions and checkpoints](../vignettes/setup/possession_and_checkpoint_setup.ipynb). For this specific task, loss-ending possessions without an associated on-ball engagement (OBE) are excluded, since such losses are not guaranteed to result from defensive pressure. The OBE is used only to verify outcomes, never as a predictor, and successful-ending possessions do not require one.
+The final cohort comprises **9,114 carry attempts**, including **456 losses (5.003%)**, from ten SkillCorner matches. The one-second segmentation of individual possessions is described in [Possession segmentation and context](../vignettes/setup/possession_and_checkpoint_setup.ipynb). For this specific task, loss-ending possessions without an associated on-ball engagement (OBE) are excluded, since such losses are not guaranteed to result from defensive pressure. The OBE is used only to verify outcomes, never as a predictor, and successful-ending possessions do not require one.
 
 Only the final failed section of a possession is labelled as a loss. A loss observed before one second still contributes the one-second failure probability, $1-S(1)$; a successful canonical second contributes $S(1)$. The model does not fit the exact time of the intervention or the identity of the defender. Individual possession loss can include out-of-play events without a team turnover; failed passes are excluded from this task.
 
@@ -80,9 +80,7 @@ Following the shared outer-fold protocol, the final spline specification was ref
 
 The selected specification was fitted to all ten matches and all **9,114** verified sections. Following the [shared deployment protocol](../benchmark.qmd#model-stability-and-final-refitting), this fit supplies the package parameters and does not contribute to held-out performance estimates.
 
-The likelihood is Bernoulli on the one-second loss outcome, and the coefficients, baseline tackle rate, and logistic arrival-time dispersion are estimated jointly by maximum a posteriori (MAP) under the priors defined in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). A local Laplace approximation to the joint posterior supplies approximate marginal uncertainty. In log coordinates, the reported approximations are
-
-In the final fit, the preset initial point had the lowest initial objective, so a single optimization was run.
+The likelihood is Bernoulli on the one-second loss outcome, and the coefficients, baseline tackle rate, and logistic arrival-time dispersion are estimated jointly by maximum a posteriori (MAP) under the priors defined in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). A local Laplace approximation to the joint posterior supplies approximate marginal uncertainty. In the final fit, the preset initial point had the lowest initial objective, so a single optimization was run. In log coordinates, the reported approximations are
 
 $$
 \log\lambda_0\mid D\ \dot\sim\ \mathcal N(-1.065479,\,0.014572626),
@@ -139,14 +137,14 @@ Resampling was applied **only within training subsets**, retaining all losses an
 
 The CatBoost comparison follows the rotating design and not the fixed validation pair used by the XGBoost tasks. In each outer fold, four 6+2 rotations evaluate **36 configurations** (depth 4/6/8, learning rate 0.02/0.05/0.10 and L2 1/3/10/30) and tree prefixes every 25 trees up to 3,000. Selection minimizes pooled inner-validation CE, applying the analytical prevalence correction in the resampling arm. Models are trained to the fixed search ceiling and scored at saved prefixes; this is prefix selection and not a patience-based early-stopping run.
 
-After selecting configuration and tree count, fresh six-match fits produce inner cross-fitted scores for Platt and isotonic calibration, and the selected model is refitted on all eight development matches before outer testing. Predictions are averaged over three seeds (19, 41 and 73). The calibrators are fitted on raw inner cross-fitted scores with natural labels, with the selected model configuration fixed; they do not feed back into hyperparameter or tree-count selection. Analytical prior correction, Platt and isotonic are distinct output variants. The displayed natural and resampled results use native and analytically corrected probabilities, respectively.
+After selecting configuration and tree count, the selected model is refitted on all eight development matches before outer testing. Predictions are averaged over three seeds (19, 41 and 73). The displayed natural and resampled results use native and analytically corrected probabilities, respectively.
 
 | CatBoost training | Pooled CE | Gain over null | Quantile ECE |
 |---|---:|---:|---:|
 | Natural prevalence | 0.139855 | 29.623% | 0.490% |
 | 10% losses, prior-corrected | 0.139928 | 29.586% | 0.397% |
 
-In our experiment, resampling yielded no meaningful change in held-out cross-entropy, and CatBoost performs close to the physical model, so we do not observe the same benefit. We do not identify the cause; one possibility is the scale of the dataset. The deployed physical likelihood model is unchanged. Full hyperparameter settings, feature definitions, calibration variants, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [selected parameters](../data/benchmarks/ball_drive/catboost_final_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
+In our experiment, resampling yielded no meaningful change in held-out cross-entropy, and CatBoost performs close to the physical model, so we do not observe the same benefit. We do not identify the cause; one possibility is the scale of the dataset. The deployed physical likelihood model is unchanged. Full hyperparameter settings, feature definitions, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [selected parameters](../data/benchmarks/ball_drive/catboost_final_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
 
 ![Pooled out-of-fold calibration of the final physical model and the CatBoost comparisons on the verified-loss cohort. Each marker represents one quantile bin.](../figures/ball_drive_physical_pooled_calibration.png){#fig-ball-drive-physical-calibration}
 

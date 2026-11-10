@@ -25,7 +25,7 @@ TTI_SETTINGS = dict(a_turn=7.0, preserve_initial_overspeed=True)
 @partial(jax.jit, static_argnames=('vmax', 'a_turn', 'preserve_initial_overspeed'))
 
 
-def arrival_batch(pos, vel, target, *, vmax, a_turn=None, preserve_initial_overspeed=False):
+def arrival_batch(pos, vel, target, *, vmax, a_turn=None, preserve_initial_overspeed=True):
     return jax.vmap(lambda p,
         v,
         r: time_to_intercept(p, v, r[None], v_max=vmax, a_max=7.0, a_turn=a_turn, preserve_initial_overspeed=preserve_initial_overspeed).squeeze(-1))(pos,

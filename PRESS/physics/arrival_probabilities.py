@@ -52,7 +52,7 @@ def F(
     a_max=5.0,
     threshold=0.1,
     a_turn=None,
-    preserve_initial_overspeed=False,
+    preserve_initial_overspeed=True,
 ):
     """
     Spearman arrival probability.
