@@ -58,4 +58,4 @@ The relative scale changes only the display: stored destination probabilities st
 
 ## BCOS
 
-`plot_bcos(press_or_bcos, frame_id, ...)` draws the stored probability field and real tracking on an absolute 0–1 scale. It accepts either the match object after `press.compute_bcos(...)` or the standalone `BCOS` object after its own calculation. It does not aggregate an entire match or infer a goal-related interpretation. [BCOS example](../vignettes/extras/bcos/10_bcos.ipynb).
+`plot_bcos(press_or_bcos, frame_id, ...)` draws the stored probability field and real tracking on an absolute 0–1 scale. It accepts either the match object after `press.compute_bcos(...)` or the standalone `BCOS` object after its own calculation. It does not aggregate an entire match or infer a goal-related interpretation. [BCOS example](../vignettes/spatial_features/bcos/10_bcos.ipynb).

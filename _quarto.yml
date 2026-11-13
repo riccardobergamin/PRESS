@@ -3,12 +3,14 @@ project:
   output-dir: _site
   execute-dir: project
   resources:
-  - pipeline/**
+  - review/**
   render:
   - index.qmd
   - benchmark.qmd
   - benchmarks/01_ball_drive_risk.qmd
   - appendix/ball-drive-spline-basis.qmd
+  - appendix/bcos-transport-with-killing.qmd
+  - appendix/xt_benchmark.qmd
   - benchmarks/02_pass_probability.qmd
   - benchmarks/03_pass_selection.qmd
   - benchmarks/04_action_selection.qmd
@@ -27,12 +29,12 @@ project:
   - vignettes/03_pass_selection/03_pass_selection.ipynb
   - vignettes/04_action_selection/04_action_selection.ipynb
   - vignettes/05_residual_risk/05_residual_risk.ipynb
-  - vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb
+  - vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb
   - benchmarks/06_composed_risk.qmd
   - vignettes/setup/possession_and_checkpoint_setup.ipynb
   - vignettes/07_case_studies/07_case_studies.ipynb
-  - vignettes/extras/bcos/10_bcos.ipynb
-  - vignettes/extras/expected_threat/11.expected_threat.ipynb
+  - vignettes/spatial_features/bcos/10_bcos.ipynb
+  - vignettes/spatial_features/expected_threat/11.expected_threat.ipynb
 website:
   title: PRESS
   favicon: branding/favicon.png
@@ -70,7 +72,7 @@ website:
     - text: Risk profiles and reports
       menu:
       - text: h and risk bands
-        href: vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb
+        href: vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb
       - text: Case studies and reports
         href: vignettes/07_case_studies/07_case_studies.ipynb
     - text: Benchmarks
@@ -136,7 +138,7 @@ website:
     - section: Risk profiles and reports
       contents:
       - text: h and risk bands
-        href: vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb
+        href: vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb
       - text: Case studies and reports
         href: vignettes/07_case_studies/07_case_studies.ipynb
     - section: Benchmarks
@@ -155,13 +157,13 @@ website:
         href: benchmarks/05_residual_risk.qmd
       - text: Composed h and xLoss
         href: benchmarks/06_composed_risk.qmd
-    - section: Extras
+    - section: "Spatial features: accessibility and value"
       collapsed: true
       contents:
       - text: Ball Carrier Open Space
-        href: vignettes/extras/bcos/10_bcos.ipynb
+        href: vignettes/spatial_features/bcos/10_bcos.ipynb
       - text: Expected Threat
-        href: vignettes/extras/expected_threat/11.expected_threat.ipynb
+        href: vignettes/spatial_features/expected_threat/11.expected_threat.ipynb
     - section: Reference
       collapsed: true
       contents:

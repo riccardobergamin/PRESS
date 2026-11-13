@@ -34,14 +34,16 @@ $$
 
 Here $\boldsymbol\delta$ denotes coefficients in the raw basis; $\boldsymbol\gamma$ below denotes coefficients in the final transformed basis. The change of basis preserves the represented spline space when the constant and linear components are retained separately.
 
+This is a generic representation in the normalized coordinate $z$; the fitted linear speed and boundary terms retain the original covariate units, as detailed below.
+
 ## 3. Orthogonalization against the constant and linear terms
 
 Let $C_{ij}=c_j(z_i)$ and $L=[\mathbf 1,z]$. Remove the least-squares projection onto the constant and linear design,
 
 $$
 A=\operatorname*{arg\,min}_A\|C-LA\|_F^2,
-\qquad B=C-LA,
-\qquad L^\top B=0.
+\qquad E=C-LA,
+\qquad L^\top E=0.
 $$
 
 For full-column-rank $L$,
@@ -50,27 +52,29 @@ $$
 A=(L^\top L)^{-1}L^\top C.
 $$
 
-Thus, $B$ represents nonlinear deviations that are empirically orthogonal to the separate constant and linear terms. Separating linear and nonlinear components is a standard motivation for reparameterizing penalized spline effects; see @scheipl2012functionselection [Section 2.1]. The matrix $A$ is retained for evaluating the same transformation on new observations.
+Thus, $E$ represents nonlinear deviations that are empirically orthogonal to the separate constant and linear terms. Separating linear and nonlinear components is a standard motivation for reparameterizing penalized spline effects; see @scheipl2012functionselection [Section 2.1]. The matrix $A$ is retained for evaluating the same transformation on new observations.
+
+Since $x=x_{\min}+(x_{\max}-x_{\min})z$, the designs $[\mathbf 1,x]$ and $[\mathbf 1,z]$ span the same space. Residualization against $[\mathbf 1,z]$ therefore also removes the projection onto a linear effect expressed in the original units of $x$.
 
 ## 4. Empirical whitening
 
 The Gram matrix of the residualized basis is
 
 $$
-G=\frac{B^\top B}{n}.
+G=\frac{E^\top E}{n}.
 $$
 
 Assuming $G$ is positive definite, write $G=U\Lambda U^\top$ and define
 
 $$
 W=U\Lambda^{-1/2},
-\qquad B_w=BW.
+\qquad E_w=EW.
 $$
 
 Then
 
 $$
-\frac1n B_w^\top B_w
+\frac1n E_w^\top E_w
 =W^\top GW
 =I_q.
 $$
@@ -95,10 +99,10 @@ W^\top RW
 \qquad V^\top V=I_q.
 $$
 
-Set $T=WV$. The final basis is $\widetilde B=BT$ and satisfies
+Set $T=WV$. The final basis is $\widetilde E=ET$ and satisfies
 
 $$
-\frac1n\widetilde B^\top\widetilde B=I_q,
+\frac1n\widetilde E^\top\widetilde E=I_q,
 \qquad
 T^\top RT=\operatorname{diag}(\eta_1,\ldots,\eta_q).
 $$
@@ -109,7 +113,7 @@ $$
 \widetilde{\boldsymbol c}(z)=\bigl[\boldsymbol c(z)-[1,z]A\bigr]T,
 $$
 
-and the nonlinear component of the covariate effect is $f_{\mathrm{nonlinear}}(z)=\widetilde{\boldsymbol c}(z)\boldsymbol\gamma$, where $\boldsymbol\gamma$ are the coefficients in the final basis. The rotation preserves empirical orthonormality while making the curvature penalty diagonal. This is a Demmler–Reinsch-type change of basis [@demmler1975oscillation]; an explicit matrix derivation of simultaneous design and penalty diagonalization is also given by @lang2012multilevel [Section 4].
+and the nonlinear component of the covariate effect is $f_{\mathrm{nonlinear}}(z)=\widetilde{\boldsymbol c}(z)\boldsymbol\gamma$, where $\boldsymbol\gamma$ are the coefficients in the final basis. The components of $\widetilde{\boldsymbol c}(z)$ are the nonlinear basis functions $b_{jk}$ of the model vignette, for covariate $j$. The rotation preserves empirical orthonormality while making the curvature penalty diagonal. This is a Demmler–Reinsch-type change of basis [@demmler1975oscillation]; an explicit matrix derivation of simultaneous design and penalty diagonalization is also given by @lang2012multilevel [Section 4].
 
 ## 6. Independent Gaussian priors in the transformed basis
 
@@ -144,11 +148,34 @@ $$
 +\text{constant}.
 $$
 
-The constant is independent of $\boldsymbol\gamma$ for fixed $\rho$ and basis. Directions with greater curvature receive stronger shrinkage. Dividing by the smallest eigenvalue is a normalization convention: it rescales the overall curvature penalty while preserving its relative weights. The diagonal representation simplifies the prior specification; it does not imply independence of the coefficients in the posterior.
+The constant is independent of $\boldsymbol\gamma$ for fixed $\rho$ and basis. Directions with greater curvature receive stronger shrinkage. Dividing by the smallest eigenvalue is a normalization convention: it rescales the overall curvature penalty while preserving its relative weights. The diagonal representation simplifies the prior specification, and the coefficients remain dependent in the posterior.
 
-## 7. Evaluation on new observations
+## 7. Linear terms in the original units
 
-For a new value $x$, use the fitting-set normalization $z=(x-x_{\min})/(x_{\max}-x_{\min})$ and evaluate $\widetilde{\boldsymbol c}(z)$ as defined in Section 5. The fitting-set matrices $A$ and $T$ are unchanged. Orthogonality and unit empirical variance hold on the fitting set; they need not hold on a different sample. Values outside the fitting range are evaluated using the spline's linear tails.
+In the fitted PRESS model, the carrier effects are parameterized as
+
+$$
+g_v(v_{\mathrm{bc}})=\beta_v v_{\mathrm{bc}}
++\widetilde{\boldsymbol c}_v(z_v)\boldsymbol\gamma_v,
+\qquad
+g_B(B)=\beta_B B
++\widetilde{\boldsymbol c}_B(z_B)\boldsymbol\gamma_B.
+$$
+
+Thus, $\beta_v$ multiplies speed in m/s and $\beta_B$ multiplies boundary distance in m; min–max normalization is used internally for the nonlinear bases. The intercept $\alpha=\log\lambda_0$ remains a separate model parameter. The priors and preset initial values motivated by the preliminary log-linear model refer to these original-unit linear coefficients.
+
+For comparison, after the nonlinear change of basis, the same one-covariate function could be written in either coordinate as
+
+$$
+\alpha_x+\beta_x x+\widetilde{\boldsymbol c}(z)\boldsymbol\gamma
+=a_0^*+a_1^*z+\widetilde{\boldsymbol c}(z)\boldsymbol\gamma,
+$$
+
+where $a_0^*=\alpha_x+\beta_x x_{\min}$ and $a_1^*=\beta_x(x_{\max}-x_{\min})$. These are equivalent functions with different linear coefficients. Preserving the prior under this reparameterization would require transforming its joint distribution as well; independent standard normal priors on $a_0^*$ and $a_1^*$ would define a different prior. PRESS retains the original-unit parameterization for speed and boundary distance. The linear approach-angle term is treated separately: it multiplies the angle standardized by its fitting-set mean and standard deviation, as specified in the model vignette.
+
+## 8. Evaluation on new observations
+
+For a new value $x$, use the fitting-set normalization $z=(x-x_{\min})/(x_{\max}-x_{\min})$ and evaluate $\widetilde{\boldsymbol c}(z)$ as defined in Section 5. The fitting-set matrices $A$ and $T$ are unchanged. Orthogonality and unit empirical variance hold on the fitting set and can differ on a different sample. Values outside the fitting range are evaluated using the spline's linear tails.
 
 ## References
 

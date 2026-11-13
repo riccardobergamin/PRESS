@@ -6,11 +6,11 @@ The PRESS benchmarks evaluate five modeling tasks, and the predictions composed 
 
 ## Dataset overview
 
-The benchmarks use ten A-League 2024/25 matches from SkillCorner Open Data [@skillcorner-opendata]. All component benchmarks concern outfield ball carriers; goalkeeper receivers and defenders remain in the tracked state. Reliability is checked at the temporal boundaries needed for the target. Two data-preparation branches share these principles: possession-based tasks use matched individual-control intervals, whereas pass tasks use matched release and the immediate next reception/recovery start.
+The benchmarks use ten A-League 2024/25 matches from SkillCorner Open Data [@skillcorner-opendata]. All component benchmarks concern outfield ball carriers. Reliability is checked at the temporal boundaries needed for the target. Two data-preparation branches share these principles: possession-based tasks use matched individual-control intervals, whereas pass tasks use matched release and the immediate next reception/recovery start. The matching with tracking data relies on the SkillCorner event labels, as described in [Dataset and preprocessing](data.qmd).
 
-For the possession branch used by ball-drive, action-selection and residual-risk training, the frozen preparation audit starts from **9,566 raw individual possessions**. A possession is kept when its individual-control interval is matched at both boundaries, its terminal event and outcome supply a supported component label, its carrier is an outfield player and it does not end in a shot. These criteria leave **8,451 possessions**.
+For the possession branch used by ball-drive, action-selection and residual-risk training, the frozen preparation audit starts from **9,566 raw individual possessions**. A possession is kept when its individual-control interval is matched with tracking data at both boundaries, its terminal event and outcome supply a supported component label, its carrier is an outfield player and it does not end in a shot. These criteria leave **8,451 possessions**.
 
-These are parent-possession counts before task segmentation (see [Possessions and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb)), not action counts or a universal pass cohort. Individual tasks then select the actions and verified outcomes required by their target, and their benchmark pages give the task-specific criteria and the resulting cohort sizes. Features and predictions can still be computed for states outside these training populations. [Effective exclusion counts](data/benchmarks/filters/effective_exclusions.csv) and [source-audit provenance](docs/effective-filters-provenance.json).
+These are parent-possession counts before task segmentation (see [Possessions and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb)). Individual tasks then select the actions and verified outcomes required by their target, and their benchmark pages give the task-specific criteria and the resulting cohort sizes. Features and predictions can still be computed for states outside these training populations. [Effective exclusion counts](data/benchmarks/filters/effective_exclusions.csv) and [source-audit provenance](docs/effective-filters-provenance.json).
 
 ## Model families
 
@@ -26,34 +26,32 @@ The composed risk (h and xLoss) combines the predictions of the components.
 
 ### Shared outer match folds
 
-All five tasks use the same partition of the ten matches into five outer folds. Each fold holds out two complete matches and uses the remaining eight for development. The five test pairs are disjoint: every match, and every eligible observation for a task, contributes to the pooled test evaluation once. Task cohorts differ according to the target and the reliability checks required to observe it; they are not one identical set of actions.
+All five tasks use the same partition of the ten matches into five outer folds. Each fold holds out two complete matches and uses the remaining eight for development. The five test pairs are disjoint: every match, and every eligible observation for a task, contributes to the pooled test evaluation once. Task cohorts differ according to the target and the reliability checks required to observe it.
 
-6 + 2 + 2 describes match roles, not a universal rotation/refit procedure. The two model families follow different development procedures within each outer fold:
+6 + 2 + 2 describes match roles. The two model families follow different development procedures within each outer fold:
 
 | Model family | Development procedure within each outer fold | Model evaluated on the two test matches |
 |---|---|---|
 | Physical models | Four disjoint 6-fitting + 2-validation rotations within the eight development matches, used to select regularization or to produce cross-fitted scores for calibration | Parameters refitted on all eight development matches |
 | Tree models | One fixed 6-fitting + 2-validation split, used for hyperparameter selection, early stopping and any calibration | The six-match tree fit at the selected checkpoint, with no eight-match refit |
 
-For the tree models, the two validation matches remain fixed throughout that fold's search, early stopping and any calibration. The pair can change between outer folds because test matches must be excluded. These tasks do not rotate through four validation pairs and do not subsequently refit the evaluated trees on eight matches. The task benchmarks give the exact procedure of each task.
+For the tree models, the two validation matches remain fixed throughout that fold's search, early stopping and any calibration. The pair can change between outer folds because test matches must be excluded. The task benchmarks give the exact procedure of each task.
 
 ### Hyperparameters, early stopping and probability calibration
 
 For XGBoost, a hyperparameter configuration is trained on the six fitting matches, and its uncalibrated validation cross-entropy selects the tree prefix by early stopping. Where a grid is used, the best configuration is selected by this same native validation criterion.
 
-Any temperature scaling is fitted after configuration/checkpoint selection, with the ensemble fixed. It minimizes validation choice or binary negative log-likelihood; it does not update trees, change the selected hyperparameters, or resume early stopping. The same two validation matches are reused for this calibration and are not reserved as an independent calibration sample. Only after these choices are frozen is the corresponding outer-test score computed.
-
-For the physical models, parameters are fitted by likelihood and optimizer convergence is distinct from validation early stopping of a tree ensemble. Here, *calibration/scaling* means transforming output probabilities. It is distinct from rescaling spline bases or covariates. Numerical XGBoost predictors are not subjected to a separate standardization step; the categorical vocabulary and encoding are learned from fitting matches only.
+Any temperature scaling is fitted after configuration/checkpoint selection, with the ensemble fixed. It minimizes validation choice or binary negative log-likelihood, with trees, selected hyperparameters and stopping point held fixed. The same two validation matches are reused for this calibration, so selection and calibration share the validation pair. Only after these choices are frozen is the corresponding outer-test score computed. Numerical XGBoost predictors are used without standardization, and the categorical vocabulary and encoding are learned from fitting matches only.
 
 ### Features and dependent models
 
-Some tasks use the outputs of upstream models as features. For a given outer fold, the upstream models are fitted on that fold's fitting matches, without its validation or test matches, and the full-ten-match versions are used only for deployment. Snapshot quantities that require no learned parameters can be shared across folds, while model-dependent features have a separate version for each fold. Reusing these verified caches does not replace them with production-model predictions, and full-data deployment weights are never substituted for fold-specific feature weights in the held-out benchmark.
+Some tasks use the outputs of upstream models as features. For a given outer fold, the upstream models are fitted on that fold's fitting matches, without its validation or test matches, and the full-ten-match versions are used only for deployment. Snapshot quantities that require no learned parameters can be shared across folds, while model-dependent features have a separate version for each fold. Verified caches are reused with their fold-specific predictions, and full-data deployment weights enter only the deployment.
 
 The validation pair supports both upstream calibration and downstream selection where those components are required. Fitting-row features can therefore be in-sample with respect to upstream models, and the stack is not fully cross-fitted or independently validated at every layer. Each task benchmark states which layers are refitted and which remain frozen.
 
 ### Aggregation and performance metrics
 
-Cross-validated performance is computed on the concatenation of the five outer-fold held-out prediction sets, and not as the average of fold-level metrics. Each observation contributes once to the pooled evaluation. Fold-level results may be inspected for stability but do not replace the pooled estimates.
+Cross-validated performance is computed on the concatenation of the five outer-fold held-out prediction sets. Each observation contributes once to the pooled evaluation. Fold-level results may be inspected for stability but do not replace the pooled estimates.
 
 For the binary-outcome tasks, with observed labels $y_i\in\{0,1\}$ and predicted probabilities $p_i$, the primary probabilistic metric is binary cross-entropy (CE), also called log loss:
 
@@ -81,7 +79,7 @@ $$
 \mathrm{ECE}=\sum_{b=1}^{10}\frac{n_b}{N}\left|\bar p_b-\bar y_b\right|.
 $$
 
-Calibration plots compare observed event frequencies with mean predicted probabilities in these bins, and ECE and the bins are recomputed on the pooled outer-test predictions and not averaged across folds. Where relevant, ROC AUC assesses ranking across classes, and precision–recall AUC (PR AUC) summarizes discrimination for the positive class, particularly when outcomes are uncommon. Not every metric applies to or is reported for every task. Task-specific numerical conventions, including any probability clipping used for log loss, are recorded alongside the corresponding results.
+Calibration plots compare observed event frequencies with mean predicted probabilities in these bins, and ECE and the bins are recomputed on the pooled outer-test predictions. Where relevant, ROC AUC assesses ranking across classes, and precision–recall AUC (PR AUC) summarizes discrimination for the positive class, particularly when outcomes are uncommon. Not every metric applies to or is reported for every task. Task-specific numerical conventions, including any probability clipping used for log loss, are recorded alongside the corresponding results.
 
 Multiple-choice tasks are evaluated with the likelihood assigned to the observed choice among the available alternatives, and the improvement over a task-specific null choice model is summarized by McFadden's pseudo-$R^2$:
 
@@ -93,15 +91,15 @@ where $L_{\mathrm{model}}$ and $L_{\mathrm{null}}$ are the likelihoods of the ob
 
 ### Model stability and final refitting
 
-The cross-validation results evaluate predictive performance and stability across the outer folds before a specification is accepted. The accepted specification is then refitted on all ten matches to obtain the parameters distributed with the PRESS package. This deployment fit is not an additional test fold and does not contribute to the reported held-out estimates.
+The cross-validation results evaluate predictive performance and stability across the outer folds before a specification is accepted. The accepted specification is then refitted on all ten matches to obtain the parameters distributed with the PRESS package. The reported held-out estimates come exclusively from the cross-validation.
 
 ### Scope of the development benchmark
 
 Outer-test labels are excluded from that fold's model fitting, stopping rule and calibrator estimation. However, the ten matches were repeatedly examined during model development, so the complete development process is not a fully nested, untouched external evaluation, and generalization to other competitions and annotation conventions is not assessed. The task benchmarks describe any development choice shared across folds and distinguish this scope from the match-disjoint fitting of the reported fold models.
 
-The benchmark uses ten matches, with two held out in each outer fold. Observations within a match are dependent, so the number of independent units is the number of matches, not the number of observations. Differences between models and between folds should be read with that uncertainty in mind.
+The benchmark uses ten matches, with two held out in each outer fold. Observations within a match are dependent, so the number of independent units is the number of matches. Differences between models and between folds should be read with that uncertainty in mind.
 
-Deployment calibration may use labels paired with frozen cross-fitted predictions from all ten matches, after evaluation is complete. Its fitted score is not a new held-out result and does not replace the saved benchmark predictions. Final tree counts and configurations are chosen from validation records, not from outer-test performance; the exact aggregation rule is task-specific.
+Deployment calibration may use labels paired with frozen cross-fitted predictions from all ten matches, after evaluation is complete. The saved benchmark predictions remain the reported held-out results. Final tree counts and configurations are chosen from validation records; the exact aggregation rule is task-specific.
 
 ## Task benchmarks
 

@@ -76,11 +76,11 @@ def build_tackle_effect_figure(root=ROOT):
     angle = np.linspace(0., 180., 250)
     panels = [
         (speed, fitted_tackle_rate(model, speed, 5., np.pi/2),
-         'Carrier speed (m/s)', r'$B=5$ m, $\phi=90^\circ$'),
+         r'Carrier speed $v_{\mathrm{bc}}$ (m/s)', r'$B=5$ m, $\phi=90^\circ$'),
         (boundary, fitted_tackle_rate(model, 3., boundary, np.pi/2),
-         'Distance to nearest boundary (m)', r'$v_B=3$ m/s, $\phi=90^\circ$'),
+         'Distance to nearest boundary (m)', r'$v_{\mathrm{bc}}=3$ m/s, $\phi=90^\circ$'),
         (angle, fitted_tackle_rate(model, 3., 5., np.deg2rad(angle)),
-         'Defender approach angle (degrees)', r'$v_B=3$ m/s, $B=5$ m'),
+         'Defender approach angle (degrees)', r'$v_{\mathrm{bc}}=3$ m/s, $B=5$ m'),
     ]
     for ax, (x, rate, label, fixed) in zip(axes, panels):
         ax.plot(x, rate, color='#245f82', lw=2)

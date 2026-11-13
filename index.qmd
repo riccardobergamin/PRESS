@@ -23,7 +23,7 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 ::: {.directory-section}
 ### Risk profiles and reports {#risk-and-reports}
 
-- [Hazard and risk bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb)
+- [Hazard and risk bands](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb)
 - [Possession difficulty](vignettes/07_case_studies/07_case_studies.ipynb)
 - [Pressure patterns and cases](vignettes/07_case_studies/07_case_studies.ipynb)
 - [Team and player report](vignettes/07_case_studies/07_case_studies.ipynb)
@@ -49,10 +49,10 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 :::
 
 ::: {.directory-section}
-### Extras {#extras}
+### Spatial features: accessibility and value {#extras}
 
-- [Ball Carrier Open Space](vignettes/extras/bcos/10_bcos.ipynb)
-- [Expected Threat](vignettes/extras/expected_threat/11.expected_threat.ipynb)
+- [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb)
+- [Expected Threat](vignettes/spatial_features/expected_threat/11.expected_threat.ipynb)
 :::
 
 ::: {.directory-section}
@@ -68,13 +68,13 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 
 ## Motivation
 
-PRESS started as a personal portfolio project aimed at gaining hands-on experience with football event and tracking data, while developing a deeper understanding of the main components of Expected Possession Value (EPV) and expected possession loss (xLoss) frameworks. A central objective is to translate existing research into reusable software components, with transparent implementations, reproducible examples, and opportunities to experiment with alternative modelling choices.
+PRESS started as a personal portfolio project aimed at gaining hands-on experience with football event and tracking data, while developing a deeper understanding of the main components of Expected Possession Value (EPV) and expected possession loss (xLoss) frameworks. A central objective is to translate these concepts into reusable software components, with transparent implementations, reproducible examples, and opportunities to experiment with alternative modelling choices.
 
-The foundations of the framework explored in PRESS are largely drawn from established research on pitch control, action selection, action success probabilities, and possession valuation [@spearman2017; @fernandez2021]. In particular, the decomposition of possession outcomes into action-dependent components follows the general philosophy of existing EPV models. PRESS revisits these ideas from a possession-retention perspective, focusing on the risk of losing the ball, with particular emphasis on the vulnerability induced by defensive pressure.
+The foundations of the framework explored in PRESS are drawn from literature on pitch control and possession valuation [@spearman2017; @fernandez2021]. In particular, the decomposition of possession outcomes into action-dependent components (action selection, pass destination choice, and the success or loss probability of each action) follows the general philosophy of EPV models. PRESS approaches these ideas from a possession-retention perspective, focusing on the risk of losing the ball, with particular emphasis on the vulnerability induced by defensive pressure.
 
-Beyond reproducing established approaches, the implementation also provides an opportunity to explore alternative formulations for individual components. One example is a [physics-based model of ball-drive success](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). Building on the arrival formulation of Bekkers [@bekkers2025] and the pitch-control framework of Spearman [@spearman2017], we explore whether the relative movement and interception capabilities of defenders and the ball carrier can be used to construct a probabilistic model of retaining control during a ball drive. This provides a physically motivated alternative to estimating ball-drive success exclusively from observed outcomes.
+The implementation also provides an opportunity to explore alternative formulations for individual EPV components. One example is a [physics-based model of ball-drive success](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). Building on the arrival formulation of Bekkers [@bekkers2025] and the pitch-control framework of Spearman [@spearman2017], we explore whether the relative movement and interception capabilities of defenders and the ball carrier can be used to construct a probabilistic model of retaining control during a ball drive. This provides a physically motivated alternative to black-box models that estimate ball-drive success from spatial and contextual features.
 
-For action and destination selection, we experiment with tree-based discrete-choice models, using features derived from the underlying physics-based components, among them the open space available to the ball carrier, measured by the [Ball Carrier Open Space](vignettes/extras/bcos/10_bcos.ipynb) (BCOS), a concept introduced in [@bandara2025bcos] that PRESS formalizes within a competing-risks framework, alongside spatial, tactical, and contextual information. More generally, PRESS follows a hybrid modelling strategy: physical models characterize the feasibility and risk of potential actions, while learned tree-based models describe how players select among the available alternatives.
+For action and pass destination selection, we experiment with tree-based discrete-choice models, which are well suited to decision tasks. Such tasks do not follow physical laws, but they can draw on features derived from the physics-based components, among them the open space available to the ball carrier, measured by the [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb) (BCOS), a concept introduced in [@bandara2025bcos] that PRESS formalizes within a competing-risks framework. BCOS is the area of the pitch that the carrier can reach before any opponent. It summarizes the space potentially controlled by the carrier over a horizon longer than the one-second horizon of the ball-drive risk model, which makes it a predictive feature for choosing the next action or predicting the terminal loss of a possession, together with tactical and contextual features. More generally, PRESS follows a hybrid modelling strategy by design: physical models characterize the feasibility and risk of potential actions, while learned tree-based models describe how players select among the available alternatives.
 
 These components are combined to estimate possession vulnerability at two complementary horizons. The first concerns the ball carrier's next canonical action and provides a local estimate of possession-loss risk, which can be used to characterize instantaneous pressure. The second, xLoss, estimates the probability of losing possession over its remaining course. Together, these perspectives allow us to investigate both the immediate difficulty of retaining the ball and the broader implications for possession outcomes.
 
@@ -121,7 +121,7 @@ The pass-success and ball-drive components characterize the physical difficulty 
 
 The canonical actions introduced above provide a conventional way to segment possession into a discrete sequence of on-ball action opportunities (see [Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb)). Each opportunity is associated with a predefined checkpoint at which the current game state is evaluated. A successful ball drive allows the same player to continue controlling the ball, whereas a successful pass transfers control to a teammate. Since the event of interest is the loss of **team possession**, a completed pass does not terminate the process: the sequence continues across successive ball carriers until possession is lost.
 
-This segmentation allows possession to be represented as a discrete survival process. Let $T$ denote the number of canonical on-ball actions until team possession is lost, and let $s_n$ represent the game state at the $n$-th checkpoint. The probability of losing possession during the next action, conditional on having retained it up to the current opportunity, defines the discrete hazard:
+This conventional segmentation allows possession to be represented as a discrete survival process. Let $T$ denote the number of canonical on-ball actions until team possession is lost, and let $s_n$ represent the game state at the $n$-th checkpoint. The probability of losing possession during the next action, conditional on having retained it up to the current opportunity, defines the discrete hazard:
 
 $$
 \boxed{
@@ -138,7 +138,7 @@ q_t\sum_j\pi_{j,t}(1-p_{j,t}).
 $$
 The first term represents the contribution of ball-drive risk, while the second averages pass-failure risk across potential destinations. Together, they quantify the vulnerability of team possession in the current state under typical decision-making behaviour.
 
-Importantly, the conventional segmentation provides the **discrete interpretation** of the hazard, but does not restrict where it can be evaluated. Because its components depend on the current game state, $h(s_t)$ can be computed at any reliable tracking frame, allowing possession difficulty to be monitored throughout the evolution of play. The predefined checkpoints identify the action opportunities of the discrete process; intermediate frame-level evaluations provide additional observations of risk without introducing additional actions.
+Importantly, the possession segmentation provides the **discrete interpretation** of the hazard, while $h(s_t)$ can be computed at any reliable state $s_t$, including frames between canonical checkpoints, to monitor possession difficulty throughout play. At every frame it remains a per-action quantity: the probability of losing possession during the next canonical action, equal to $h_n$ when $s_t$ is the state at checkpoint $n$. Intermediate evaluations add observations of risk without adding canonical actions.
 
 ### Pressure intensity and possession difficulty
 
@@ -148,9 +148,10 @@ By combining the physical feasibility of available actions with the average deci
 
 The conventional segmentation of possession into canonical actions also allows the process to be interpreted within the framework of **survival analysis**. In particular, the hazard can be related to the expected lifetime and half-life of possession under the hypothetical assumption that the current level of difficulty remains constant across subsequent action opportunities. The half-life represents the number of actions required for the probability of retaining possession to decrease to $50\%$ if the same hazard were maintained. It therefore provides an intuitive interpretation of possession difficulty: the higher the hazard, the shorter the reference half-life. This is not a prediction of actual possession duration, since difficulty evolves throughout play.
 
-Inspired by SkillCorner's approach to classifying defensive pressure [@skillcorner2026], PRESS uses this survival-based interpretation to define **possession-difficulty bands**, whose construction and thresholds are described in the [hazard and risk bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb).
+Inspired by SkillCorner's approach to classifying defensive pressure [@skillcorner2026], PRESS uses this survival-based interpretation to define **possession-difficulty bands**, whose construction and thresholds are described in the [hazard and risk bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb).
 
 The main application is to characterize the difficulty encountered by individual players and investigate their ability to retain possession under pressure. Evaluating the hazard throughout individual possessions produces risk profiles, while comparing observed outcomes across difficulty levels provides a basis for assessing player performance relative to the situations faced.
+
 
 ### From possession-loss hazard to xLoss
 
@@ -158,18 +159,20 @@ The possession-loss hazard measures the probability of losing team possession du
 
 The distinction arises primarily from ball carrying. A successful one-second drive preserves individual possession but does not determine its eventual outcome: the player may continue carrying the ball, attempt a pass, or lose control later. Conversely, a successful pass terminates the current player's individual possession without causing a loss of team possession.
 
-To account for this longer horizon, we add a **residual-risk component**, defined as the probability that the current individual possession eventually terminates in a loss, conditional on successfully completing the initial ball drive:
+To account for this longer horizon, we add a **residual-risk component**. Conceptually, the eventual outcome of an individual possession is an absorption probability, which would follow from iterating the evaluation over successive states, each with its own action choice and loss risk, until the possession ends. Since the space of possible continuations is unbounded, the residual-risk component approximates this quantity directly from observed outcomes, as the probability that the current individual possession eventually terminates in a loss, conditional on successfully completing the initial ball drive:
 
 $$
 r_t=
 P(\mathrm{eventual\ individual\ possession\ loss}
 \mid s_t,\mathrm{successful\ drive}).
 $$
+
 The probability of eventual loss through the ball-drive branch therefore combines the risk of losing the ball during the initial drive with the residual risk following its successful completion:
 
 $$
 d_t+(1-d_t)r_t.
 $$
+
 Marginalizing over the same average decision-making policy used for the hazard gives the expected loss probability:
 
 $$
@@ -180,6 +183,7 @@ $$
 q_t\sum_j\pi_{j,t}(1-p_{j,t}).
 }
 $$
+
 Equivalently,
 
 $$
@@ -187,9 +191,11 @@ $$
 \mathrm{xLoss}(s_t)=h(s_t)+(1-q_t)(1-d_t)r_t.
 }
 $$
+
 The additional term represents the probability contribution from an initially successful drive followed by an eventual loss of individual possession. Unlike the hazard, which concerns the next action, xLoss incorporates this longer-horizon risk through the residual-risk component, without explicitly modelling the subsequent sequence of decisions.
 
 Together, $h(s_t)$ and $\mathrm{xLoss}(s_t)$ provide complementary measures of possession vulnerability. The former characterizes immediate possession difficulty and supports survival-based difficulty bands and pressure profiles; the latter estimates the probability that the current player's individual possession will eventually end in a loss. Both are evaluated under the average decision-making policy, independently of the action actually performed.
+
 
 ## Model flow
 
