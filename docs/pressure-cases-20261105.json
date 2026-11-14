@@ -9,7 +9,7 @@
     {
       "case": "A",
       "match_id": "2006229",
-      "match_name": "Melbourne City\u2013Macarthur FC",
+      "match_name": "Melbourne City–Macarthur FC",
       "match_date": "2025-03-07",
       "possession_id": "8_774",
       "pattern": "Pressure escape",
@@ -38,7 +38,7 @@
     {
       "case": "B",
       "match_id": "1996435",
-      "match_name": "Sydney FC\u2013Adelaide United",
+      "match_name": "Sydney FC–Adelaide United",
       "match_date": "2025-02-01",
       "possession_id": "8_352",
       "pattern": "Drawing pressure",
@@ -67,7 +67,7 @@
     {
       "case": "C",
       "match_id": "2013725",
-      "match_name": "Western United\u2013Sydney FC",
+      "match_name": "Western United–Sydney FC",
       "match_date": "2025-04-27",
       "possession_id": "8_553",
       "pattern": "Sustained successful carrying",
@@ -119,6 +119,5 @@
         1.034069630150698
       ]
     }
-  ],
-  "prior_versions_archived": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/123_receiving_escape_attacking_draw_20261105/before"
+  ]
 }

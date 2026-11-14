@@ -12,7 +12,7 @@ The motivating question is: given the current game state and the player in posse
 
 The model style is hybrid: pass and carry outcomes use physics-inspired motion and arrival probabilities, while action selection and pass destination use tree models. The risk unit is team possession, represented as a discrete-time survival process over a sequence of canonical on-ball actions across successive carriers. A successful pass is nonterminal: it continues team possession with the receiver. It ends only the passer's individual control, which is the separate endpoint used by xLoss. The current-action hazard can be evaluated at any usable tracking frame attributable to the current carrier. Canonical action starts define the benchmark, and separately marked snapshots can enrich a descriptive trajectory.
 
-Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking, whereas the observed-possession summary is retrospective. See the [hazard and bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb) for the interpretation of the hazard and the [possession segmentation page](vignettes/setup/possession_and_checkpoint_setup.ipynb) for the definition of canonical actions and checkpoints.
+Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking, whereas the observed-possession summary is retrospective. See the [hazard and bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb) for the interpretation of the hazard and the [possession segmentation page](vignettes/setup/possession_and_checkpoint_setup.ipynb) for the definition of canonical actions and checkpoints.
 
 ## Model overview
 
@@ -28,7 +28,7 @@ where the pass failure is averaged over candidate destinations. The expected los
 
 Operational difficulty bands follow from the half-life of possession under a constant hazard, with cutoffs at half-lives of 8, 4 and 2 actions.
 
-**Ball-drive risk.** The drive solver accumulates defender-specific loss probabilities under a shared remaining survival mass. The tackle rate has additive penalized spline effects for carrier speed, signed distance to the pitch boundary and defender approach angle. `BallDriveModel.pretrained()` loads the ten-match refit, which the frame API uses by default. The historical log-linear solver is retained only in `archive/legacy_package/`, outside the installed package. The drive model names its baseline tackle rate `lambda_0`, and `lambda_control` belongs to pass control.
+**Ball-drive risk.** The drive solver accumulates defender-specific loss probabilities under a shared remaining survival mass. The tackle rate has additive penalized spline effects for carrier speed, signed distance to the pitch boundary and defender approach angle. `BallDriveModel.pretrained()` loads the ten-match refit, which the frame API uses by default. The drive model names its baseline tackle rate `lambda_0`, and `lambda_control` belongs to pass control.
 
 **Pass probability.** Two physical parameters, the control rate and the arrival dispersion, are fitted by maximum likelihood along reconstructed pass trajectories and transferred to target pitch control, with exact-distance flight and exponential integration. An isotonic map calibrates the completion probability. `PassRiskModel.pretrained()` loads parameters and calibration, `PRESS(..., pass_risk_model=model)` accepts it explicitly, and `compute_ppcf` uses it by default. The [vignette](vignettes/02_pass_probability/02_pass_probability.ipynb) explains flight, control and model assumptions, and the [provenance file](docs/pass-risk-refit-provenance.json) records the refit.
 
@@ -80,18 +80,18 @@ All plot functions return figure and axes. Getters copy results by default. Save
 
 - [01 · Ball-drive risk](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb): geometry, carrier speed, boundary distance and competing defender causes.
 - [02 · Pass probability](vignettes/02_pass_probability/02_pass_probability.ipynb): simplified flight path and arrival and control accumulation.
-- [03 · Pass selection](vignettes/03_transition_model/03_pass_selection.ipynb): destination choice across candidate cells.
+- [03 · Pass selection](vignettes/03_pass_selection/03_pass_selection.ipynb): destination choice across candidate cells.
 - [04 · Action selection](vignettes/04_action_selection/04_action_selection.ipynb): pass-versus-carry choice and its calibration.
 - [05 · Residual risk](vignettes/05_residual_risk/05_residual_risk.ipynb): conditional terminal outcome after a successful carry.
 
 **Risk profiles and reports.**
 
-- [06 · Composed hazard and bands](vignettes/06_composed_hazard_and_bands/06_composed_hazard_and_bands.ipynb): the hazard, half-life bands and held-out band validation.
+- [06 · Composed hazard and bands](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb): the hazard, half-life bands and held-out band validation.
 - [07 · Case studies](vignettes/07_case_studies/07_case_studies.ipynb): pressure patterns, observed cases and the team and player report.
 
 **Benchmarks.** The [benchmark overview](benchmark.qmd) describes the dataset, the shared evaluation protocol and the metrics. Each task has its own page: [ball-drive risk](benchmarks/01_ball_drive_risk.qmd), [pass probability](benchmarks/02_pass_probability.qmd), [pass selection](benchmarks/03_pass_selection.qmd), [action selection](benchmarks/04_action_selection.qmd), [residual risk](benchmarks/05_residual_risk.qmd) and [composed risk](benchmarks/06_composed_risk.qmd).
 
-**Extras.** [Ball Carrier Open Space](vignettes/extras/bcos/10_bcos.ipynb), whose scalar area is a feature of action selection, and [Expected Threat](vignettes/extras/expected_threat/11.expected_threat.ipynb), which builds the xT grid consumed by PRESS (Singh, 2018).
+**Extras.** [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb), whose scalar area is a feature of action selection, and [Expected Threat](vignettes/spatial_features/expected_threat/11.expected_threat.ipynb), which builds the xT grid consumed by PRESS (Singh, 2018).
 
 **Reference.** [Initialization and classes](api.qmd), [solvers](solvers.qmd), [getters and saved results](reference/getters.qmd), [plot functions](reference/plots.qmd), the [research pipeline](pipeline.qmd) and the [project plan](roadmap.qmd).
 
@@ -118,15 +118,14 @@ Use Python 3.11 (the verification interpreter) or 3.12. Create the environment p
 ```bash
 python3.11 -m venv .venv
 . .venv/bin/activate
-pip install -e '.[io,vignettes,dev]'
-python scripts/check_environment.py --extras io,vignettes,dev
+pip install -e '.[io,vignettes]'
+python scripts/check_environment.py --extras io,vignettes
 python -m examples.checkpoint --help
-python -m pytest -q tests
 python scripts/rebuild_vignettes.py
 python scripts/check_docs.py
 ```
 
-The checked-in model examples use observed matches and saved figures. Re-executing them requires the local processed tracking, whereas rendering the saved outputs does not. The examples read the processed matches from the folder given by the `PRESS_PROCESSED_ROOT` environment variable. Artificial fixtures are confined to `tests/` and are not installed with the package. The command-line example requires `--match-dir` and reads an observed match. See the [dataset and preprocessing guide](data.qmd) and [data/README.md](data/README.md) for local data preprocessing.
+The checked-in model examples use observed matches and saved figures. Re-executing them requires the local processed tracking, whereas rendering the saved outputs does not. The examples read the processed matches from the folder given by the `PRESS_PROCESSED_ROOT` environment variable. The command-line example requires `--match-dir` and reads an observed match. See the [dataset and preprocessing guide](data.qmd) and [data/README.md](data/README.md) for local data preprocessing.
 
 ## Build the website
 
@@ -149,8 +148,8 @@ PRESS uses ten matches of the Australian A-League 2024/25 season from the [Skill
 - `benchmarks/`: one benchmark page per task, and `benchmark.qmd` for the shared protocol.
 - `index.qmd`, `data.qmd`, `usage.qmd`, `api.qmd`, `solvers.qmd`, `reference/`, `pipeline.qmd`, `roadmap.qmd`, `_quarto.yml`: site pages and navigation.
 - `docs/`, `figures/`, `data/`: provenance records, figures and data setup notes.
-- `pipeline/`: research code for preprocessing, features, training, evaluation and production refits.
-- `scripts/`, `examples/`, `tests/`: environment checks, notebook rebuild, command-line examples and tests.
+- `pipeline/`: procedural research code for preprocessing, features, training, evaluation and production refits, linked from `pipeline.qmd`.
+- `scripts/`, `examples/`: environment checks, notebook rebuild and command-line examples.
 - `.github/workflows/publish-site.yml`: GitHub Pages build and deployment.
 - `references/refs.bib`, `REFERENCES.md`: citation records and unresolved references.
 - `archive/legacy_package/`: unused implementations, outside the installed package.

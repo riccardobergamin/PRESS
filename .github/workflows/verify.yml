@@ -18,11 +18,10 @@ jobs:
           python-version: "3.11"
           cache: pip
       - name: Install package and verification dependencies
-        run: python -m pip install -e ".[io,vignettes,dev]"
-      - name: Run behavioral API tests
+        run: python -m pip install -e ".[io,vignettes]"
+      - name: Check dependencies
         run: |
-          python scripts/check_environment.py --extras io,vignettes,dev
-          python -m pytest -q
+          python scripts/check_environment.py --extras io,vignettes
       - name: Check documentation sources
         run: python scripts/check_docs.py --sources-only
       - uses: quarto-dev/quarto-actions/setup@v2

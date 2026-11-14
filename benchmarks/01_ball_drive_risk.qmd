@@ -7,7 +7,7 @@ jupyter: python3
 
 This benchmark documents the selection, estimation, and predictive evaluation of the PRESS ball-drive risk model. The target is the loss of individual possession within a canonical one-second carry, conditional on carrying. The [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb) defines the player-motion approximation, probabilistic defender reachability, tackle intensity, and competing-risk equations. Here we focus on the evidence supporting the fitted specification.
 
-## 1. Cohort and task-specific evaluation {#ball-drive-benchmark}
+## 1. Evaluation cohort {#ball-drive-benchmark}
 
 The final cohort comprises **9,114 carry attempts**, including **456 losses (5.003%)**, from ten SkillCorner matches. The one-second segmentation of individual possessions is described in [Possession segmentation and context](../vignettes/setup/possession_and_checkpoint_setup.ipynb). For this specific task, loss-ending possessions without an associated on-ball engagement (OBE) are excluded, since such losses are not guaranteed to result from defensive pressure. The OBE is used only to verify outcomes, and successful-ending possessions do not require one.
 
@@ -15,7 +15,7 @@ Only the final failed section of a possession is labelled as a loss. A loss obse
 
 The shared evaluation procedure described in [Benchmarks](../benchmark.qmd) defines the five outer match folds, the nested 6+2 validation rotations, pooled held-out evaluation, and performance metrics. For Ball-drive risk, the four inner rotations select the spline smoothing specification using the six fitting and two validation matches. The task-specific null model predicts the loss prevalence estimated from the eight development matches of each outer fold. The final physical model is fitted without resampling or post-hoc calibration.
 
-## 2. Final model specification and selection
+## 2. Model specification and features {#final-model-specification-and-selection}
 
 The evaluated model is the reachability-gated competing-risk specification with an additive spline tackle intensity,
 
@@ -26,6 +26,8 @@ $$
 The terms describe carrier speed, signed distance to the pitch boundary, and defender approach angle, respectively. Restricted cubic spline bases allow nonlinear effects while retaining the common possession-survival process. The [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb) documents the kinematic conventions, the form of the spline functions, reachability functions, complexity allocation, priors, and competing-risk equations. The construction of the bases is in the [appendix on the spline basis](../appendix/ball-drive-spline-basis.qmd).
 
 Every fit is a maximum a posteriori (MAP) estimate under the priors defined in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb): standard normal priors on the linear parameters $\alpha$, $\beta_v$, $\beta_B$ and $\beta_\phi$, and a Gamma prior on the arrival dispersion $s$ with shape 2.5 and rate 5 (mean 0.5 s). The nonlinear spline coefficients are regularized by a curvature penalty, equivalent to a zero-centred Gaussian prior, whose multipliers are selected as described below.
+
+## 3. Model selection and validation
 
 ### Optimization
 
@@ -60,7 +62,7 @@ The choice was identical across all five outer folds, and the selected configura
 | Signed boundary distance, $g_B$ | Restricted cubic spline, 5 knots | 1 |
 | Defender approach angle, $g_\phi$ | Restricted cubic spline, 4 knots | 100 |
 
-## 3. Predictive performance
+## 4. Predictive performance {#predictive-performance}
 
 Following the shared outer-fold protocol, the final spline specification was refitted on the eight development matches and evaluated on the two held-out matches. Pooled results for the verified-loss cohort are:
 
@@ -70,7 +72,7 @@ Following the shared outer-fold protocol, the final spline specification was ref
 | Cross-entropy | **0.143483** |
 | Null cross-entropy | 0.198722 |
 | Gain over null | **27.798%** |
-| Quantile ECE | **0.475%** |
+| ECE | **0.475%** |
 | Brier score | 0.040068 |
 | ROC AUC | 0.88547 |
 | Loss-class PR AUC | 0.30837 |
@@ -78,36 +80,11 @@ Following the shared outer-fold protocol, the final spline specification was ref
 
 [Final metrics](../data/benchmarks/ball_drive/filtered_physics_metrics.csv), [fold parameters](../data/benchmarks/ball_drive/filtered_physics_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
 
-## 4. Final parameter estimates and uncertainty
-
-The selected specification was fitted to all ten matches and all **9,114** verified sections. Following the [shared deployment protocol](../benchmark.qmd#model-stability-and-final-refitting), this fit supplies the package parameters.
-
-The likelihood is Bernoulli on the one-second loss outcome, and the coefficients, baseline tackle rate, and logistic arrival-time dispersion are estimated jointly by maximum a posteriori (MAP) under the priors defined in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). A local Laplace approximation to the joint posterior supplies approximate marginal uncertainty. In the final fit, the preset initial point had the lowest initial objective, so a single optimization was run. In log coordinates, the reported approximations are
-
-$$
-\log\lambda_0\mid D\ \dot\sim\ \mathcal N(-1.065479,\,0.014572626),
-\qquad
-\log s\mid D\ \dot\sim\ \mathcal N(-1.205201,\,0.003378886),
-$$
-
-where the second argument denotes **variance**. The resulting summaries are:
-
-| Parameter | Joint MAP | Approximate posterior mean | 95% credible interval |
-|---|---:|---:|---:|
-| Arrival dispersion $s$ | **0.299632 s** | 0.300139 s | 0.267368–0.335789 s |
-| Baseline tackle rate $\lambda_0$ | **0.344563 s$^{-1}$** | 0.347082 s$^{-1}$ | 0.271965–0.436539 s$^{-1}$ |
-
-The approximate credible intervals use $\exp\{\hat m\pm1.96\sqrt{\Sigma_{kk}}\}$, and the approximate posterior means use $\exp(\hat m+\Sigma_{kk}/2)$. The baseline rate is an intercept-scale intensity. Package predictions use the joint MAP parameters.
-
-![Prior densities and approximate posterior marginals for the two fitted scales.](../figures/vignette_01_drive_risk.png)
-
-These intervals describe uncertainty conditional on the model, movement assumptions, prior strengths, and training data, and exclude model-selection uncertainty and systematic annotation error. The final fit converged, with a valid Laplace approximation. [Posterior summaries](../data/examples/ball_drive/posterior_summary.json) and [refit provenance](../docs/ball-drive-refit-provenance.json).
-
-## 5. Comparison with published results
+## 5. Comparison with published results {#comparison-with-published-results}
 
 Published results provide context. The studies differ in sample size, loss definitions, input representations, train/test splits and prevalence, and the gain over each study's null is reported for orientation.
 
-| Study / model | Training loss share | CE | Null CE | Gain over null | Quantile ECE |
+| Study / model | Training loss share | CE | Null CE | Gain over null | ECE |
 |---|---:|---:|---:|---:|---:|
 | Fernández et al.; neural network | 9.4% overall | 0.2803 | ≈0.311696* | ≈10.07%* | 0.51% |
 | Stalpaert; CatBoost start-only, natural | 6.1% table heading | 0.2059 | 0.2455 | 16.13% | — |
@@ -141,7 +118,7 @@ The CatBoost comparison follows the rotating design of the physical model tasks.
 
 After selecting configuration and tree count, the selected model is refitted on all eight development matches before outer testing. Predictions are averaged over three seeds (19, 41 and 73). The displayed natural and resampled results use native and analytically corrected probabilities, respectively.
 
-| CatBoost training | Pooled CE | Gain over null | Quantile ECE |
+| CatBoost training | Pooled CE | Gain over null | ECE |
 |---|---:|---:|---:|
 | Natural prevalence | 0.139855 | 29.623% | 0.490% |
 | 10% losses, prior-corrected | 0.139928 | 29.586% | 0.397% |
@@ -150,11 +127,40 @@ In our experiment, resampling yielded no meaningful change in held-out cross-ent
 
 ![Pooled out-of-fold calibration of the final physical model and the CatBoost comparisons on the verified-loss cohort. Each marker represents one quantile bin.](../figures/ball_drive_physical_pooled_calibration.png){#fig-ball-drive-physical-calibration}
 
-The physical model’s pooled calibration curve is close to the diagonal. In the highest predicted-risk decile, mean predicted loss is **24.6%**, compared with **26.0%** observed. Quantile ECE is **0.475%**, which summarizes marginal calibration across the ten bins. [Physical-model calibration bins](../data/benchmarks/calibration/pooled_bins.csv), [CatBoost calibration bins](../data/benchmarks/ball_drive/filtered_calibration_deciles.csv), [pooled calibration metrics](../data/benchmarks/calibration/pooled_metrics.csv), and [vector figure](../figures/ball_drive_physical_pooled_calibration.svg).
+The physical model’s pooled calibration curve is close to the diagonal. In the highest predicted-risk decile, mean predicted loss is **24.6%**, compared with **26.0%** observed. ECE is **0.475%**, which summarizes marginal calibration across the ten bins. [Physical-model calibration bins](../data/benchmarks/calibration/pooled_bins.csv), [CatBoost calibration bins](../data/benchmarks/ball_drive/filtered_calibration_deciles.csv), [pooled calibration metrics](../data/benchmarks/calibration/pooled_metrics.csv), and [vector figure](../figures/ball_drive_physical_pooled_calibration.svg).
 
-## 6. Discussion
+## 6. Production model and parameter uncertainty {#final-parameter-estimates-and-uncertainty}
+
+The selected specification was fitted to all ten matches and all **9,114** verified sections. Following the [shared deployment protocol](../benchmark.qmd#model-stability-and-final-refitting), this fit supplies the package parameters.
+
+The likelihood is Bernoulli on the one-second loss outcome, and the coefficients, baseline tackle rate, and logistic arrival-time dispersion are estimated jointly by maximum a posteriori (MAP) under the priors defined in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). A local Laplace approximation to the joint posterior supplies approximate marginal uncertainty. In the final fit, the preset initial point had the lowest initial objective, so a single optimization was run. In log coordinates, the reported approximations are
+
+$$
+\log\lambda_0\mid D\ \dot\sim\ \mathcal N(-1.065479,\,0.014572626),
+\qquad
+\log s\mid D\ \dot\sim\ \mathcal N(-1.205201,\,0.003378886),
+$$
+
+where the second argument denotes **variance**. The resulting summaries are:
+
+| Parameter | Joint MAP | Approximate posterior mean | 95% credible interval |
+|---|---:|---:|---:|
+| Arrival dispersion $s$ | **0.299632 s** | 0.300139 s | 0.267368–0.335789 s |
+| Baseline tackle rate $\lambda_0$ | **0.344563 s$^{-1}$** | 0.347082 s$^{-1}$ | 0.271965–0.436539 s$^{-1}$ |
+
+The approximate credible intervals use $\exp\{\hat m\pm1.96\sqrt{\Sigma_{kk}}\}$, and the approximate posterior means use $\exp(\hat m+\Sigma_{kk}/2)$. The baseline rate is an intercept-scale intensity. Package predictions use the joint MAP parameters.
+
+![Prior densities and approximate posterior marginals for the two fitted scales.](../figures/vignette_01_drive_risk.png)
+
+These intervals describe uncertainty conditional on the model, movement assumptions, prior strengths, and training data, and exclude model-selection uncertainty and systematic annotation error. The final fit converged, with a valid Laplace approximation. [Posterior summaries](../data/examples/ball_drive/posterior_summary.json) and [refit provenance](../docs/ball-drive-refit-provenance.json).
+
+## 7. Discussion and limitations {#discussion}
 
 The spline model achieves strong held-out discrimination and good pooled calibration while retaining an explicit interpretation in terms of defender reachability and tackle intensity. On the same observations, CatBoost trained at natural prevalence reaches a slightly lower cross-entropy (0.139855 against 0.143483). The physical model remains close to it while providing defender-level rates and reachability, which the composed hazard uses.
 
 
 The scope of the model is described in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb), which also includes executable real-match examples.
+
+## 8. Supplementary resources
+
+The [final physical metrics](../data/benchmarks/ball_drive/filtered_physics_metrics.csv), [fold parameter estimates](../data/benchmarks/ball_drive/filtered_physics_parameters.csv), [regularization selection](../data/benchmarks/ball_drive/spline_regularization_selection.csv), [CatBoost comparison](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [posterior summaries](../data/examples/ball_drive/posterior_summary.json) and [production provenance](../docs/ball-drive-refit-provenance.json) support the reported results. The [research pipeline](../pipeline.qmd) provides the procedural source and input/output layout.

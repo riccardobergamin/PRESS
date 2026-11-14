@@ -1,0 +1,894 @@
+{
+  "scope": "Final production models and published benchmark/example resources",
+  "excluded": "Raw/processed match tables, full feature matrices, row-level OOF tables, posterior objects, auxiliary ensembles, bootstrap replicates and historical artifacts remain local.",
+  "files": [
+    {
+      "path": "data/README.md",
+      "role": "Resource documentation",
+      "bytes": 3296,
+      "sha256": "2d091d3d6891d7e511a859f3f3ac33037a026cda0e538c34a577a92cb04c7537"
+    },
+    {
+      "path": "data/benchmarks/action_selection/calibration_deciles.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1263,
+      "sha256": "c2a8b3b2a7089f7fc02446d619c304014005ebdcd00bd2458fefa518172952fa"
+    },
+    {
+      "path": "data/benchmarks/action_selection/calibration_h_diagnostic_20261105.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1218,
+      "sha256": "e1122bb55495069c6b26071f634e5c4b256caa87f52bdc69b9cd2cde4bb0acf9"
+    },
+    {
+      "path": "data/benchmarks/action_selection/context_probe_by_seed.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2505,
+      "sha256": "5ee24265f73dc1f8590d01a833c744f1afd22a25bc2d45d2919a8dae6cbdeceb"
+    },
+    {
+      "path": "data/benchmarks/action_selection/context_probe_summary.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 666,
+      "sha256": "130f9bea93733f910df8a03849e5a690d4b29e2e6e612a35942dcd9f20aeeab1"
+    },
+    {
+      "path": "data/benchmarks/action_selection/feature_schemas.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 21148,
+      "sha256": "0a8b2da703ad87c1facb86bedc3d01238e97191722cb017761ec1f1a04250ecf"
+    },
+    {
+      "path": "data/benchmarks/action_selection/historical_cohort_comparison.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 640,
+      "sha256": "713587ab5fe119a31075e33e3e49f7be62b7a793c29af16fbc343eb481f6c164"
+    },
+    {
+      "path": "data/benchmarks/action_selection/literature_comparison.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 612,
+      "sha256": "7eaeb0fe3363cb657861e841e01d352a317d34f6b88e564e94559ec6bd80dc6e"
+    },
+    {
+      "path": "data/benchmarks/action_selection/metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 411,
+      "sha256": "22d5a16c32398d0c30a1f809f613d3422774a732e879772d82563429ad96911a"
+    },
+    {
+      "path": "data/benchmarks/action_selection/metrics_by_fold.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 804,
+      "sha256": "fbeb8788894055974fa3e7ac40e0d68b540998395979cacca3678095e0e04e04"
+    },
+    {
+      "path": "data/benchmarks/action_selection/metrics_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1575,
+      "sha256": "06d5c886569b4360d3754b1409b5f6ce0179c43677fe2fd13f15a4a07a6802ba"
+    },
+    {
+      "path": "data/benchmarks/action_selection/selected_configurations.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 572,
+      "sha256": "949214c70b33aceb4fda6d26396df3212058432f567d1eb2926455bd2874b53a"
+    },
+    {
+      "path": "data/benchmarks/action_selection/summary.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 715,
+      "sha256": "6a86675b5c5374f0eea679e819246b8c7856938b996fd9b7441b6e3a49daaffd"
+    },
+    {
+      "path": "data/benchmarks/action_selection/temperature_diagnostic.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 350,
+      "sha256": "a94313ca0c2547da2fe04575dfcce354ed464778e4b324affd22108e82810bd6"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/angle_free_one_se_validation.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 707,
+      "sha256": "ce0bf4420feafbf60744da3c61cfc6398361ac52cfda4491bff914c86fb4f61a"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/arrival_dispersion_laplace.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1617,
+      "sha256": "2d00e5c4f6f7c53eb578410f1989af59b2e18ba335003875ba0915e19efa0be4"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/calibration_deciles.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 979,
+      "sha256": "dea58b782773ffb330ccfc4d6aa1058a592023b3eac34144834572fce6023e86"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/catboost_common_floor.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2052,
+      "sha256": "c99d669a7f7c0e46fd8323ddd363d0198fa737e1295004e447335d80129ca600"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/catboost_exploration.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 3633,
+      "sha256": "49fbda771dbba25d5da0420576451d5d74581fcd80d1481f19d537ca0fdbae7a"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/catboost_exploration_provenance.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1897,
+      "sha256": "865eff3dc63d0c68dd0dc0de2748e5321391cef5e2919a93dda6226cd2490190"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/catboost_final_importance.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 491,
+      "sha256": "69c22d335b572f210cdb8435983a8a073193bcfb7d4020f7f3493264c001a891"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/catboost_final_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2120,
+      "sha256": "c3b6e7a7600677d301eea3e55c5c417d5e502d8e452271e696705a826d286842"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/catboost_final_parameters.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 580,
+      "sha256": "f1590d19186292f75d4265d61edaee246333a748fddfbce5b91e8b3775b3c35a"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/engagement_quantiles.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1021,
+      "sha256": "07f584b10770b16d0413ef7a2ba1e42affb8c6ddc3800b1f080fb3d89396c5b6"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/exploratory_angle_increment.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 316,
+      "sha256": "c9928b71c2cc72cc45a597ee6f639f3a67827db40af6fd09b374a3f29d41096f"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/exploratory_obe_angle_separation.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 438,
+      "sha256": "a4ef3df0119c059395c9c18754ae741009baf85d7eb123752c2cabada3b0028e"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/filtered_calibration_deciles.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1847,
+      "sha256": "e9f28ce9ec5875ee93108659034edaa0b5ad581677f6d620aa256217c27deedd"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/filtered_physics_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 571,
+      "sha256": "740628585c4b1ad9618276e0483e96e54af59293ac9573950b79b7bab2ca2e26"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/filtered_physics_parameters.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 468,
+      "sha256": "be66fdb34335173d8c9f3ac88032a4c192d329cc8987497356e8078a8a95db21"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/literature_comparison.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1031,
+      "sha256": "4f580d4b1bfc8304650e3468dbeb7d0f750cd2b0f1deb7ef32776cddb807bc75"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1331,
+      "sha256": "d6eda625c187206e8277d78594627b0d2992fca6c2c12185f73fcc8f31379cc9"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/provenance.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1471,
+      "sha256": "da4ebf2fbfb4ac579cf0ee9aea3009b78d12b01dc0909e10279654935b2aeac0"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/spline_regularization_grid.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2084,
+      "sha256": "eb3799896d4de06e866dc9d5d7b7b801747edecde955845760acc9f88547663b"
+    },
+    {
+      "path": "data/benchmarks/ball_drive/spline_regularization_selection.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 614,
+      "sha256": "8a416bb89953e8d387a6fa1ab654eee062323a20762490c2bf5085ac1f037ace"
+    },
+    {
+      "path": "data/benchmarks/calibration/pooled_bins.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 4131,
+      "sha256": "8d9e43091167b9cb93237de89afd0243590cef88104aec2a27d66cc41553efe5"
+    },
+    {
+      "path": "data/benchmarks/calibration/pooled_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 878,
+      "sha256": "7cc536c513eff79a2f3c915bfec49e5abdffa79ac4195cdb51d3d2c02b63e4f3"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/calibration_quantile10.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 13026,
+      "sha256": "d7a65bf0de6b83f9610c0d354f1a043707cd5480bca03a30230c0ab227df7eaf"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/metrics_by_fold.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 13883,
+      "sha256": "dfa98c6190ac855748b9c3bb047cde498ec40ee6c864576f7166bcb01f250f6f"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/metrics_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 28335,
+      "sha256": "8fb99dde9e74ec89146b78443d0d2f25fe0fe8631435d3bfe51d02ec47ac495a"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/pooled_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2874,
+      "sha256": "dd291fa4ac0128f9a83db5df8944561aa3296b896fb57368418d72f2b6ba021e"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/terminal_coverage_calibration_quantile10.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 11158,
+      "sha256": "76ecca8a725ea985c1aa392a0f8133553b0e2a32f7a5872fec05af6e8d85bc56"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/terminal_coverage_metrics_by_fold.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 11593,
+      "sha256": "6ce2dee7493296c36b90c4afd4d24f5465613c19f02dabcf7f08ed0641c9ecab"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/terminal_coverage_metrics_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 23659,
+      "sha256": "a911f623c4eb73c7f618fd20fbcabbfeb02f9a8ba10a183507e9cffc5f19f8f9"
+    },
+    {
+      "path": "data/benchmarks/composed_risk/terminal_coverage_pooled_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2414,
+      "sha256": "0a7fc4b4f6253e9978adc4e6baee32527eee6ab51d490e247e9e4bca69dc871d"
+    },
+    {
+      "path": "data/benchmarks/feature_importance/README.md",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1074,
+      "sha256": "1dc9d0ca989e9bbf10f5815d3901fb958c9cf5ca46cc17b89f96413ff7146518"
+    },
+    {
+      "path": "data/benchmarks/feature_importance/conceptual_split_gain.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 44086,
+      "sha256": "301c461a22b069466967085b50606e9f1a422f26c35e1652297c35e3dc6af567"
+    },
+    {
+      "path": "data/benchmarks/feature_importance/importance_summary.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 13158,
+      "sha256": "173a3134212cb35b1bbd2130e506b241477bf1819d8f1c33bd8ed8352608fe86"
+    },
+    {
+      "path": "data/benchmarks/filters/effective_exclusions.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1989,
+      "sha256": "f46b136de1b43c7126bb793afece5c14c47eed88b670ba374b5a83b581212074"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/README.md",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 913,
+      "sha256": "c938854f04dde98f799fd8513e31c4465d9a78d957b4a9a7957ea818003d72d9"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/calibration_deciles.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 13804,
+      "sha256": "c2e7e65e879896a888346ccd7c03073f837fde16177af1c685b450b1adc0a2a8"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/curvature_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 37663,
+      "sha256": "b2c0331072fec4b1852768b65b5a1cf62186d8c15b19de25d4f7e684d31c1a42"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/curvature_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 4891,
+      "sha256": "d0f2f496a6f4628890b80c92a18c74a28bbb915a8430a887b09e33d29299ae8c"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/frozen_specification.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 4848,
+      "sha256": "0dafac337d62358f1f561ff6fbe2a0f69eb409dcaa47e33dc98751ebf406594e"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/historical_curvature_comparison.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 309,
+      "sha256": "06088de6b3d38e643122063beb734c7de9e9b5bfc00e2033700d30c112d73334"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/literature_comparison.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 824,
+      "sha256": "b771ae47c92da52d01485c72e730d377b96cf3c793ba8d928cfe0e27a1f04f44"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1251,
+      "sha256": "76240b18bc5bfb7c4d838a717537ca668cafd3e8d93f17e47ecb2a04c106577a"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/metrics_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 48591,
+      "sha256": "3e597a6adae564d03d275cc747053daaf65a28c9e9304cdcf3a9852b24b653bf"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/numerical_time_step_check.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 594,
+      "sha256": "eb8d70f13241fb7e566bc85d71c20dee2f83f7ea6076fa271042f48c26f192ae"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/offball_speed_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 646,
+      "sha256": "b7e01b633493cfd689fe47b5772f1c238e3ea18bc82c4d2aa6a9da5d23e81347"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/offball_speed_summary.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 272,
+      "sha256": "84a03dd7c9b9f0a52febf7c85069eb4e00c839a3d90d181abce9242518807bbd"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/paired_comparisons.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1189,
+      "sha256": "348dcb9fa15f50aaa250b426c935e414795f628d7ab4d296de67b6298f44f64a"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/paired_parameters.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1054,
+      "sha256": "469caa0b1343329e65a9530ec14f8839e78f4d2b901bfc821ca01442c360e0b8"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/parameters.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 497,
+      "sha256": "54b3d3f8b9bce0f25c04a8c946b4d9fca375312b7c1ef22cdd3743ff7f6eb9f0"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/provenance.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1908,
+      "sha256": "c18c4db61de49549d9bffbffcedd8e128e18350244353a0121bd86221503afb9"
+    },
+    {
+      "path": "data/benchmarks/pass_risk/uniform_tti_comparison.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 4831,
+      "sha256": "188872afbfbfc20135c02bdfaf2a5274e59c48a8d81cd2ab50f8547172f834e9"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/final_fold_summary.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1028,
+      "sha256": "64c5e17dbb5a5abc9e3555da93476e9b82d025daee562d8b0b5df87de8e16b97"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/final_metrics_by_fold.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2208,
+      "sha256": "8fcdebe0825c2407aa863d7f859954a0322004081b7a72f1cfb06155a9dd2e07"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/final_metrics_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 4652,
+      "sha256": "f3e847b523593997024059273ed898384fb2ac46681a847da81f8aa4dc262b39"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/final_pooled_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 465,
+      "sha256": "9d27c6b8f05ca33c84a8c4b15fac9846193bdac5dc3417de1b1c10441255590a"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/paired_comparisons.json",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1784,
+      "sha256": "a29f1697093c2099f4dbb26205c48afc7a7751832ede6a7a4095c5f76716a559"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/paired_vs_final50.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 506,
+      "sha256": "327b49ca1f8667b894b500702d1b554c37c44de8ad22dd2cd71291f332bbdea5"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/screening49.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1916,
+      "sha256": "011b2003efdd0f51a8c882b33c7c537e26b861fec20f27fd0a35f2d2a8cc6633"
+    },
+    {
+      "path": "data/benchmarks/pass_selection/screening54.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1909,
+      "sha256": "2759fd60083b5ae136bffa914d8fb6d373de8c4fce1a7bd1d404b0770f2ff2ab"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/calibration_quantile10.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2715,
+      "sha256": "86dee3c200e8348eafd190380cec989379b3609f4dff7cf2cdd625b9d7a5f3d2"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/metrics_by_fold.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 3915,
+      "sha256": "4a92f1c8b2bf36378238f91fe620879b3584f394859d477fbcc0dc1234c4789e"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/metrics_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 7829,
+      "sha256": "416b6417c22fcf944880eda977fd4c5e233ad940905a95aeadbd85fcf6ed7a62"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/pooled_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 875,
+      "sha256": "4459df9953fc994c72e617c478f1637d9753ca238b124c833bf9975381543f4a"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/primary_metrics_by_fold.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1070,
+      "sha256": "29a67cbd0885c214825995d886963cad2b93e597cd9c094e7b279f8d8a3ad2ae"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/primary_metrics_by_match.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 2052,
+      "sha256": "ff88604d157c269069d25c369878b137c08c46ac5e25cc2cb5540136aef97166"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/primary_pooled_metrics.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 311,
+      "sha256": "a073e71c36c9acfed85f20c81172c35d11a6f8a6f5e21007367bf57504472caa"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/primary_remaining_time_sensitivity.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 646,
+      "sha256": "c3de5e3bc2eec9d63008996d20dc5cb11f63b4017dde63da82deac4f953ecbb4"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/primary_selected_configurations.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1586,
+      "sha256": "f89331312b4290f207956003107871f459f52aec170a30d67d0b89efa07021b5"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/related_literature.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 980,
+      "sha256": "0cb8a28d16edf50446765e84124112b40e5b60ec80a11146fe9b3c82a901a21b"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/remaining_time_sensitivity.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 1147,
+      "sha256": "1b8062ff34dee28960bf28a2da4c52e706b8a3f6accafadcbab6811e272eaee1"
+    },
+    {
+      "path": "data/benchmarks/residual_risk/selected_configurations.csv",
+      "role": "Aggregate benchmark/statistical summary or protocol",
+      "bytes": 3028,
+      "sha256": "ff959a9cc50fc615dd245bc7923fc9ed6e5e4db3ed7b8a145abed234cb95bd5f"
+    },
+    {
+      "path": "data/examples/ball_drive/defender_speed_check.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 146,
+      "sha256": "af2a417ebc7e17b2b4689f88ba37d8668b7c26adc7c17090d65818dc75b2cd22"
+    },
+    {
+      "path": "data/examples/ball_drive/posterior_summary.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 2166,
+      "sha256": "401b702774ebbaaffd3b0538e693464e908d0ec06ba981aa20583aa7ba29af22"
+    },
+    {
+      "path": "data/examples/ball_drive/real_loss_case.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 2339,
+      "sha256": "15e80d2dd958b19bf71ecb1331c93c67552b3a1196559bf51c20228d5493b4dc"
+    },
+    {
+      "path": "data/examples/ball_drive/standardized_parameterization.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 9130,
+      "sha256": "e300a50c8e873e91e70aa6cbd744eeb6fd27f1dd0494895f9d2ad6b75ea06ca7"
+    },
+    {
+      "path": "data/examples/bcos/README.md",
+      "role": "Resource documentation",
+      "bytes": 2053,
+      "sha256": "0e0e53761c4bd47708bf5cf89b0ededa78e61db133b9539ede9a5ae6cd90d5b5"
+    },
+    {
+      "path": "data/examples/bcos/checkpoint_series.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 109290,
+      "sha256": "6316825025bd6dd683a5d9d407232c58996c892d20b699d53be54f9052d99f93"
+    },
+    {
+      "path": "data/examples/bcos/example_field.npz",
+      "role": "Selected derived spatial example",
+      "bytes": 37723,
+      "sha256": "30fa1e1f1d138a8a27c9c3a9c21f1c705f653b23da1f6a3930a963a5cb6652c2"
+    },
+    {
+      "path": "data/examples/bcos/example_summary.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 893,
+      "sha256": "c1b6ad721a85e1650a751870b55ac1874e0695caf211825d0ce4671ae970a177"
+    },
+    {
+      "path": "data/examples/bcos/feature_permutation_by_seed.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 6367,
+      "sha256": "a0ac060f236da5e28992bffa15eff937666e1df59743257f8cd8f72a9c5f966e"
+    },
+    {
+      "path": "data/examples/bcos/feature_permutation_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 476,
+      "sha256": "752aa766b4fc04b2665e7d6e71deb9d0da787543de891f54560b2f033e33d9be"
+    },
+    {
+      "path": "data/examples/bcos/feature_split_gain.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 25034,
+      "sha256": "43cfc34630ac3df942bbbef825ca6a9491ab73d3513810055ba6d3c3d037974b"
+    },
+    {
+      "path": "data/examples/bcos/grid_bootstrap_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 2295,
+      "sha256": "a22d00353445757f0cd144edc2f253aca23ec996b21d215f60a3ce93849b1b03"
+    },
+    {
+      "path": "data/examples/bcos/grid_mean_stability.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1376,
+      "sha256": "af139af2801f756b76a2aa1fae1c057e853f4132f577795fb08e30c05db397bf"
+    },
+    {
+      "path": "data/examples/bcos/grid_support.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1006,
+      "sha256": "c0ec8142e353a417ba928b0331e99b37c45ede437c2379cfd39007180805b4f1"
+    },
+    {
+      "path": "data/examples/bcos/match_phase_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1454,
+      "sha256": "f0fb11d731bb8353c5508fcbe0c0b41ebca3377376208b0d85d5e1d72b21dc20"
+    },
+    {
+      "path": "data/examples/bcos/metadata.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 2014,
+      "sha256": "168f91045ed019dc87e35bc676e92e345bf275ee2cb05c29a92eb49dc7e16468"
+    },
+    {
+      "path": "data/examples/bcos/path_convergence.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 6733,
+      "sha256": "3c2e0a1d2a0e47ed9db66f19792c1cf24f25f262b88d1ad54503b286471911c4"
+    },
+    {
+      "path": "data/examples/bcos/period_third_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 818,
+      "sha256": "3c1104275b51fbbb8cc999794a447e96e35c97e3f7300d8846843b05659f1f8d"
+    },
+    {
+      "path": "data/examples/bcos/spatial_cells.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 8702,
+      "sha256": "d4cc2ca414fee9f27e3e2baa1390d66a42a8636fb21263ff97cb16131f14dc7f"
+    },
+    {
+      "path": "data/examples/bcos/spatial_display_cells.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 6510,
+      "sha256": "c4572db37a4aa1a38fafa52acd3d1d29982a7616c40ad394baa50310eb29ae22"
+    },
+    {
+      "path": "data/examples/bcos/team_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 195,
+      "sha256": "b407ad1bd04f6ed2d0540ef12f6bcacf8d70db78608d13e7a7af8e21abc96300"
+    },
+    {
+      "path": "data/examples/bcos/temporal_convergence.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 3877,
+      "sha256": "9b5cf50495539c493ea675207c0bee3889f96c7e7daac54d6fb31d2576833400"
+    },
+    {
+      "path": "data/examples/bcos/temporal_display.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 79323,
+      "sha256": "1433cfa119e806ff3896caa3ca2233699e7d9c806d133c94f1d5b55c706e29ba"
+    },
+    {
+      "path": "data/examples/bcos/temporal_refinement.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1596,
+      "sha256": "ce0defb6119b71908079edf6916d180a73db504f670d761070bfcb25793f954e"
+    },
+    {
+      "path": "data/examples/bcos/temporal_thirds.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 5168,
+      "sha256": "f1fc54da9be25c870433e12a4d2c18590bf6571cbb90075c5b2cf51f8ab02503"
+    },
+    {
+      "path": "data/examples/expected_threat/README.md",
+      "role": "Resource documentation",
+      "bytes": 701,
+      "sha256": "6bef33a8532fb2bb86bd6fdd52784e679f71175043e32ff62d63bde26e82225c"
+    },
+    {
+      "path": "data/examples/expected_threat/coverage.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 151,
+      "sha256": "069840de768c14cf2f0c9296975d68f9300d02a87284546eab6d4b06293fb1da"
+    },
+    {
+      "path": "data/examples/expected_threat/manifest.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 2071,
+      "sha256": "2ffd6669aa2e0f1d0b6a67a25eea269a9bf9958672e1938c123ee8e0bbc7ba8c"
+    },
+    {
+      "path": "data/examples/expected_threat/map_stability.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 318,
+      "sha256": "42b037946b984086fcf0e9610666bd177f3c6d27444d206b8f282f09da7fdc0a"
+    },
+    {
+      "path": "data/examples/expected_threat/metrics.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1417,
+      "sha256": "1f8d4e1ebe34cf2cf52ce86cea158ec961b15edc868f9476602a6cdbad79145b"
+    },
+    {
+      "path": "data/examples/expected_threat/xt_grid.npy",
+      "role": "Selected derived spatial example",
+      "bytes": 608,
+      "sha256": "932583702d18d952b8c8f19907013e104fdeacf512b9a5e6d94d1c50137e89c2"
+    },
+    {
+      "path": "data/examples/hazard/README.md",
+      "role": "Resource documentation",
+      "bytes": 735,
+      "sha256": "b035cfec1fb5b48461310690862a4661a14083effebf30328646f6c4f5bf7783"
+    },
+    {
+      "path": "data/examples/hazard/case_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1735,
+      "sha256": "48c9663b23e4653356a1edf87491cea045c829867e99a640b433d0565bb4a4a7"
+    },
+    {
+      "path": "data/examples/hazard/cases.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 2414,
+      "sha256": "ae8b0d7aff3ad4240aa3f5678a73424f40d44dc1645b0fe7bce418eab3fc98a2"
+    },
+    {
+      "path": "data/examples/hazard/context_signals.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1576,
+      "sha256": "0ce74c1c824bc5d0b9eae7c69e18bb9f1eb68e1b40a2b0655d5440d732464c67"
+    },
+    {
+      "path": "data/examples/hazard/drawing_defender_motion.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 446,
+      "sha256": "021b3f1675e312e7296d54aed759cdcab20151633aeab560ab21b223e5b6fdb5"
+    },
+    {
+      "path": "data/examples/hazard/full_interval_geometry.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 326,
+      "sha256": "3dc46954671e4bccf9d96d7a9fee222a298fca7aee2c6989c60e684aa8fc1f90"
+    },
+    {
+      "path": "data/examples/hazard/metadata.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 10718,
+      "sha256": "a027658169d66c8f6825e299075c36a82474c9117fd3ebb2a50c5e284819cef5"
+    },
+    {
+      "path": "data/examples/plot_examples/cases.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 5149,
+      "sha256": "eace5b42994b52d49ff3600d209efa3832c5055337b85bfaafd4fceb6e7e173a"
+    },
+    {
+      "path": "data/examples/pressure_report/README.md",
+      "role": "Resource documentation",
+      "bytes": 1159,
+      "sha256": "287a8848eaf05e9ac192a3138fbca605044ba5eab31c604e2659a620059a1f53"
+    },
+    {
+      "path": "data/examples/pressure_report/band_validation.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 475,
+      "sha256": "49d5bd8dcc85e8a8fa181f49f2ca396ed2084f0af5a8684d7dd16a5535cf8baa"
+    },
+    {
+      "path": "data/examples/pressure_report/band_validation_by_action.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 497,
+      "sha256": "cbdfd48dfaccc6357833bad907f30a6b6f2b16464999e340469570354b63d9b0"
+    },
+    {
+      "path": "data/examples/pressure_report/endpoint_transitions.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 315,
+      "sha256": "e772b5ae2b6eae584ac54e9ff6d194ae903c156526a5f72d56bb9bd6781aeec2"
+    },
+    {
+      "path": "data/examples/pressure_report/h_band_bootstrap_20261105.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 921,
+      "sha256": "e5c32b4ce08e7d4100a8d5a33ddd03b3b049bd15987239363287c93b9cbd40c1"
+    },
+    {
+      "path": "data/examples/pressure_report/h_band_bootstrap_terminal_coverage_20261105.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1206,
+      "sha256": "3410be10edac2b672016c8085254ef0580adfefe6cff2026bd952e08f676a796"
+    },
+    {
+      "path": "data/examples/pressure_report/h_pass_selection_diagnostic_20261105.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 432,
+      "sha256": "e31c08619866e737c1a239110bec52926bd788371dd24c8a326b0bed3d027bcd"
+    },
+    {
+      "path": "data/examples/pressure_report/metadata.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 11224,
+      "sha256": "e1c82aeee7078f7a4101eb3951a7afe341f768a18f9ac5404e2bb9bef6707680"
+    },
+    {
+      "path": "data/examples/pressure_report/pattern_counts.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 596,
+      "sha256": "d7ef89df7dc90cc9a3350612963d5b4212fa6d812a9b0d1e3a7c95ca20385042"
+    },
+    {
+      "path": "data/examples/pressure_report/player_pattern_shares.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 41525,
+      "sha256": "0fb96db4cd843e4f1f4281de732729366ed6d002050b1b91a04ac26755b25319"
+    },
+    {
+      "path": "data/examples/pressure_report/player_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 79115,
+      "sha256": "5874e9fadf28f4fe9e981782bc8c40e46baaac51c0102f13079bfbd92cbd1bf6"
+    },
+    {
+      "path": "data/examples/pressure_report/team_match_bootstrap_sensitivity.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1812,
+      "sha256": "97461eb99070b035694e1bbce62744f511f027ff90ae386fc660b5216d5db5ac"
+    },
+    {
+      "path": "data/examples/pressure_report/team_pattern_shares.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 3351,
+      "sha256": "d20df14dae9034bd26cf4848dd4bc4537d173983c9ee0119dd7b22999eca40e1"
+    },
+    {
+      "path": "data/examples/pressure_report/team_peak_bands.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 1090,
+      "sha256": "89ea0526e84c241a9b7bfb0bcb5b329857fa4cc2a6fe1d4d1fe4e10c5c507859"
+    },
+    {
+      "path": "data/examples/pressure_report/team_summary.csv",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 7899,
+      "sha256": "04f75e30a39479b34fb72f1602b4fb69d7c4830ae4a95d234804b362568fc73c"
+    },
+    {
+      "path": "PRESS/utils/data/action_selection_feature_columns.json",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 3132,
+      "sha256": "4aeecc35043e69b0daeffc60c521c76789ebc74ddcc8a0249318ccb466190866"
+    },
+    {
+      "path": "PRESS/utils/data/action_selection_model.json",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 7223,
+      "sha256": "85885cfdfb3b6dc627b9e3ae2c2f712f9da14ab88beea073879e0d586d94ea7a"
+    },
+    {
+      "path": "PRESS/utils/data/action_selection_model.ubj",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 1151959,
+      "sha256": "307dc003bede024a60110b57aa8af2233e67d1b04651632ff4cbaaa50f853b77"
+    },
+    {
+      "path": "PRESS/utils/data/ball_drive_model.json",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 10839,
+      "sha256": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776"
+    },
+    {
+      "path": "PRESS/utils/data/pass_risk_model.json",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 7273,
+      "sha256": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240"
+    },
+    {
+      "path": "PRESS/utils/data/pass_selection_model.json",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 34492,
+      "sha256": "ad755c562588440a9d2e476af736a1150924487ad818cef51c5d799d8da5f49a"
+    },
+    {
+      "path": "PRESS/utils/data/pass_selection_model.ubj",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 2196327,
+      "sha256": "5b2b4222240f50dd208ab842763b8953f628ffb83a8fc4a2ea018ecd1366c24d"
+    },
+    {
+      "path": "PRESS/utils/data/residual_risk_model.json",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 5983,
+      "sha256": "3d6fcd557bf803b56dab328aaf64992aad80b472876f19d1f9b24d33d93f8053"
+    },
+    {
+      "path": "PRESS/utils/data/residual_risk_model.ubj",
+      "role": "Production inference artifact or fitted feature schema",
+      "bytes": 185486,
+      "sha256": "38db08cdf20dbd7caf9a619b6e007713f3a55a706ea4c8d4b412ce529924c457"
+    }
+  ]
+}

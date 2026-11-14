@@ -1,6 +1,5 @@
 {
   "status": "benchmark_verified_refit_installed",
-  "experiment": "77_residual_risk_verified_endpoints_20261029_170451",
   "n_actions": 7820,
   "n_losses": 1423,
   "selected_variant": "with_action_choice",
@@ -22,8 +21,6 @@
     "data/benchmarks/composed_risk/calibration_quantile10.csv": "d7a65bf0de6b83f9610c0d354f1a043707cd5480bca03a30230c0ab227df7eaf",
     "data/benchmarks/composed_risk/pooled_metrics.csv": "dd291fa4ac0128f9a83db5df8944561aa3296b896fb57368418d72f2b6ba021e"
   },
-  "refit_experiment": "78_residual_risk_verified_full_refit_20261029",
-  "refit_run": "78_residual_risk_verified_full_refit_20261029_203422",
   "primary_vignette": "vignettes/05a_residual_risk/05a_residual_risk.ipynb",
   "calibration_plots": [
     "figures/residual_risk_pooled_calibration.png",

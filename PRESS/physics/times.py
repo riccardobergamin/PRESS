@@ -32,10 +32,10 @@ def time_to_intercept(
 
     a_max caps the modelled forward acceleration, not an observed a0.
     a_turn is the effective centripetal/reorientation scale in v*theta/a;
-    None uses a_max and exactly retains the historical convention.
+    None uses a_max.
     By default, v0 above v_max is maintained
     without further acceleration, instead of instantaneously using v_max.
-    Set preserve_initial_overspeed=False to use the historical speed cap.
+    Set preserve_initial_overspeed=False to cap the initial speed at v_max.
     The turn remains a fixed-position delay, not an explicit circular arc.
     """
 

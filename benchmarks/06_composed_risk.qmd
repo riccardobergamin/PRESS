@@ -19,7 +19,7 @@ $$
 
 Each prediction is evaluated against its own observed target: $h$ against the failure of the current action (a failed pass, or a loss during the one-second carry), and xLoss against the terminal individual loss.
 
-## Evaluation cohort
+## 1. Evaluation cohort {#evaluation-cohort}
 
 ### Effective task-specific exclusions
 
@@ -31,11 +31,11 @@ The overall predictive metrics of $h$ and xLoss use all 15,085 checkpoints, incl
 
 The [$h$-band validation and the subsequent possession-profile analysis](../vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb) additionally require coverage of the terminal canonical action. A pass supplies its release checkpoint, and a failed carry supplies the start of the final failed action, at most one second before loss. [Micropossessions](../vignettes/setup/possession_and_checkpoint_setup.ipynb) remain eligible with their single pass or failed-carry checkpoint. Possessions ending in a foul suffered or a clearance have no terminal canonical action, so their earlier successful-carry states are excluded from this cohort, which has **14,919 states from 7,265 possessions**. The rule applies to the band analysis only, with predictions and component models unchanged.
 
-## Evaluation procedure
+## 2. Evaluation procedure {#evaluation-procedure}
 
 Both predictions are obtained by composing the component outputs directly. At each eligible outer-test checkpoint, their terms are composed from the matching six-fitting/two-validation model stack, using native action-selection and residual-risk outputs, calibrated pass-completion probabilities, and the temperature-calibrated flat pass-selection distribution. The same fold-specific upstream quantities enter every term, and the full-ten-match deployment fits are left out of the evaluation. Metrics are then recomputed on the pooled composed predictions against each target.
 
-## Predictive performance
+## 3. Predictive performance {#predictive-performance}
 
 Both targets are evaluated on **15,085 held-out canonical checkpoints**: **1,465 current-action failures** for $h$ and **2,888 terminal individual losses** for xLoss. This verified-outcome set is smaller than the action-selection training set, which requires an identifiable choice. The one-second segmentation is described in [Possessions and checkpoints](../vignettes/setup/possession_and_checkpoint_setup.ipynb). Scores are pooled across the five outer test folds for each target.
 
@@ -50,7 +50,7 @@ Relative to the null models, cross-entropy is lower by **14.8%** for $h$ and **1
 
 The underlying results are available as [pooled metrics](../data/benchmarks/composed_risk/pooled_metrics.csv), [calibration bins](../data/benchmarks/composed_risk/calibration_quantile10.csv), [fold-level metrics](../data/benchmarks/composed_risk/metrics_by_fold.csv) and [match-level metrics](../data/benchmarks/composed_risk/metrics_by_match.csv).
 
-## Band validation intervals
+## 4. Band validation intervals {#band-validation-intervals}
 
 The $h$ bands of the [model vignette](../vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb) are validated on the 14,919 held-out states of the band cohort. Predictions and band thresholds are fixed, and the intervals quantify between-match variability in this sample.
 

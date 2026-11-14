@@ -8,7 +8,6 @@
   "all_ECE_reproduce_reference": true,
   "physical_outer_fit": "Eight matches; two test; isotonic uses internal six-fit/two-held predictions within the eight.",
   "refit_performed": false,
-  "source_experiment": "skillcorner-analysis/experiments/49_pass_selection_full_physics_screen_20261024/09_full_oof_calibration",
   "source_bins_sha256": "8d9e43091167b9cb93237de89afd0243590cef88104aec2a27d66cc41553efe5",
   "source_metrics_sha256": "7cc536c513eff79a2f3c915bfec49e5abdffa79ac4195cdb51d3d2c02b63e4f3",
   "public_files": {
@@ -18,6 +17,5 @@
   "plot_builder": "scripts/build_physical_calibration_figures.py",
   "plot_builder_sha256": "2050c85fdbe10d388d92c1f115a6475d3c9740468a6dbbfefe3636d2a9f500ad",
   "ball_drive_comparison": "Previous and updated coefficients evaluated on the identical retained 9114-row/456-loss OBE-verified cohort, not a comparison against the original9148-row benchmark.",
-  "pass_comparison": "Historical run22 and updated run41, same6706passes/964failures; raw and fold-specific isotonic evaluated on their respective held-out outer matches.",
   "distinct_from_screen": "These are full five-fold OOF physical benchmarks, not the two-validation-match six-fit feature diagnostics or the full-ten-match deployment refits."
 }

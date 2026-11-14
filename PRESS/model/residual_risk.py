@@ -101,7 +101,7 @@ class ResidualRiskModel:
         return deepcopy(self._artifact)
 
     def encode(self, frame):
-        """Encode an explicit RR31 data frame in the saved column order."""
+        """Encode an explicit 31-feature data frame in the saved column order."""
         return encode(frame, self.vocabulary)
 
     def features_from_action_record(self, record, *, time_since_start, action_model):

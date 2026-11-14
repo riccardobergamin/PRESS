@@ -150,7 +150,7 @@
       1.0,
       1.0
     ],
-    "fitted_on": "Run41 outer cross-fitted raw PPCF scores; natural outcomes; no trajectory-score calibration"
+    "fitted_on": "Outer cross-fitted raw PPCF scores; natural outcomes; no trajectory-score calibration"
   },
   "trajectory_boundary": "fit_positions",
   "boundary_selection": {
@@ -246,8 +246,6 @@
   "provenance": {
     "protocol_sha256": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
     "oof_sha256": "d9a931017bbb52eae3e4b56f855c8f5eee3def9a041c069b5127967ba14fa444",
-    "source_benchmark_run": "41_pass_risk_uniform_tti_20261022",
-    "source_benchmark_result": "41_pass_risk_uniform_tti_20261022_004650",
     "n": 6706,
     "losses": 964,
     "matches": [

@@ -10,7 +10,7 @@
   "boundary": "Choose mean_velocity or fit_positions from fit-match forward 3D error after .6s; equal match weights",
   "path_dt": 0.04,
   "path_samples": 251,
-  "path_sample_times": "0..10s inclusive, historical left-step convention",
+  "path_sample_times": "0..10s inclusive, reference left-step convention",
   "ppcf_dt": 0.01,
   "ppcf_horizon": 15.0,
   "integration": "Competing-control exponential Euler; log-domain likelihood; no cutoff/floor in fit",
@@ -67,7 +67,7 @@
   },
   "source_protocol_sha256": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
   "source_audit_sha256": "93f5e113ee8f5331b3c63c8f554271f1e8a8e4630c2cce6987de16b348e89d3d",
-  "operational_weights": "Verified run41 full-data trajectory MLE; final isotonic fitted to run41 outer cross-fitted raw PPCF scores",
+  "operational_weights": "Verified benchmark full-data trajectory MLE; final isotonic fitted to outer cross-fitted raw PPCF scores",
   "limitations": [
     "No ball spin/Magnus, bounce or rolling friction fit",
     "Observed recovery is a proxy target for failed passes, not known intention",
@@ -77,7 +77,6 @@
     "Passes shorter than0.5s need an adapted boundary estimator and remain a future extension",
     "Isotonic can produce exact0/1 endpoints; rare mistakes are strongly penalized by log-loss"
   ],
-  "source_run": "41_pass_risk_uniform_tti_20261022_004650",
   "preserve_initial_overspeed": true,
   "tti_locations": [
     "Reconstructed ball paths for MLE",

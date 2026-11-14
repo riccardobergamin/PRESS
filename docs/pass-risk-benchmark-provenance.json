@@ -1,6 +1,5 @@
 {
   "status": "updated_verified_oof_and_installed_full_refit",
-  "source_run": "41_pass_risk_uniform_tti_20261022_004650",
   "protocol_sha256": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
   "metrics": {
     "model": "trajectory_isotonic",

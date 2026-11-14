@@ -22,7 +22,7 @@ LABELS={
     'carrier_velocity_attack_angle':'Carrier velocity angle','completed_canonical_drives':'Completed full carries',
     'time_since_start':'Elapsed individual-possession time','action_carry_probability':'P(carry)',
     'match_clock_min':'Match minute','score_difference_prefix':'Known score difference',
-    'start_type_raw':'Granular start type','previous_action_raw':'Granular previous action',
+    'start_type_raw':'Granular start type','previous_action_raw':'Previous action',
     'team_line_pass_success':'Own line · pass success','team_line_pass_failure':'Own line · pass failure',
     'opp_line_pass_success':'Opposition line · pass success','opp_line_pass_failure':'Opposition line · pass failure',
     'teammates_ahead_pass_success':'Teammates ahead · pass success','teammates_ahead_pass_failure':'Teammates ahead · pass failure',
@@ -33,10 +33,12 @@ LABELS={
     'opp_line_distance_drive_1s':'Opposition line distance after1s',
     'team_line_index_drive_1s':'Own line after1s','opp_line_index_drive_1s':'Opposition line after1s'}
 
-def main():
+def main(tasks=None):
     d=pd.read_csv(ROOT/'data/benchmarks/feature_importance/importance_summary.csv')
     titles={'pass_selection':'Pass destination choice','action_selection':'Pass versus carry choice','residual_risk':'Conditional residual loss'}
     for task,title in titles.items():
+        if tasks is not None and task not in tasks:
+            continue
         g=d[d.task.eq(task)].sort_values('rank').head(12).iloc[::-1]
         y=np.arange(len(g));fig,ax=plt.subplots(figsize=(9,5.5),layout='constrained')
         ax.barh(y,100*g.gain_share,color='#16758a',alpha=.65,height=.65)
@@ -50,6 +52,6 @@ def main():
             Line2D([0],[0],marker='o',color='#bf6f25',label='Outer folds: mean and min–max')],fontsize=8,loc='lower right')
         for ext in ['png','svg']:fig.savefig(ROOT/f'figures/feature_importance_{task}.{ext}',dpi=180)
         plt.close(fig)
-    print('THREE_MODEL_IMPORTANCE_FIGURES_REBUILT')
+    print('FEATURE_IMPORTANCE_FIGURES_REBUILT')
 
 if __name__=='__main__':main()

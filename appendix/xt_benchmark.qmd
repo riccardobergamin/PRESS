@@ -7,7 +7,7 @@ jupyter: python3
 
 The xT benchmark documents the training of the expected-threat surface and the selection of its grid resolution and smoothing bandwidths. The [model vignette](../vignettes/spatial_features/expected_threat/11.expected_threat.ipynb) introduces the value equation, the fitted surface and its use in PRESS. This benchmark describes the event cohort, the training procedure and the selection, which relies on leave-one-match-out validation of the destination and goal-given-shot components.
 
-## Evaluation cohort
+## 1. Evaluation cohort {#evaluation-cohort}
 
 The production surface uses the archived event tables from all ten matches: 9,071 within-possession displacements, 6,355 completed passes, 212 shots (23 goals) and 2,214 terminal losses. A displacement records movement from the matched start to the matched end of individual control, and is distinct from the canonical one-second carries of the ball-drive classifier. Passes connect release to matched reception. Shot and loss locations use the end of individual control. Coordinates are oriented so the team in possession attacks from left to right.
 
@@ -15,7 +15,7 @@ These counts come from the archived event cohort, which is more permissive than 
 
 The components scored in the selection are the pass-destination, carry-destination and goal-given-shot estimates. The goal-given-shot component is the sparsest and rarest of them and is the one used to compare grid resolutions.
 
-## Training procedure
+## 2. Training procedure {#training-procedure}
 
 The fit proceeds in four steps. The event frequencies $p_{a,i}$ are computed from the counts without smoothing. The destination distributions $T$ and the goal probability $p_{\mathrm{goal}}$ are estimated from smoothed counts. The smoothing bandwidths are selected by leave-one-match-out validation, as described in [Smoothing bandwidth selection](#smoothing-bandwidth-selection). Finally, the value equation is iterated to convergence.
 
@@ -45,7 +45,7 @@ The four event frequencies $p_{a,i}=n_{a,i}/n_i$ are computed directly from the 
 
 The iteration of the value equation starts at zero and stops when the maximum change is below $10^{-12}$.
 
-## Smoothing bandwidth selection
+## 3. Smoothing bandwidth selection {#smoothing-bandwidth-selection}
 
 The smoothing bandwidth of each component (pass destinations, carry destinations and goal given shot) is selected by leave-one-match-out validation on the matches available for fitting. Whole matches are held out, so that each held-out set plays the role of a new match. The candidates are 0, 3, 5, 8, 12 and 18 m, where zero means no Gaussian smoothing. For a set of $M$ matches the procedure is:
 
@@ -64,7 +64,7 @@ The same procedure is applied at three levels, which differ in the number $M$ of
 
 In the benchmarks that use the 6 + 2 + 2 scheme, the grid is fixed at 10 × 6 and the bandwidths are selected on the six fitting matches of each outer fold. xT is then refitted on the same six matches with the selected bandwidths, and this fit computes the xT features of the two validation and the two test matches. Held-out matches therefore never enter the selection, and each fold map uses the bandwidths selected in its own fold.
 
-## Grid resolution
+## 4. Grid resolution {#grid-resolution}
 
 Binning determines the spatial resolution of the fitted value function. Smaller bins preserve more local variation but provide fewer events per cell and sparser transition estimates; larger bins stabilize estimates but can obscure meaningful spatial structure. Smoothing can reduce sampling noise, at the cost of spatial detail.
 
@@ -85,7 +85,7 @@ The out-of-fold scores are pooled with shot-weighted averages. A delete-one-matc
 
 The 10 × 6 grid has the lowest CE and is retained. The coarser 8 × 5 grid is clearly worse (ΔCE +0.0404, paired SE 0.0109). The 12 × 8 grid lies within one standard error of 10 × 6, which is the coarser of the two, and 16 × 12 has a ΔCE of +0.0096 (paired SE 0.0046). The finer grids have slightly lower Brier scores, while CE does not improve consistently. The comparison is based on the goal-given-shot component, and the complete long-term xT prediction is outside the scope of this validation.
 
-## Final fitted model
+## 5. Final fitted model {#final-fitted-model}
 
 The production surface is fitted on all ten matches with a 10 × 6 grid and the bandwidths selected at the production level (8 m passes, 5 m carries, 5 m goal given shot). It is embedded in the deployed pass-selection and action-selection models, while the predictive benchmarks use xT fitted only on their corresponding training matches.
 

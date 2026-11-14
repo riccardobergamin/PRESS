@@ -31,7 +31,7 @@
   },
   "conditioning": "Fixed kinematics, cohort, spline specification and selected prior/penalty strengths; no between-match dependence correction or model-selection/systematic uncertainty included.",
   "interpretation": "Effective model-specific temporal dispersion; neither a universal physiological constant nor an independent validation across the two shared-data/shared-TTI models.",
-  "historical_references": {
+  "literature_references": {
     "spearman2017_s_seconds": 0.45,
     "spearman2018_MAP_s_seconds": 0.54
   }

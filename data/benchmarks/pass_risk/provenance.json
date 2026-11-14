@@ -1,21 +1,19 @@
 {
-  "source_run": "41_pass_risk_uniform_tti_20261022_004650",
   "sources": {
-    "experiments/41_pass_risk_uniform_tti_20261022/bundle/protocol.json": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
-    "experiments/41_pass_risk_uniform_tti_20261022/05_results_review/summary.json": "93f5e113ee8f5331b3c63c8f554271f1e8a8e4630c2cce6987de16b348e89d3d",
-    "experiments/41_pass_risk_uniform_tti_20261022/05_results_review/run/report/completion.json": "521ecc26ea2980799b3616d7006a5a7bc1ca2ae8eb7829acce2ca6a74343ab46",
-    "experiments/41_pass_risk_uniform_tti_20261022/05_results_review/run/report/02_vmax_5_5_oof.parquet": "d9a931017bbb52eae3e4b56f855c8f5eee3def9a041c069b5127967ba14fa444",
-    "experiments/41_pass_risk_uniform_tti_20261022/scripts/05_update_benchmark.py": "c52a822c0e82bceee398aee827bc75b0ae2ef14d632281102ae097b11f3aab1f"
+    "pass_risk_uniform_tti/bundle/protocol.json": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
+    "pass_risk_uniform_tti/05_results_review/summary.json": "93f5e113ee8f5331b3c63c8f554271f1e8a8e4630c2cce6987de16b348e89d3d",
+    "pass_risk_uniform_tti/05_results_review/run/report/completion.json": "521ecc26ea2980799b3616d7006a5a7bc1ca2ae8eb7829acce2ca6a74343ab46",
+    "pass_risk_uniform_tti/05_results_review/run/report/02_vmax_5_5_oof.parquet": "d9a931017bbb52eae3e4b56f855c8f5eee3def9a041c069b5127967ba14fa444",
+    "pass_risk_uniform_tti/scripts/05_update_benchmark.py": "c52a822c0e82bceee398aee827bc75b0ae2ef14d632281102ae097b11f3aab1f"
   },
-  "historical_run": "22_pass_risk_duration_final_20261018_215357",
-  "cohort_and_folds": "Identical to run22; no new filters; no label changes",
+  "cohort_and_folds": "The declared verified-pass cohort and shared match folds are used throughout",
   "null": "Subgroup-specific null from other outer-fold outcomes in the same subgroup; global-null gain exported separately",
   "quantile_ties": "Stable score sort after canonical match_id/pass_id/frame_end ordering; equal-score plateau membership depends on this convention.",
   "publication": "Aggregates only; no raw tracking, per-pass rows, models or cached paths copied to the portfolio",
   "operational_weights_updated": true,
   "full_refit_sources": {
-    "experiments/42_pass_risk_final_refit_20261022/run/pass_risk_model.json": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
-    "experiments/42_pass_risk_final_refit_20261022/run/verification.json": "74c9bef99fc4ccff42e8d7d859b705b8cc9b81f097444b3ec8c61867b16332c2",
-    "experiments/42_pass_risk_final_refit_20261022/scripts/02_install.py": "6162a2f5126270e9030a24fdb5042d2f782b3d15107a217ed6d29c2e9930cbeb"
+    "pass_risk_final_refit/run/pass_risk_model.json": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+    "pass_risk_final_refit/run/verification.json": "74c9bef99fc4ccff42e8d7d859b705b8cc9b81f097444b3ec8c61867b16332c2",
+    "pass_risk_final_refit/scripts/02_install.py": "6162a2f5126270e9030a24fdb5042d2f782b3d15107a217ed6d29c2e9930cbeb"
   }
 }

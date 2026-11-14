@@ -4,7 +4,7 @@ title: "Appendix: construction of the restricted cubic spline bases"
 
 This appendix describes the change of basis used for the nonlinear effects in the [ball-drive risk model](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). The construction separates the constant and linear components, improves the empirical scaling and conditioning of each nonlinear block, and diagonalizes its curvature penalty. The resulting penalty can be expressed through independent Gaussian priors on the transformed coefficients. The [benchmark](../benchmarks/01_ball_drive_risk.qmd) describes the selection of the smoothing strengths.
 
-## 1. Normalization and knots
+## 1. Normalization and knots {#normalization-and-knots}
 
 For one covariate $x$, let $x_1,\ldots,x_n$ be the fitting values. Normalize them using their fitting-set range,
 
@@ -16,7 +16,7 @@ The $K$ knots $\kappa_1<\cdots<\kappa_K$ are empirical quantiles of $z$. PRESS u
 
 All knots, normalizations and transformations below are determined from the fitting data and reused for new observations. Angle values are restricted to observations with a valid direction.
 
-## 2. Restricted cubic basis
+## 2. Restricted cubic basis {#restricted-cubic-basis}
 
 Define $t_j(z)=(z-\kappa_j)_+^3$, where $(u)_+=\max(u,0)$. For $j=1,\ldots,K-2$, let
 
@@ -36,7 +36,7 @@ Here $\boldsymbol\delta$ denotes coefficients in the raw basis; $\boldsymbol\gam
 
 This is a generic representation in the normalized coordinate $z$; the fitted linear speed and boundary terms retain the original covariate units, as detailed below.
 
-## 3. Orthogonalization against the constant and linear terms
+## 3. Orthogonalization against the constant and linear terms {#orthogonalization-against-the-constant-and-linear-terms}
 
 Let $C_{ij}=c_j(z_i)$ and $L=[\mathbf 1,z]$. Remove the least-squares projection onto the constant and linear design,
 
@@ -56,7 +56,7 @@ Thus, $E$ represents nonlinear deviations that are empirically orthogonal to the
 
 Since $x=x_{\min}+(x_{\max}-x_{\min})z$, the designs $[\mathbf 1,x]$ and $[\mathbf 1,z]$ span the same space. Residualization against $[\mathbf 1,z]$ therefore also removes the projection onto a linear effect expressed in the original units of $x$.
 
-## 4. Empirical whitening
+## 4. Empirical whitening {#empirical-whitening}
 
 The Gram matrix of the residualized basis is
 
@@ -81,7 +81,7 @@ $$
 
 The columns are orthonormal under the empirical inner product on the fitting set. Because they are already centered by the projection onto $L$, they also have unit empirical variance. This removes scale differences and empirical correlations within the nonlinear block, improving its numerical conditioning. It is the PCA-whitening transformation written for observations arranged in rows [@kessy2018whitening].
 
-## 5. Curvature penalty and rotation
+## 5. Curvature penalty and rotation {#curvature-penalty-and-rotation}
 
 Define the curvature matrix with derivatives taken with respect to the normalized coordinate $z$,
 
@@ -115,7 +115,7 @@ $$
 
 and the nonlinear component of the covariate effect is $f_{\mathrm{nonlinear}}(z)=\widetilde{\boldsymbol c}(z)\boldsymbol\gamma$, where $\boldsymbol\gamma$ are the coefficients in the final basis. The components of $\widetilde{\boldsymbol c}(z)$ are the nonlinear basis functions $b_{jk}$ of the model vignette, for covariate $j$. The rotation preserves empirical orthonormality while making the curvature penalty diagonal. This is a Demmler–Reinsch-type change of basis [@demmler1975oscillation]; an explicit matrix derivation of simultaneous design and penalty diagonalization is also given by @lang2012multilevel [Section 4].
 
-## 6. Independent Gaussian priors in the transformed basis
+## 6. Independent Gaussian priors in the transformed basis {#independent-gaussian-priors-in-the-transformed-basis}
 
 For nonlinear coefficients $\boldsymbol\gamma$ in the final basis, the integrated squared curvature is
 
@@ -150,7 +150,7 @@ $$
 
 The constant is independent of $\boldsymbol\gamma$ for fixed $\rho$ and basis. Directions with greater curvature receive stronger shrinkage. Dividing by the smallest eigenvalue is a normalization convention: it rescales the overall curvature penalty while preserving its relative weights. The diagonal representation simplifies the prior specification, and the coefficients remain dependent in the posterior.
 
-## 7. Linear terms in the original units
+## 7. Linear terms in the original units {#linear-terms-in-the-original-units}
 
 In the fitted PRESS model, the carrier effects are parameterized as
 
@@ -173,11 +173,11 @@ $$
 
 where $a_0^*=\alpha_x+\beta_x x_{\min}$ and $a_1^*=\beta_x(x_{\max}-x_{\min})$. These are equivalent functions with different linear coefficients. Preserving the prior under this reparameterization would require transforming its joint distribution as well; independent standard normal priors on $a_0^*$ and $a_1^*$ would define a different prior. PRESS retains the original-unit parameterization for speed and boundary distance. The linear approach-angle term is treated separately: it multiplies the angle standardized by its fitting-set mean and standard deviation, as specified in the model vignette.
 
-## 8. Evaluation on new observations
+## 8. Evaluation on new observations {#evaluation-on-new-observations}
 
 For a new value $x$, use the fitting-set normalization $z=(x-x_{\min})/(x_{\max}-x_{\min})$ and evaluate $\widetilde{\boldsymbol c}(z)$ as defined in Section 5. The fitting-set matrices $A$ and $T$ are unchanged. Orthogonality and unit empirical variance hold on the fitting set and can differ on a different sample. Values outside the fitting range are evaluated using the spline's linear tails.
 
-## References
+## References {#references}
 
 ::: {#refs}
 :::

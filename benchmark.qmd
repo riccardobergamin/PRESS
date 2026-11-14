@@ -4,7 +4,9 @@ title: "Benchmarks"
 
 The PRESS benchmarks evaluate five modeling tasks, and the predictions composed from them, under a common match-level cross-validation protocol. This page describes the dataset, the two model families, the shared evaluation design and the performance metrics. Each task-specific benchmark reports its cohort, its model-specific training and calibration choices and its predictive results.
 
-## Dataset overview
+[Research pipeline and source download](pipeline.qmd) · [Project roadmap](roadmap.qmd)
+
+## 1. Dataset overview {#dataset-overview}
 
 The benchmarks use ten A-League 2024/25 matches from SkillCorner Open Data [@skillcorner-opendata]. All component benchmarks concern outfield ball carriers. Reliability is checked at the temporal boundaries needed for the target. Two data-preparation branches share these principles: possession-based tasks use matched individual-control intervals, whereas pass tasks use matched release and the immediate next reception/recovery start. The matching with tracking data relies on the SkillCorner event labels, as described in [Dataset and preprocessing](data.qmd).
 
@@ -12,7 +14,7 @@ For the possession branch used by ball-drive, action-selection and residual-risk
 
 These are parent-possession counts before task segmentation (see [Possessions and checkpoints](vignettes/setup/possession_and_checkpoint_setup.ipynb)). Individual tasks then select the actions and verified outcomes required by their target, and their benchmark pages give the task-specific criteria and the resulting cohort sizes. Features and predictions can still be computed for states outside these training populations. [Effective exclusion counts](data/benchmarks/filters/effective_exclusions.csv) and [source-audit provenance](docs/effective-filters-provenance.json).
 
-## Model families
+## 2. Model families {#model-families}
 
 The tasks use two model architectures, which are developed and evaluated differently.
 
@@ -22,7 +24,23 @@ The tasks use two model architectures, which are developed and evaluated differe
 
 The composed risk (h and xLoss) combines the predictions of the components.
 
-## Common evaluation protocol
+### Component notation
+
+The model pages use the same component symbols when passing predictions between tasks. All quantities below are conditioned on the current state $s$.
+
+| Symbol | Meaning |
+|---|---|
+| $q(s)$ | Probability of choosing a pass; $1-q(s)$ is the carry-choice probability |
+| $\pi_j(s)$ | Probability of destination $j$, given a pass attempt |
+| $C_{\mathrm{att}}$ | Raw attacking-team pitch control, before pass-probability calibration |
+| $p_j(s)$ | Probability of completing a pass to destination $j$ |
+| $d(s)$ | Loss probability during a canonical one-second carry |
+| $r(s)$ | Terminal individual-possession loss probability conditional on a successful current carry |
+| $h(s)$ | Current canonical-action loss probability, marginalized over choice and pass destination |
+| $\mathrm{xLoss}(s)$ | Terminal individual-possession loss probability, including the residual continuation |
+
+
+## 3. Common evaluation protocol {#common-evaluation-protocol}
 
 ### Shared outer match folds
 
@@ -39,9 +57,9 @@ For the tree models, the two validation matches remain fixed throughout that fol
 
 ### Hyperparameters, early stopping and probability calibration
 
-For XGBoost, a hyperparameter configuration is trained on the six fitting matches, and its uncalibrated validation cross-entropy selects the tree prefix by early stopping. Where a grid is used, the best configuration is selected by this same native validation criterion.
+For XGBoost, a hyperparameter configuration is trained on the six fitting matches, and its uncalibrated validation cross-entropy selects the tree prefix by early stopping. Where a grid is used, the best configuration is selected by this same native validation criterion. Numerical XGBoost predictors are used without standardization, and the categorical vocabulary and encoding are learned from fitting matches only.
 
-Any temperature scaling is fitted after configuration/checkpoint selection, with the ensemble fixed. It minimizes validation choice or binary negative log-likelihood, with trees, selected hyperparameters and stopping point held fixed. The same two validation matches are reused for this calibration, so selection and calibration share the validation pair. Only after these choices are frozen is the corresponding outer-test score computed. Numerical XGBoost predictors are used without standardization, and the categorical vocabulary and encoding are learned from fitting matches only.
+Any temperature scaling is fitted after configuration/checkpoint selection, with the ensemble fixed. It minimizes validation choice or binary negative log-likelihood, with trees, selected hyperparameters and stopping point held fixed. The same two validation matches are reused for this calibration, so selection and calibration share the validation pair. Only after these choices are frozen is the corresponding outer-test score computed.
 
 ### Features and dependent models
 
@@ -93,15 +111,15 @@ where $L_{\mathrm{model}}$ and $L_{\mathrm{null}}$ are the likelihoods of the ob
 
 The cross-validation results evaluate predictive performance and stability across the outer folds before a specification is accepted. The accepted specification is then refitted on all ten matches to obtain the parameters distributed with the PRESS package. The reported held-out estimates come exclusively from the cross-validation.
 
+Deployment calibration may use labels paired with frozen cross-fitted predictions from all ten matches, after evaluation is complete. The saved benchmark predictions remain the reported held-out results. Final tree counts and configurations are chosen from validation records; the exact aggregation rule is task-specific.
+
 ### Scope of the development benchmark
 
 Outer-test labels are excluded from that fold's model fitting, stopping rule and calibrator estimation. However, the ten matches were repeatedly examined during model development, so the complete development process is not a fully nested, untouched external evaluation, and generalization to other competitions and annotation conventions is not assessed. The task benchmarks describe any development choice shared across folds and distinguish this scope from the match-disjoint fitting of the reported fold models.
 
 The benchmark uses ten matches, with two held out in each outer fold. Observations within a match are dependent, so the number of independent units is the number of matches. Differences between models and between folds should be read with that uncertainty in mind.
 
-Deployment calibration may use labels paired with frozen cross-fitted predictions from all ten matches, after evaluation is complete. The saved benchmark predictions remain the reported held-out results. Final tree counts and configurations are chosen from validation records; the exact aggregation rule is task-specific.
-
-## Task benchmarks
+## 4. Task benchmarks {#task-benchmarks}
 
 Choose a model to read its cohort, task-specific training procedure, results and calibration.
 
@@ -144,3 +162,9 @@ Choose a model to read its cohort, task-specific training procedure, results and
 :::
 
 :::
+
+## 5. Reproducibility and planned work {#reproducibility-and-planned-work}
+
+- [Research pipeline](pipeline.qmd): ordered stages, source-code download, input/output organization and local checks.
+- [Project roadmap](roadmap.qmd): current status, limitations and possible extensions.
+- [Distributed objects](data/README.md): production models, published summaries and objects retained locally.

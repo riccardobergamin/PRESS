@@ -1,15 +1,5 @@
 [
   {
-    "comparison": "01_flat_reference_raw_minus_historical_run30_raw",
-    "delta_ce": -0.0388510331401898,
-    "matches_improved": 10,
-    "fixed_prediction_match_bootstrap_95": [
-      -0.05260940156044736,
-      -0.026873235966437346
-    ],
-    "scope": "Exploratory ten-match development comparison, conditional on fitted predictions."
-  },
-  {
     "comparison": "02_cnl_reference_raw_minus_01_flat_reference_raw",
     "delta_ce": -0.011564958578238792,
     "matches_improved": 7,

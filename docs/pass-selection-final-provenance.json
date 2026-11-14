@@ -1,9 +1,5 @@
 {
   "status": "flat_corrected_full_refit_installed_cnl_research_archive",
-  "source_result": "56_pass_selection_corrected_counts_final_20261026_181037",
-  "screening": "54_pass_selection_player_counts_screen_20261026_100854",
-  "refit": "57_pass_selection_corrected_counts_full_refit_20261026",
-  "deployment_result": "57_pass_selection_full_refit_recovery_20261027_100730",
   "installed_family": "flat",
   "installed_model_id": "skillcorner_outfield_pass_selection_flat_v3",
   "feature_contract": "ahead_of_carrier_and_target_v1",
@@ -22,7 +18,7 @@
     "both_refits_verified": true,
     "models": {
       "flat": {
-        "manifest": "/u/cdslab/rbergamin/scratch/other/results/57_pass_selection_full_refit_recovery_20261027_100730/models/flat/pass_selection_model.json",
+        "manifest": "pass_selection_model.json",
         "rounds": 1444,
         "mu": 1.0,
         "temperature": 1.013295437946196,
@@ -30,7 +26,7 @@
         "preferred": true
       },
       "cnl": {
-        "manifest": "/u/cdslab/rbergamin/scratch/other/results/57_pass_selection_full_refit_recovery_20261027_100730/models/cnl/pass_selection_cnl_model.json",
+        "manifest": "pass_selection_cnl_model.json",
         "rounds": 359,
         "mu": 0.6263079566507472,
         "temperature": 1.0558986079277075,
@@ -38,7 +34,6 @@
         "preferred": false
       }
     },
-    "benchmark_source": "56_pass_selection_corrected_counts_final_20261026_181037",
     "benchmark_replaced": false,
     "n_choices": 6810,
     "protocol_sha256": "dc570a5f8f2dd9f7f8e08b6e534fecaa763f946a608705f061f937351b87e277",
@@ -50,8 +45,6 @@
   },
   "flat_temperature": 1.013295437946196,
   "cnl_installed": false,
-  "cnl_archive_relative_research_path": "experiments/57_pass_selection_corrected_counts_full_refit_20261026/07_final_refit_review/57_pass_selection_full_refit_recovery_20261027_100730/models/cnl",
-  "historical_package_archive": "docs/old/pass_selection_before_corrected57_20261027",
   "cv_verification": {
     "status": "passed",
     "protocol_sha256": "fdd882934d41c63bcd7e5968f043beb9544087553c3cfb72cf156eecb36afc87",

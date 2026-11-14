@@ -1,8 +1,7 @@
 """Competing-control solvers with a shared, mass-preserving survival budget.
 
 Exponential Euler is exact for hazards frozen over each interval. It remains
-first order for time-varying arrival gates. Euler is an explicit sensitivity
-mode; archived pre-audit sources preserve the historical clipped implementation.
+first order for time-varying arrival gates. Euler is available as an explicit sensitivity mode.
 """
 
 import math

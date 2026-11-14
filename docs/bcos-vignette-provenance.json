@@ -1,6 +1,5 @@
 {
   "status": "real_case_and_descriptive_displays_updated",
-  "experiment": "97_xt_bcos_vignettes_20261104",
   "match_id": "1925299",
   "example": {
     "match_id": "1925299",
@@ -10,7 +9,7 @@
     "carrier_team": "home",
     "carrier_team_name": "Brisbane FC",
     "carrier_id": "home_10",
-    "carrier_name": "F. B\u00e9renguer",
+    "carrier_name": "F. Bérenguer",
     "selection": "Illustrative midfield checkpoint with ball within1m of carrier and nontrivial accessible area; not representative sampling.",
     "bcos_area_m2": 527.4569938366863,
     "cached_area_m2": 527.4570074156871,
@@ -50,7 +49,6 @@
   "models_unchanged": true,
   "source_sha256": "70ee0ad80bf28bbaf6bd07860eb4b8657016c86c11882338644853e5300c6880",
   "display_gap_handling": {
-    "experiment": "98_bcos_display_gaps_20261104",
     "spatial": "Three unobserved cells: neighbouring observed checkpoint-weighted means, hatched and count0.",
     "temporal": "Internal empty5-minute windows: linear display interpolation, dashed; no extrapolation.",
     "observed_statistics_unchanged": true

@@ -1,50 +1,34 @@
-# Data setup
+# Distributed objects and local research data
 
-Raw tracking/event files and match-level feature tables are not stored here. Obtain the source data from [SkillCorner opendata](https://github.com/SkillCorner/opendata) and follow its attribution terms [@skillcorner-opendata]. Its MIT license file covers software; it does not specify separate data redistribution terms. This repository includes learned XGBoost and ball-drive parameter files and aggregate benchmark summaries. Pass selection also includes per-choice OOF loss tables for independent score verification; these contain identifiers and losses, without raw tracking rows or candidate feature matrices.
+The public resources support the final accepted models, their benchmarks and the real-match examples. Raw SkillCorner tracking and event files are obtained from [SkillCorner Open Data](https://github.com/SkillCorner/opendata), following its attribution and usage terms. The [dataset guide](../data.qmd) describes preprocessing, and the [research pipeline](../pipeline.qmd) provides the source code and input/output layout.
 
-Set `SKILLCORNER_OPENDATA` and `SKILLCORNER_ANALYSIS` to your local repository roots for the match guide. The original scripts do not consume `PRESS_DATA_DIR`; update their machine-specific paths before using them. The original preprocessing and possession-segmentation scripts live in the sibling research repository at `skillcorner-analysis/scripts/analysis/preprocess_matches.py` and `skillcorner-analysis/scripts/analysis/ball_drive_segmentation.py`; they currently use machine-specific paths and are documented as source references rather than moved or modified here.
+## Included with PRESS
 
-The vignette examples use observed match frames. Saved figures and aggregate outputs support rendering without local tracking files; re-executing the examples requires the processed open data. All five pretrained models are included under `PRESS/utils/data/`, separately from the tracking inputs and held-out benchmark summaries.
+All five pretrained inference models are retained under `PRESS/utils/data/`:
 
-See [the match guide](../usage.qmd) for `PRESS.from_skillcorner`, possession/frame getters and a complete checkpoint calculation, and [data setup](../data.qmd) for the expected processed-file layout.
+| Component | Production artifacts |
+|---|---|
+| Ball-drive risk | `ball_drive_model.json`, containing the MAP coefficients, spline bases and physics settings |
+| Pass probability | `pass_risk_model.json`, containing the physical parameters and isotonic map |
+| Pass selection | `pass_selection_model.json` and `pass_selection_model.ubj` |
+| Action selection | `action_selection_model.json` and `action_selection_model.ubj` |
+| Residual risk | `residual_risk_model.json` and `residual_risk_model.ubj` |
 
-The final ball-drive artifact is `PRESS/utils/data/ball_drive_model.json`, loaded by `BallDriveModel.pretrained()`. Its source and verification are in [refit provenance](../docs/ball-drive-refit-provenance.json). `data/benchmarks/ball_drive/` contains pooled OOF metric and calibration summaries plus hashes of the research tables; these are separate from the full-data refit diagnostics.
+The package also retains the supporting feature schema used by action selection. These are the accepted full-data production models. Their separate held-out results are reported in the benchmarks; deployment refits are not held-out evaluations.
 
-The [arrival-dispersion summary](benchmarks/ball_drive/arrival_dispersion_laplace.json) contains the ball-drive marginal Laplace intervals for `s` and the separate pass-risk MLE point estimate. Regenerate it with `python scripts/build_arrival_dispersion_summary.py` from the repository root. It reads the frozen fitted artifacts without retraining; these conditional parameter intervals are distinct from OOF scores and between-fold variability.
+## Included with the site and source release
 
-The final pass artifact is `PRESS/utils/data/pass_risk_model.json`, loaded by `PassRiskModel.pretrained()` and used by `compute_ppcf` by default. It contains the full-data trajectory-MLE parameters and saved isotonic knots; [pass provenance](../docs/pass-risk-refit-provenance.json) verifies its hash and runtime agreement. The accepted cohort is 6,706 passes (964 failures), with continuous matched endpoints, outfield passers and inclusive duration [0.5, 10] s. `data/benchmarks/pass_risk/` contains aggregate OOF, curvature and off-ball speed summaries. Full per-pass arrays remain in the research repository; the pass cache is `2026-10-18_pass_boundaries_duration_v4`, derived from the shared v5 tracking base without changing retained positions or velocities.
+- **Final benchmark summaries:** pooled, fold-level and match-level metrics; calibration-bin summaries; selected hyperparameters; physical-parameter estimates and uncertainty summaries; documented comparisons and numerical checks.
+- **Feature importance:** aggregate production and fold summaries, without full fitted fold ensembles.
+- **Reports and case studies:** band summaries, player/team descriptive scores, pattern shares and the selected examples' identifiers and predicted quantities.
+- **Derived spatial examples:** the small production xT grid and the selected real-frame BCOS probability field. These contain model-derived surfaces, not raw tracking. BCOS checkpoint values and spatial/time aggregates support the descriptive single-match figures; they are not complete training-feature tables.
+- **Provenance:** model identifiers, source descriptions, numerical checks and file hashes.
+- **Research code:** the procedural `pipeline/` source, split/grid protocols and documentation, also provided as a [downloadable archive](../pipeline/press-training-pipeline.zip).
 
-The operational pass-selection artifact is `PRESS/utils/data/pass_selection_model.json` plus its checksum-verified `.ubj`, loaded by `PassSelectionModel.pretrained()`. The full-ten-match flat refit has 1,444 trees and the corrected `ahead_of_carrier_and_target_v1` feature contract. [Pass-selection provenance](../docs/pass-selection-final-provenance.json) identifies screening54, benchmark56 and deployment refit57. `data/benchmarks/pass_selection/` contains screening, pooled/fold/match scores and per-choice OOF losses for both flat and CNL models. Historical tables and package weights are preserved separately; CNL deployment weights remain in the research archive.
+The [object inventory](../docs/release-objects.json) records the included data and production artifacts, their roles and SHA-256 hashes. Figure-generation scripts use these summaries or explicit local research inputs; rendering the site does not require raw tracking.
 
-`data/benchmarks/action_selection/` contains the final AS70 aggregate pooled,
-fold and match scores, calibration bins, exact feature schemas and selected
-hyperparameters, plus published comparison values and the separate context and
-temperature diagnostics. No raw tracking or individual prediction arrays are
-exported. Regenerate the aggregate export with
-`python scripts/export_action_selection_benchmark.py` when the sibling research
-repository is available; render its figures independently with
-`python scripts/build_action_selection_benchmark_figures.py`. The
-[provenance](../docs/action-selection-benchmark-provenance.json) separates this
-development benchmark from the installed full-data action refit. The277-tree
-manifest/UBJ and aligned runtime are documented in [refit provenance](../docs/action-selection-refit-provenance.json).
+## Private research objects
 
+Raw and processed match tables, complete feature matrices, row-level held-out predictions, full posterior/covariance objects, bootstrap replicates, auxiliary cross-fitting ensembles and full training-search outputs are not included in the release.
 
-Residual risk deploys `residual_risk_model.json` and checksum-verified
-`residual_risk_model.ubj`:7,820 full-data states, 1,423 terminal losses, 118 trees,
-31conceptual inputs,native loss-positive output. Training P(carry) is eight-fit
-cross-fitted; inference uses the matched all-ten-match AS73 model. Public
-aggregate OOF metrics and calibration bins live under `benchmarks/residual_risk/`.
-No raw tracking or row-level possession tables are distributed.
-
-
-`benchmarks/composed_risk/` contains aggregate five-fold OOF h and individual
-xLoss metrics and quantile calibration bins for the RR77 verified parent cohort.
-The primary terminal xLoss uses native augmented residual c. No raw tracking,
-row-level predictions or proprietary company-score comparison is published.
-
-
-`examples/bcos/` contains aggregate single-match descriptive spatial/time/support
-tables and numerical-check summaries for the BCOS extra. The real-frame map is
-a rendered model output; no raw tracking table or row-level BCOS feature cache
-is redistributed. Match examples reuse final production parameters and are
-separate from the held-out predictive benchmarks.
+The public site includes the aggregate results needed to inspect the reported findings. Reproducing the complete training requires obtaining the source data and running the pipeline. The [pipeline guide](../pipeline.qmd) distinguishes inputs, generated outputs, benchmark fits and production refits.

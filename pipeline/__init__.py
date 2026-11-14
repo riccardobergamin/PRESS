@@ -1,1 +1,1 @@
-"""Reproducible research stages; separate from the installed PRESS package."""
+"""Procedural PRESS research pipeline; inference models live in PRESS."""

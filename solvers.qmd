@@ -41,7 +41,7 @@ Call these methods in dependency order when only some outputs are needed.
 
 The default pass-risk artifact uses `v_max=5.5`, `a_max=a_turn=7`, overspeed-preserving TTI, `dt_ball=0.04`, `t_max_flight=10`, `dt_pc=0.01`, `t_max_pc=15`, exact target distances and exponential integration. Launch candidates span 5–25 m/s and 0–45 degrees, 30 values on each axis; drag settings are `rho=1.22`, `Cd=0.25`, `A=0.038`, `m=0.42`, `g=9.81`, controllable height `z_max=2`. The full-data parameters are `lambda_control=5.437830`, `s=0.294560`; isotonic knots are separate from those physical estimates. [Export provenance](docs/pass-risk-refit-provenance.json).
 
-The default drive artifact uses the verified additive splines and angle term, `v_max=7`, independent linear/turning acceleration settings, preserved initial overspeed, signed boundary distance, constant carrier velocity and exponential integration with partial final steps. The wrapper supplies native pitch dimensions. Only physics overrides are accepted; the historical log-linear implementation is archived outside the installed package. [Model and spline definitions](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb).
+The default drive artifact uses the verified additive splines and angle term, `v_max=7`, independent linear/turning acceleration settings, preserved initial overspeed, signed boundary distance, constant carrier velocity and exponential integration with partial final steps. The wrapper supplies native pitch dimensions. Only physics overrides are accepted. [Model and spline definitions](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb).
 
 The operational pass-selection model is the verified flat refit, with its saved vocabulary, xT surface and temperature. Candidate cells use the native one-metre grid at the default settings. Coarse/restricted grids are supported as explicit sensitivities and recorded as differing from the benchmark. Action selection and residual risk retain their native probabilities without scaling. No training occurs in these methods.
 
@@ -83,7 +83,7 @@ integrate_pass_prob(p_pos, p_vel, attacker_idx, ball_carrier_idx,
     integration_method="exponential")
 ```
 
-`p_pos`, `p_vel` are `(M,2)`; `attacker_idx` selects attacking rows; `ball_trajectory` is `(T,3)` with x, y and height sampled every `dt`. Control accumulates at or below `z_max` metres; the carrier is excluded before sharing mass. Returns scalar attacking success. Each supplied sample starts one integration interval: the benchmark's 251 samples at 0..10 s retain its historical 10.04 s left-step schedule. There is no parameter-dependent cutoff. This reconstructed-path likelihood estimates parameters; candidate-field inference uses target PPCF and its separately fitted isotonic map. [Pass vignette](vignettes/02_pass_probability/02_pass_probability.ipynb).
+`p_pos`, `p_vel` are `(M,2)`; `attacker_idx` selects attacking rows; `ball_trajectory` is `(T,3)` with x, y and height sampled every `dt`. Control accumulates at or below `z_max` metres; the carrier is excluded before sharing mass. Returns scalar attacking success. Each supplied sample starts one integration interval: the benchmark's 251 samples at 0..10 s use a 10.04 s left-step schedule. There is no parameter-dependent cutoff. This reconstructed-path likelihood estimates parameters; candidate-field inference uses target PPCF and its separately fitted isotonic map. [Pass vignette](vignettes/02_pass_probability/02_pass_probability.ipynb).
 
 ### Drive-loss integration
 

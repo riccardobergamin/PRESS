@@ -1,6 +1,5 @@
 {
   "status": "verified_full_data_refit_installed",
-  "result": "73_action_selection_full_refit_20261029_134905",
   "model_id": "skillcorner_outfield_action_selection_v2",
   "rounds": 277,
   "feature_contract": "canonical_action_30_v1",
@@ -22,7 +21,6 @@
     "model_sha256": "85885cfdfb3b6dc627b9e3ae2c2f712f9da14ab88beea073879e0d586d94ea7a",
     "booster_sha256": "307dc003bede024a60110b57aa8af2233e67d1b04651632ff4cbaaa50f853b77"
   },
-  "benchmark_source": "70_action_selection_fine_bcos_20261029_102502",
   "benchmark_unchanged": true,
   "installed_sha256": {
     "PRESS/core/press.py": "240b916226aa5e839dbd9fa65b14e669b00e55feefe785d8e5fa5f220f924bac",
@@ -852,7 +850,6 @@
     "tree_count": 277
   },
   "production_feature_cache": {
-    "research_path": "experiments/73_action_selection_full_refit_20261029/refit_review/73_action_selection_full_refit_20261029_134905/full_data_features.parquet",
     "sha256": "c6cd96ad0480e4b61957f27a427224a86001bd25921f801857b8af2c2af5f1d9",
     "n": 16918,
     "all_keys_and_labels_verified": true

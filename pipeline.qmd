@@ -2,31 +2,35 @@
 title: "Research pipeline"
 ---
 
-The procedural research code is organized in **`review/`**, separately from the inference package `PRESS/`. It prepares the observations, fits the five components, composes held-out h and xLoss, and produces the descriptive reports. The implementation is being reviewed before the final package release; this page provides its reading order and input/output layout.
+The procedural research code is organized in **`pipeline/`**, separately from the inference package `PRESS/`. It prepares the observations, fits the five components, composes held-out h and xLoss, and produces the descriptive reports. The implementation is being reviewed before the final package release; this page provides its reading order and input/output layout.
+
+[Download the research pipeline](pipeline/press-training-pipeline.zip) · [Source and reading guide](pipeline/README.md) · [Distributed objects](data/README.md) · [Roadmap](roadmap.qmd)
+
+The archive contains the `pipeline/` source tree, documentation and split/grid protocols. Match data, fitted fold objects and generated outputs are kept separately; the package supplies the final pretrained inference models.
 
 ## Numbered workflow
 
-The [execution plan](review/00_pipeline.py) prints the commands in dependency order. The task scripts retain the same simple organization: definitions of covariates or likelihood, training and validation, then a pipeline that executes those steps.
+The [execution plan](pipeline/00_pipeline.py) prints the commands in dependency order. The task scripts retain the same simple organization: definitions of covariates or likelihood, training and validation, then a pipeline that executes those steps.
 
 | Step | Component | Reading order |
 |---|---|---|
-| 01 | Preprocessing | [Preparation](review/preprocessing/features.py) → [pipeline](review/preprocessing/pipeline.py). Tracking derivatives and segmentation are in [tracking.py](review/preprocessing/tracking.py); pass links are in [passes.py](review/preprocessing/passes.py). |
-| 02 | Expected threat | [Model](review/expected_threat/model.py) → [training](review/expected_threat/training.py) → [pipeline](review/expected_threat/pipeline.py). |
-| 03 | Physical ball-drive risk | [Model and priors](review/ball_drive/physical/model.py) → [training](review/ball_drive/physical/training.py) → [pipeline](review/ball_drive/physical/pipeline.py). |
-| 04 | CatBoost ball-drive comparison | [Features](review/ball_drive/catboost/features.py) → [training](review/ball_drive/catboost/training.py) → [pipeline](review/ball_drive/catboost/pipeline.py). |
-| 05 | Pass probability | [Physical model](review/pass_probability/model.py) → [training](review/pass_probability/training.py) → [pipeline](review/pass_probability/pipeline.py). |
-| 06 | Pass selection, flat and cross-nested | [Features](review/pass_selection/features.py) → [training](review/pass_selection/training.py) → [pipeline](review/pass_selection/pipeline.py). |
-| 07 | Action selection, then residual risk | [Features](review/binary_classification/features.py) → [training](review/binary_classification/training.py) → [pipeline](review/binary_classification/pipeline.py). |
-| 08 | h, xLoss and band evaluation | [Composition](review/composed_risk/features.py) → [scores and bootstrap](review/composed_risk/scores.py) → [pipeline](review/composed_risk/pipeline.py). |
-| 09 | Possession patterns and reports | [Classification](review/reports/features.py) → [scores](review/reports/scores.py) → [real-frame cases](review/reports/cases.py) → [pipeline](review/reports/pipeline.py). |
-| 10 | Statistical summaries | [Parameter and performance tables](review/benchmarks.py). |
+| 01 | Preprocessing | [Preparation](pipeline/preprocessing/features.py) → [pipeline](pipeline/preprocessing/pipeline.py). Tracking derivatives and segmentation are in [tracking.py](pipeline/preprocessing/tracking.py); pass links are in [passes.py](pipeline/preprocessing/passes.py). |
+| 02 | Expected threat | [Model](pipeline/expected_threat/model.py) → [training](pipeline/expected_threat/training.py) → [pipeline](pipeline/expected_threat/pipeline.py). |
+| 03 | Physical ball-drive risk | [Model and priors](pipeline/ball_drive/physical/model.py) → [training](pipeline/ball_drive/physical/training.py) → [pipeline](pipeline/ball_drive/physical/pipeline.py). |
+| 04 | CatBoost ball-drive comparison | [Features](pipeline/ball_drive/catboost/features.py) → [training](pipeline/ball_drive/catboost/training.py) → [pipeline](pipeline/ball_drive/catboost/pipeline.py). |
+| 05 | Pass probability | [Physical model](pipeline/pass_probability/model.py) → [training](pipeline/pass_probability/training.py) → [pipeline](pipeline/pass_probability/pipeline.py). |
+| 06 | Pass selection, flat and cross-nested | [Features](pipeline/pass_selection/features.py) → [training](pipeline/pass_selection/training.py) → [pipeline](pipeline/pass_selection/pipeline.py). |
+| 07 | Action selection, then residual risk | [Features](pipeline/binary_classification/features.py) → [training](pipeline/binary_classification/training.py) → [pipeline](pipeline/binary_classification/pipeline.py). |
+| 08 | h, xLoss and band evaluation | [Composition](pipeline/composed_risk/features.py) → [scores and bootstrap](pipeline/composed_risk/scores.py) → [pipeline](pipeline/composed_risk/pipeline.py). |
+| 09 | Possession patterns and reports | [Classification](pipeline/reports/features.py) → [scores](pipeline/reports/scores.py) → [real-frame cases](pipeline/reports/cases.py) → [pipeline](pipeline/reports/pipeline.py). |
+| 10 | Statistical summaries | [Parameter and performance tables](pipeline/benchmarks.py). |
 
 Flat and cross-nested pass selection share their feature calculation. Action selection and residual risk also share feature definitions, but their models, labels and outputs remain separate. The physical ball-drive model remains the deployed one; CatBoost is a benchmark comparison.
 
 ## Inputs and outputs
 
 ```text
-review/
+pipeline/
   00_pipeline.py
   frame_states.py
   inputs/                         # local numerical inputs, by task
@@ -53,10 +57,9 @@ review/
     composed_risk/
     reports/
     statistics/
-  local_history/initial_run/       # local only; never exported
 ```
 
-Each model stores feature tables or physical arrays separately from fold fits, scores and production refits. Saved trees, spline bases, posterior quantities and calibration objects have explicit task folders. The pipelines refuse to replace completed outputs silently. The [input/output guide](review/README.md) describes the individual files.
+Each model stores feature tables or physical arrays separately from fold fits, scores and production refits. Saved trees, spline bases, posterior quantities and calibration objects have explicit task folders. The pipelines refuse to replace completed outputs silently. A fresh pipeline execution should use a new output root. The [input/output guide](pipeline/README.md) describes the individual files.
 
 The raw-data adapter reads the public SkillCorner match files. Shared preprocessing retains the broad observations and quality flags; task-specific outcome filters remain beside the task. Reconstructed task cohorts are saved under `outputs/preprocessing/task_inputs/` and compared by observation keys and labels before replacing accepted inputs. Segmentation and context-label meanings are explained in the [User guide](vignettes/setup/possession_and_checkpoint_setup.ipynb).
 
@@ -82,20 +85,18 @@ Details and results are in the [composed-risk benchmark](benchmarks/06_composed_
 
 ## Local checks
 
-The [verification plan](review/checks/run.py) covers syntax and command-line entry points, reconstruction of a real match, physical calculations, short model fits, serialization, composition, metrics and report counts. The [check guide](review/checks/README.md) distinguishes these tests from a new scientific benchmark.
+The [verification plan](pipeline/checks/run.py) covers syntax and command-line entry points, reconstruction of a real match, physical calculations, short model fits, serialization, composition, metrics and report counts. The [check guide](pipeline/checks/README.md) distinguishes these tests from a new scientific benchmark.
 
-For pass selection, the [short real-data check](review/checks/pass_selection_steps.py) retains the complete destination grids for ten observed passes. It exercises flat/CNL likelihoods and gradients, the declared curvatures, reduced screening, tree and nesting updates, early stopping, temperature scaling, held-out scoring, feature importance and model export. Full training grids remain cluster work.
+For pass selection, the [short real-data check](pipeline/checks/pass_selection_steps.py) retains the complete destination grids for ten observed passes. It exercises flat/CNL likelihoods and gradients, the declared curvatures, reduced screening, tree and nesting updates, early stopping, temperature scaling, held-out scoring, feature importance and model export. These checks do not repeat the full hyperparameter searches.
 
 ```bash
 # Print the ordered research commands without executing fits.
-python review/00_pipeline.py --output-root /path/to/new_run
+python pipeline/00_pipeline.py --output-root /path/to/new_run
 
 # Print local checks; add --execute to run selected checks.
-python review/checks/run.py --output /path/to/new_checks
+python pipeline/checks/run.py --output /path/to/new_checks
 ```
 
 ## Release contents
 
-The [release script](review/release.py) uses an explicit file allowlist. Alongside the source code, the site exposes statistical summaries of physical parameters, performance/calibration, bands and selected case-study/report tables. Full input tables, feature matrices, fold boosters, posterior objects and bootstrap replicates stay local. Pretrained inference models remain distributed with the PRESS package.
-
-The initial historical run has separate scripts, inputs and outputs under `local_history/initial_run/<task>/`. It is retained locally and is not a dependency or part of the public export. Experimental runs are also excluded. Nothing in this research workflow installs new weights into the package automatically.
+The [release script](pipeline/release.py) uses an explicit file allowlist. Alongside the source code, the site exposes statistical summaries of physical parameters, performance/calibration, bands and selected case-study/report tables. Full input tables, feature matrices, fold boosters, posterior objects and bootstrap replicates are not included in the release. Pretrained inference models remain distributed with the PRESS package. Complete training objects are not included in the website source download.

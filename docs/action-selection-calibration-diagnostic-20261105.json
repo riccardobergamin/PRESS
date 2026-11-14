@@ -1,7 +1,6 @@
 {
   "status": "complete",
   "date": "2026-11-05",
-  "experiment": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/101_action_calibration_h_sanity_20261105",
   "action_selection_n": 16918,
   "h_n": 15085,
   "outer_folds": 5,
@@ -10,7 +9,7 @@
     2,
     2
   ],
-  "trees": "Original selected AS70 fold ensembles, held fixed.",
+  "trees": "Selected fold ensembles, held fixed.",
   "calibrators": [
     "temperature",
     "isotonic"
@@ -18,8 +17,8 @@
   "calibration_labels": "Observed pass versus carry on existing two validation matches, not test or h outcomes.",
   "validation_reused_after_selection": true,
   "h_components": "Only action-choice probabilities varied; other same-fold components held fixed.",
-  "decision": "Retain native AS73 and native action-choice probabilities in h; no production refit.",
-  "source": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/101_action_calibration_h_sanity_20261105/results/01_calibration_and_bootstrap/calibration_comparison_pooled.csv",
+  "decision": "Retain native production action selection and native action-choice probabilities in h; no production refit.",
+  "source": "calibration_comparison_pooled.csv",
   "source_sha256": "d269fc366ea302df6a47bf0108345eb0adacd726e69bb10241a1bd001497d51e",
   "export_sha256": "e1122bb55495069c6b26071f634e5c4b256caa87f52bdc69b9cd2cde4bb0acf9",
   "deployment_changed": false

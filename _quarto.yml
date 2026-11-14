@@ -3,7 +3,11 @@ project:
   output-dir: _site
   execute-dir: project
   resources:
-  - review/**
+  - pipeline/**
+  - "!pipeline/**/__pycache__/**"
+  - "!pipeline/outputs/**"
+  - "!pipeline/local_history/**"
+  - "!pipeline/experiments/**"
   render:
   - index.qmd
   - benchmark.qmd
@@ -81,13 +85,13 @@ website:
         href: benchmark.qmd
       - text: Ball-drive risk
         href: benchmarks/01_ball_drive_risk.qmd
-      - text: Pass-probability
+      - text: Pass probability
         href: benchmarks/02_pass_probability.qmd
-      - text: Pass-selection
+      - text: Pass selection
         href: benchmarks/03_pass_selection.qmd
-      - text: Action-selection
+      - text: Action selection
         href: benchmarks/04_action_selection.qmd
-      - text: Residual-risk
+      - text: Residual risk
         href: benchmarks/05_residual_risk.qmd
       - text: Composed h and xLoss
         href: benchmarks/06_composed_risk.qmd
@@ -147,13 +151,13 @@ website:
         href: benchmark.qmd
       - text: Ball-drive risk
         href: benchmarks/01_ball_drive_risk.qmd
-      - text: Pass-probability
+      - text: Pass probability
         href: benchmarks/02_pass_probability.qmd
-      - text: Pass-selection
+      - text: Pass selection
         href: benchmarks/03_pass_selection.qmd
-      - text: Action-selection
+      - text: Action selection
         href: benchmarks/04_action_selection.qmd
-      - text: Residual-risk
+      - text: Residual risk
         href: benchmarks/05_residual_risk.qmd
       - text: Composed h and xLoss
         href: benchmarks/06_composed_risk.qmd

@@ -1,6 +1,6 @@
 {
-  "historical_tti_max_difference": 0.0,
-  "historical_probability_max_difference": {
+  "reference_tti_max_difference": 0.0,
+  "reference_probability_max_difference": {
     "euler": 0.0,
     "exponential": 0.0
   },

@@ -6,7 +6,7 @@
     {
       "case": "A",
       "match_id": "2006229",
-      "match_name": "Melbourne City\u2013Macarthur FC",
+      "match_name": "Melbourne City–Macarthur FC",
       "match_date": "2025-03-07",
       "possession_id": "8_774",
       "pattern": "Pressure escape",
@@ -35,7 +35,7 @@
     {
       "case": "B",
       "match_id": "1996435",
-      "match_name": "Sydney FC\u2013Adelaide United",
+      "match_name": "Sydney FC–Adelaide United",
       "match_date": "2025-02-01",
       "possession_id": "8_352",
       "pattern": "Drawing pressure",
@@ -64,7 +64,7 @@
     {
       "case": "C",
       "match_id": "2013725",
-      "match_name": "Western United\u2013Sydney FC",
+      "match_name": "Western United–Sydney FC",
       "match_date": "2025-04-27",
       "possession_id": "8_553",
       "pattern": "Sustained successful carrying",
@@ -268,9 +268,8 @@
       ]
     }
   ],
-  "source_states": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/results/states.parquet",
+  "source_states": "states.parquet",
   "source_sha256": "1cf73effe82b628e5ab888ed3324e46ad0ee354a8615045a3792100dd128e7da",
-  "prior_cases_archived": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/118_escape_review_plain_pitch_20261105/before",
   "outcome_snapshots": [
     {
       "case": "A",
@@ -324,6 +323,5 @@
       "interpretation": "Observed outcome frame in the next individual possession; not an extra checkpoint or hazard factor in Kamijo's action sequence."
     }
   ],
-  "current_review_experiment": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/123_receiving_escape_attacking_draw_20261105",
   "all_case_completions_verified": true
 }

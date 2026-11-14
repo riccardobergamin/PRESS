@@ -1,6 +1,5 @@
 {
   "status": "verified_portfolio_final",
-  "experiment": "87_hazard_portfolio_final_20261030",
   "source_oof_sha256": "40aaf7c8deba34df5b7783f96676ae17d8ed961e9536398a8c868e69cc5f7a91",
   "no_new_fit": true,
   "runtime_code_changed": false,

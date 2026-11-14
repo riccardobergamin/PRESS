@@ -205,7 +205,7 @@
       "2017461"
     ],
     "cohort_policy": "outfield_no_shot_obe_verified_loss_parents_v1",
-    "selection": "Fixed main_1_angle_100 selected in all5run44outer training folds; no new tuning.",
+    "selection": "Fixed main_1_angle_100 selected in all five outer training folds; no new tuning.",
     "source_protocol_sha256": "ea3c97b10ac379d7f20c7f593be8bdc1b0c7c731a6136ce0ee44850e3091c256",
     "source_cache_sha256": "c8457733cbed2d834a7971b8ab3496d3682a4717c53435e532e26d83d03611cb",
     "target": "Bernoulli loss within one second",
@@ -225,8 +225,7 @@
     "brier_score": 0.04006830657308241,
     "ROC_AUC": 0.8854659315185632,
     "PR_AUC_loss": 0.3083655794540082,
-    "mean_predicted_loss": 0.050593672234582394,
-    "source_run": "44_ball_drive_obe_filtered_20261022_231807"
+    "mean_predicted_loss": 0.050593672234582394
   },
   "fit_diagnostics": {
     "objective": 1299.5898673840268,

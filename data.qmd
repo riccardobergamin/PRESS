@@ -33,17 +33,15 @@ The example uses **Melbourne City FC–Macarthur FC, 7 March 2025**, match `2006
 
 ### Base preprocessing, before installing PRESS
 
-The base step reads the observations, estimates velocity and acceleration, preserves player identities, and extracts the unfiltered individual-possession events. It **does not import PRESS or load any fitted model**. Use a scientific Python environment with NumPy, pandas, SciPy and PyArrow. The loader is shared with the companion analysis checkout so coordinate and smoothing conventions stay identical.
+The base step reads the observations, estimates velocity and acceleration, preserves player identities, and extracts the unfiltered individual-possession events. It **does not import PRESS or load any fitted model**. Use a scientific Python environment with NumPy, pandas, SciPy and PyArrow. The tracking loader is included in `pipeline/preprocessing/tracking.py`.
 
 ```bash
-# Run from the PRESS source checkout; set paths to your local data and analysis.
+# Run from the project root; set the path to the public data.
 export SKILLCORNER_OPENDATA="/path/to/opendata"
-export SKILLCORNER_ANALYSIS="/path/to/skillcorner-analysis"
 export PRESS_TRACKING_ROOT="$SKILLCORNER_OPENDATA/data/processed/user_guide_tracking"
 
 python examples/preprocess_tracking.py \
   --match-dir "$SKILLCORNER_OPENDATA/data/matches/2006229" \
-  --analysis-source "$SKILLCORNER_ANALYSIS" \
   --output-dir "$PRESS_TRACKING_ROOT"
 ```
 

@@ -9,3 +9,15 @@ __pycache__/
 /dist/
 *.egg-info/
 /outputs/
+
+# Research inputs and generated fits remain local; protocols and source are public.
+/pipeline/outputs/
+/pipeline/local_history/
+/pipeline/experiments/
+/pipeline/inputs/**/*.parquet
+/pipeline/inputs/**/*.npz
+/pipeline/inputs/**/*.npy
+/pipeline/inputs/**/*.ubj
+/pipeline/inputs/**/*.pkl
+/data/benchmarks/**/old/
+/data/benchmarks/*/*_oof.parquet

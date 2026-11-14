@@ -1,4 +1,4 @@
-"""Versioned native binary action-choice ensemble and exact AS70 feature schema."""
+"""Versioned native binary action-choice ensemble and saved feature schema."""
 
 from copy import deepcopy
 from pathlib import Path
@@ -49,7 +49,7 @@ def feature_names(vocabulary):
 
 
 def encode(frame, vocabulary):
-    """AS70 fit-only categorical buckets and float32 numeric boundary."""
+    """Fit-only categorical buckets and float32 numeric boundary."""
     blocks = [frame[NUMERIC].to_numpy(np.float32)]
     for column, levels in vocabulary.items():
         value = frame[column].astype(object)
@@ -62,7 +62,7 @@ def encode(frame, vocabulary):
 
 
 class ActionSelectionModel:
-    """Load a checksum-verified AS70-contract pass/carry model; no calibration."""
+    """Load a checksum-verified feature-contract pass/carry model; no calibration."""
 
     def __init__(self, artifact, booster):
         self._artifact = deepcopy(artifact)

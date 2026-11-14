@@ -94,27 +94,31 @@ We consider two canonical on-ball actions: **ball drive** and **pass**. A ball d
 
 The framework combines four probabilistic components:
 
-1. **Action selection:** the probability of choosing a pass over a ball drive,
+1. **Ball-drive risk:** the probability of losing possession during the one-second ball drive,
 
    $$
-   q_t=P(A_t=\mathrm{pass}\mid s_t).
+   d_t=P(\mathrm{loss}\mid s_t,A_t=\mathrm{drive}).
    $$
-2. **Pass selection:** the probability of choosing destination $j$, conditional on attempting a pass,
+
+2. **Pass probability:** the probability of retaining team possession through a pass towards destination $j$,
+
+   $$
+   p_{j,t}=P(\mathrm{success}\mid s_t,A_t=\mathrm{pass},J_t=j).
+   $$
+
+3. **Pass selection:** the probability of choosing destination $j$, conditional on attempting a pass,
 
    $$
    \pi_{j,t}=P(J_t=j\mid s_t,A_t=\mathrm{pass}),
    \qquad \sum_j\pi_{j,t}=1.
    $$
-3. **Pass success:** the probability of retaining team possession through a pass towards destination $j$,
+
+4. **Action selection:** the probability of choosing a pass over a ball drive,
 
    $$
-   p_{j,t}=P(\mathrm{success}\mid s_t,A_t=\mathrm{pass},J_t=j).
+   q_t=P(A_t=\mathrm{pass}\mid s_t).
    $$
-4. **Ball-drive risk:** the probability of losing possession during the one-second ball drive,
 
-   $$
-   d_t=P(\mathrm{loss}\mid s_t,A_t=\mathrm{drive}).
-   $$
 The pass-success and ball-drive components characterize the physical difficulty of executing potential actions, while action and destination selection describe how players are expected to choose among the available alternatives. The latter are learned from observed behaviour using tree-based models, incorporating features derived from the physics-based components alongside tactical and contextual information.
 
 ### Possession-loss hazard

@@ -1,5 +1,5 @@
 ---
-title: "Pass-probability benchmark"
+title: "Pass probability benchmark"
 jupyter: python3
 ---
 
@@ -7,7 +7,7 @@ jupyter: python3
 
 This benchmark documents the cohort, estimation and predictive evaluation of the PRESS pass-probability model. The target is the completion of a pass by the attacking team, given the release state and a candidate destination. The [pass vignette](../vignettes/02_pass_probability/02_pass_probability.ipynb) defines the model: the control rate and the arrival-time dispersion are estimated by maximum likelihood on the reconstructed physical trajectories of observed passes, and the fitted mechanism is then used to compute a potential pitch control field (PPCF) for hypothetical destinations, whose raw scores are calibrated with an isotonic map. Here we report the evidence supporting this specification.
 
-## Accepted cohort and endpoint checks
+## 1. Evaluation cohort {#accepted-cohort-and-endpoint-checks}
 
 The benchmark contains **6,706 passes: 5,742 completions and 964 failures (14.38%), across ten SkillCorner matches**, selected from **7,078 outfield pass candidates** by the matching criteria and the duration interval described below ([effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv)). Passers are outfield players; goalkeepers remain in the state and can receive or intercept passes.
 
@@ -15,7 +15,9 @@ Release and the immediate next individual-possession start must be matched in th
 
 Passes are retained when the duration from release to matched reception or recovery lies within the inclusive interval **[0.5, 10] s**. The lower bound ensures sufficient tracking observations to estimate the ball-flight initial conditions, whereas the upper bound limits the trajectory integration horizon. This interval is also consistent with the temporal selection adopted by Spearman [@spearman2017]. Passes with curvature above 5%, excluded in the original paper, are retained.
 
-## Ball-flight initial conditions
+## 2. Model specification and features
+
+### Ball-flight initial conditions {#ball-flight-initial-conditions}
 
 The physical flight and player-reachability models, including their kinetic parameters and the selected player-speed setting $v_{\max}=5.5$ m/s, are described in the [model vignette](../vignettes/02_pass_probability/02_pass_probability.ipynb). Here we assess the reconstruction of the ball's initial conditions, which determines the trajectories used to fit the control parameters.
 
@@ -25,7 +27,7 @@ The two estimators were compared by their free-flight position-prediction error 
 
 Position-based fitting was selected in every outer fold and in the final fit, and in 19 of the 20 inner fits; the remaining inner fit selected the mean-velocity estimator. This reconstruction uses observations after release and is therefore an offline estimation procedure.
 
-## Parameter fitting and calibration
+## 3. Model selection and validation {#parameter-fitting-and-calibration}
 
 The control rate $\lambda_{\mathrm{control}}$ and arrival-time dispersion $s$ are estimated by **maximum likelihood**, maximizing the Bernoulli log-likelihood defined in the [pass vignette](../vignettes/02_pass_probability/02_pass_probability.ipynb).
 
@@ -58,9 +60,7 @@ Evaluation is **match-wise**, with five outer folds of two held-out matches each
 
 The initial-condition estimator is selected using training data only. The physical trajectory MLE, the initial-condition estimator choice and the isotonic/Platt fitting are separate operations, and the calibration step leaves $\lambda_{\mathrm{control}}$ and $s$ unchanged. The retained calibration method is a development decision based on the reported comparison.
 
-For deployment, the physical parameters are refitted on all ten matches. The final isotonic map is trained on out-of-fold predictions obtained by cross-fitting across the five outer folds.
-
-## Predictive performance
+## 4. Predictive performance {#predictive-performance}
 
 | Model | Cross-entropy ↓ | Gain over null ↑ | ECE ↓ |
 |---|---:|---:|---:|
@@ -72,7 +72,21 @@ Metrics are pooled over the 6,706 held-out pass predictions from the five outer 
 
 ![Pooled held-out calibration of the selected isotonic pass-probability model. Points represent ten quantile bins.](../figures/pass_benchmark_calibration.png)
 
-### Parameter estimates
+## 5. Comparison with published results {#comparison-with-published-results}
+
+| Study / model | Cross-entropy ↓ | Gain over null ↑ | ECE ↓ |
+|---|---:|---:|---:|
+| **PRESS, physical model + isotonic** | **0.131121** | **68.19%** | **0.183%** |
+| Fernández et al. (2021), SoccerMap | 0.1900 | ≈62.40% | 0.470% |
+| Stalpaert et al. (2022), CatBoost | 0.2087 | 63.85% | 0.310% |
+
+The studies differ in dataset, completion prevalence, pass selection, available features and validation protocol; their metrics are reported as context. Fernández et al.'s gain is approximate, computed with the reported overall completion share. [@fernandez2021; @stalpaert2022]
+
+## 6. Production model and parameter estimates
+
+For deployment, the physical parameters are refitted on all ten matches. The final isotonic map is trained on out-of-fold predictions obtained by cross-fitting across the five outer folds.
+
+### Parameter estimates {#parameter-estimates}
 
 The final full-data physical fit yields **$\hat\lambda_{\mathrm{control}}=5.437830$ s$^{-1}$** and **$\hat s=0.294560$ s**. Estimates across the five outer training sets are:
 
@@ -83,17 +97,7 @@ The final full-data physical fit yields **$\hat\lambda_{\mathrm{control}}=5.4378
 
 These ranges describe variation between training partitions. Spearman [@spearman2017] reported $\lambda=4.30$ s$^{-1}$ and a temporal dispersion of 0.45 s; differences should be interpreted in light of the distinct tracking data, trajectory reconstruction and movement assumptions.
 
-## Comparison with published results
-
-| Study / model | Cross-entropy ↓ | Gain over null ↑ | ECE ↓ |
-|---|---:|---:|---:|
-| **PRESS, physical model + isotonic** | **0.131121** | **68.19%** | **0.183%** |
-| Fernández et al. (2021), SoccerMap | 0.1900 | ≈62.40% | 0.470% |
-| Stalpaert et al. (2022), CatBoost | 0.2087 | 63.85% | 0.310% |
-
-The studies differ in dataset, completion prevalence, pass selection, available features and validation protocol; their metrics are reported as context. Fernández et al.'s gain is approximate, computed with the reported overall completion share. [@fernandez2021; @stalpaert2022]
-
-## Curvature and limitations
+## 7. Discussion and limitations {#curvature-and-limitations}
 
 All accepted curvature levels are included in model fitting and evaluation. To assess where the simplified flight representation is less accurate, we stratified the held-out predictions by observed trajectory curvature without refitting either the physical model or its calibrator.
 
@@ -106,3 +110,7 @@ All accepted curvature levels are included in model fitting and evaluation. To a
 Curvature is measured as maximum perpendicular deviation from the release-to-endpoint line, relative to endpoint distance. Performance is substantially weaker for more curved passes. The absence of spin and Magnus effects is one plausible explanation; the subsets also differ in difficulty, geometry and failure prevalence.
 
 Further limitations include the use of the observed recovery location as a proxy for the intended destination of failed passes, uncertainty in endpoint annotations, and simplified player motion. The initial-condition reconstruction requires at least 0.5 s of observed flight; shorter passes are outside the evaluated population.
+
+## 8. Supplementary resources
+
+The [pooled metrics](../data/benchmarks/pass_risk/metrics.csv), [calibration bins](../data/benchmarks/pass_risk/calibration_deciles.csv), [parameter estimates](../data/benchmarks/pass_risk/parameters.csv), [curvature diagnostic](../data/benchmarks/pass_risk/curvature_metrics.csv) and [production provenance](../docs/pass-risk-refit-provenance.json) support the reported results. The [research pipeline](../pipeline.qmd) provides trajectory reconstruction, parameter fitting, calibration and production refitting.

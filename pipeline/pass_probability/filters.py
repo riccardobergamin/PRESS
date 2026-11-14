@@ -1,8 +1,8 @@
 """Verified release-to-control links; only pass probability requires 0.5–10 s."""
 import numpy as np
 import pandas as pd
-from pipeline.library.preprocessing.passes import extract_passes
-from pipeline.library.preprocessing.tracking import annotate_training_cohort, pass_curvature
+from pipeline.preprocessing.passes import extract_passes
+from pipeline.preprocessing.tracking import annotate_training_cohort, pass_curvature
 
 
 def verified_passes(events, tracking, players, *, minimum=None, maximum=None):

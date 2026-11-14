@@ -74,13 +74,13 @@
   "no_new_fit": true,
   "model_uncertainty_included": false,
   "between_possession_dependence_included": false,
-  "source": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/112_h_terminal_coverage_publication_20261105/results/fixed_h_oof_states.parquet",
+  "source": "fixed_h_oof_states.parquet",
   "source_sha256": "11f82f4f3a0b2695d7b249ea6f2abc7fee47fd488dd37400073d27b5bfc458fa",
   "cases": [
     {
       "case": "A",
       "match_id": "2006229",
-      "match_name": "Melbourne City\u2013Macarthur FC",
+      "match_name": "Melbourne City–Macarthur FC",
       "match_date": "2025-03-07",
       "possession_id": "8_774",
       "pattern": "Pressure escape",
@@ -109,7 +109,7 @@
     {
       "case": "B",
       "match_id": "1996435",
-      "match_name": "Sydney FC\u2013Adelaide United",
+      "match_name": "Sydney FC–Adelaide United",
       "match_date": "2025-02-01",
       "possession_id": "8_352",
       "pattern": "Drawing pressure",
@@ -138,7 +138,7 @@
     {
       "case": "C",
       "match_id": "2013725",
-      "match_name": "Western United\u2013Sydney FC",
+      "match_name": "Western United–Sydney FC",
       "match_date": "2025-04-27",
       "possession_id": "8_553",
       "pattern": "Sustained successful carrying",
@@ -262,7 +262,6 @@
   "verification_checks": 1042,
   "score_unit": "Current-action failures avoided relative to h per 100 elevated-risk canonical actions.",
   "report_cohort": "14,919 terminal-covered canonical held-out states, not the 15,085-state overall h metric cohort.",
-  "case_review_experiment": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/123_receiving_escape_attacking_draw_20261105",
   "outcome_snapshots": [
     {
       "case": "A",

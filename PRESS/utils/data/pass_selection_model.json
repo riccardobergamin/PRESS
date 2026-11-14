@@ -198,7 +198,7 @@
     "calibration_fit_ce_before": 5.8280432516531935,
     "calibration_fit_ce_after": 5.827751008303265,
     "role": "Full-data deployment calibration only; do not report its apparent OOF NLL as an independent test score.",
-    "source": "Raw frozen run56 outer-test distributions",
+    "source": "Raw held-out outer-test distributions",
     "n_choices": 6810,
     "fit_matches": [
       "1886347",
@@ -584,7 +584,7 @@
           1.0,
           1.0
         ],
-        "fitted_on": "Run41 outer cross-fitted raw PPCF scores; natural outcomes; no trajectory-score calibration"
+        "fitted_on": "Outer cross-fitted raw PPCF scores; natural outcomes; no trajectory-score calibration"
       },
       "trajectory_boundary": "fit_positions",
       "boundary_selection": {
@@ -680,8 +680,6 @@
       "provenance": {
         "protocol_sha256": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
         "oof_sha256": "d9a931017bbb52eae3e4b56f855c8f5eee3def9a041c069b5127967ba14fa444",
-        "source_benchmark_run": "41_pass_risk_uniform_tti_20261022",
-        "source_benchmark_result": "41_pass_risk_uniform_tti_20261022_004650",
         "n": 6706,
         "losses": 964,
         "matches": [
@@ -922,7 +920,7 @@
           "2017461"
         ],
         "cohort_policy": "outfield_no_shot_obe_verified_loss_parents_v1",
-        "selection": "Fixed main_1_angle_100 selected in all5run44outer training folds; no new tuning.",
+        "selection": "Fixed main_1_angle_100 selected in all five outer training folds; no new tuning.",
         "source_protocol_sha256": "ea3c97b10ac379d7f20c7f593be8bdc1b0c7c731a6136ce0ee44850e3091c256",
         "source_cache_sha256": "c8457733cbed2d834a7971b8ab3496d3682a4717c53435e532e26d83d03611cb",
         "target": "Bernoulli loss within one second",
@@ -942,8 +940,7 @@
         "brier_score": 0.04006830657308241,
         "ROC_AUC": 0.8854659315185632,
         "PR_AUC_loss": 0.3083655794540082,
-        "mean_predicted_loss": 0.050593672234582394,
-        "source_run": "44_ball_drive_obe_filtered_20261022_231807"
+        "mean_predicted_loss": 0.050593672234582394
       },
       "fit_diagnostics": {
         "objective": 1299.5898673840268,
@@ -1151,7 +1148,6 @@
     }
   },
   "benchmark": {
-    "source_result": "56_pass_selection_corrected_counts_final_20261026_181037",
     "not_full_fit_scores": true
   },
   "preferred_for_package": true

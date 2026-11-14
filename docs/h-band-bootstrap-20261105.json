@@ -23,22 +23,20 @@
     0.2928932188134524
   ],
   "rounded_thresholds_change_no_memberships": true,
-  "action_selection": "Native AS70 per-fold held-out predictions; AS73 production remains native.",
+  "action_selection": "Native per-fold held-out action-selection predictions; production probabilities remain native.",
   "pass_completion": "Final same-fold isotonic-calibrated pass completion within the destination-choice summary.",
   "carry_risk": "Final same-fold physical model.",
   "fit_or_calibration_within_bootstrap": false,
   "model_error_included": false,
   "interpretation": "Between-match variability conditional on fixed predictions and thresholds, not uncertainty from refitting the model.",
-  "source": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/77_residual_risk_verified_endpoints_20261029/results_review/77_residual_risk_verified_endpoints_20261029_170451/composition/oof_composed_predictions.parquet",
+  "source": "oof_composed_predictions.parquet",
   "source_sha256": "40aaf7c8deba34df5b7783f96676ae17d8ed961e9536398a8c868e69cc5f7a91",
   "n_h_ge_half": 36,
   "empty_replicates_all_bands": 0,
-  "experiment": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/101_action_calibration_h_sanity_20261105",
   "aggregate_csv": "data/examples/pressure_report/h_band_bootstrap_20261105.csv",
   "aggregate_sha256": "e5c32b4ce08e7d4100a8d5a33ddd03b3b049bd15987239363287c93b9cbd40c1",
   "empty_band_policy": "An empty band has undefined means (NaN); exclude that replicate from percentiles for that band and report its count. No empty bands occurred.",
   "nearly_empty_diagnostics": "Counts <5, <10, <20 and <50; none occurred in High.",
-  "jackknife_source": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/101_action_calibration_h_sanity_20261105/results/05_jackknife",
-  "coverage": "With ten match clusters nominal 95% coverage is not guaranteed; no universal direction of coverage error is asserted.",
-  "pre_change_archive": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/101_action_calibration_h_sanity_20261105/old/portfolio_before_bootstrap_page"
+  "jackknife_source": "05_jackknife",
+  "coverage": "With ten match clusters nominal 95% coverage is not guaranteed; no universal direction of coverage error is asserted."
 }

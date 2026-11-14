@@ -223,9 +223,8 @@
       "nthread": 4
     },
     "rounds": 277,
-    "selection": "Lowest unweighted mean of five saved AS70 validation CE values; fixed trees=median of the five best prefixes for THAT SAME configuration. No test score used.",
+    "selection": "Lowest unweighted mean of five validation CE values; fixed trees=median of the five best prefixes for THAT SAME configuration. No test score used.",
     "smoke": false,
-    "benchmark_source": "70_action_selection_fine_bcos_20261029_102502",
     "refit_is_not_held_out_evaluation": true
   },
   "upstream": {

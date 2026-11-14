@@ -18,7 +18,7 @@ Brisbane FC–Perth Glory, match 1925299, 21 December 2024.
   and numerical convergence tables: retained exploratory audits. The earlier
   8x5 support rule is not the selection rule for the current 10x6 display.
 
-The sample consists of canonical outfield/no-shot AS73 states, not a uniform
+The sample consists of canonical outfield/no-shot action-selection states, not a uniform
 time sample. All values use production carry dispersion. Spatial bins locate
 the carrier, not accessible destinations; temporal summaries condition on the
 carrier's third. These are descriptions, not match or scoring predictions.

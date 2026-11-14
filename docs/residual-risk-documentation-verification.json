@@ -1,7 +1,7 @@
 {
   "status": "installed_verified_documented",
-  "benchmark": "RR77",
-  "refit": "RR78",
+  "benchmark": "five-fold held-out evaluation",
+  "refit": "full-data production fit",
   "full_refit_status": "installed_verified",
   "package_weights_installed": true,
   "package_tests": 113,
@@ -34,7 +34,6 @@
     "composed_risk_pooled_calibration.png": "0f15b747032d377bdc13e33970e98a56b9862f82f5e176f5b72ce52ad7f7d39e"
   },
   "documentation_reorganization_20261030": {
-    "experiment": "83_bcos_and_composed_benchmark_docs_20261030",
     "status": "executed_rendered_verified",
     "composed_benchmark_vignette": "vignettes/05b_composed_risk_benchmark/05b_composed_risk_benchmark.ipynb",
     "feature_importance_location": "Predictive model vignettes; BCOS page links to them",

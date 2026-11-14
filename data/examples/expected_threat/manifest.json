@@ -15,7 +15,7 @@
   "not_for_outer_test_features": true,
   "status": "selected_reference",
   "selection_reason": "10x6 has lowest goal OOF CE among tested smoothed grids and lower mean map variability; prefer parsimonious resolution with 212 shots/23 goals.",
-  "source_audit": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/results/xt_review/01_grid_stability_20261015",
+  "source_audit": "grid_stability",
   "downstream_models_updated": false,
   "grid_orientation": "(n_x,n_y), attacking team left-to-right, fixed105x68 pitch",
   "feature_policy": "Final descriptive all-ten-match fit; for predictive CV build xT only from each inner/outer training set.",

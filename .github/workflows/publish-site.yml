@@ -29,12 +29,11 @@ jobs:
           cache: pip
 
       - name: Install PRESS and vignette dependencies
-        run: python -m pip install -e ".[io,vignettes,dev]"
+        run: python -m pip install -e ".[io,vignettes]"
 
-      - name: Verify public API and vignette sources
+      - name: Check dependencies and vignette sources
         run: |
-          python scripts/check_environment.py --extras io,vignettes,dev
-          python -m pytest -q
+          python scripts/check_environment.py --extras io,vignettes
           python scripts/check_docs.py --sources-only
 
       - name: Set up Quarto

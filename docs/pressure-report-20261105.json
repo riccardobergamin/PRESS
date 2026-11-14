@@ -79,13 +79,13 @@
     "no_new_fit": true,
     "model_uncertainty_included": false,
     "between_possession_dependence_included": false,
-    "source": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/112_h_terminal_coverage_publication_20261105/results/fixed_h_oof_states.parquet",
+    "source": "fixed_h_oof_states.parquet",
     "source_sha256": "11f82f4f3a0b2695d7b249ea6f2abc7fee47fd488dd37400073d27b5bfc458fa",
     "cases": [
       {
         "case": "A",
         "match_id": "2006229",
-        "match_name": "Melbourne City\u2013Macarthur FC",
+        "match_name": "Melbourne City–Macarthur FC",
         "match_date": "2025-03-07",
         "possession_id": "8_774",
         "pattern": "Pressure escape",
@@ -114,7 +114,7 @@
       {
         "case": "B",
         "match_id": "1996435",
-        "match_name": "Sydney FC\u2013Adelaide United",
+        "match_name": "Sydney FC–Adelaide United",
         "match_date": "2025-02-01",
         "possession_id": "8_352",
         "pattern": "Drawing pressure",
@@ -143,7 +143,7 @@
       {
         "case": "C",
         "match_id": "2013725",
-        "match_name": "Western United\u2013Sydney FC",
+        "match_name": "Western United–Sydney FC",
         "match_date": "2025-04-27",
         "possession_id": "8_553",
         "pattern": "Sustained successful carrying",
@@ -267,7 +267,6 @@
     "verification_checks": 1042,
     "score_unit": "Current-action failures avoided relative to h per 100 elevated-risk canonical actions.",
     "report_cohort": "14,919 terminal-covered canonical held-out states, not the 15,085-state overall h metric cohort.",
-    "case_review_experiment": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/123_receiving_escape_attacking_draw_20261105",
     "outcome_snapshots": [
       {
         "case": "A",
@@ -350,15 +349,6 @@
     "data/examples/pressure_report/band_validation_by_action.csv": "cbdfd48dfaccc6357833bad907f30a6b6f2b16464999e340469570354b63d9b0",
     "data/examples/pressure_report/team_match_bootstrap_sensitivity.csv": "97461eb99070b035694e1bbce62744f511f027ff90ae386fc660b5216d5db5ac"
   },
-  "source_scripts": [
-    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/scripts/01_compute_reports.py",
-    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/scripts/02_screen_cases.py",
-    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/scripts/03_review_candidates.py",
-    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/scripts/04_publish_report.py",
-    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/scripts/05_publish_case.py",
-    "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/scripts/06_verify.py"
-  ],
-  "prior_sources_archived": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/117_pressure_report_cases_20261105/before",
   "current_case_verification": "docs/pressure-cases-20261105.json",
-  "current_numeric_audit": "/Users/riccardobergamin/Documents/GitHub/skillcorner-analysis/experiments/125_report_counts_audit_20261105/verification.json"
+  "current_numeric_audit": "verification.json"
 }

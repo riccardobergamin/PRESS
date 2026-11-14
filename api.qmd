@@ -140,4 +140,4 @@ PRESS/
   visualization/  shared native-pitch plots
 ```
 
-Unused implementations are retained under `archive/legacy_package/`, outside the installed package. The superseded log-linear drive-loss solver and historical choice-model builders/loaders are archived there and are neither exported nor called by the package. The fitted model classes require their current feature contracts; missing or unsupported artifacts raise an error rather than selecting a historical fallback. [Research pipeline](pipeline.qmd) · [Project plan](roadmap.qmd).
+The fitted model classes require their current feature contracts; missing or unsupported artifacts raise an error. [Research pipeline](pipeline.qmd) · [Project plan](roadmap.qmd).

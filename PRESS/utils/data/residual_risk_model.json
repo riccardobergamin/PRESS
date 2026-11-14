@@ -140,7 +140,7 @@
       "nthread": 4
     },
     "rounds": 118,
-    "selection": "Lowest mean validation CE across five RR77 grids; median best prefix for the SAME configuration. No outer-test selection.",
+    "selection": "Lowest mean validation CE across five validation grids; median best prefix for the SAME configuration. No outer-test selection.",
     "smoke": false,
     "cohort": {
       "original_rr74": 8672,
@@ -148,12 +148,11 @@
       "excluded_no_obe": 14,
       "excluded_terminal_pass_not_verified": 838,
       "retained_losses": 1423,
-      "policy": "Whole-parent terminal pass requires membership in verified continuous direct-receipt cohort6811; loss parents use the existing OBE exclusion. Foul/clearance rules unchanged. No pass-duration0.5\u201310filter."
+      "policy": "Whole-parent terminal pass requires membership in verified continuous direct-receipt cohort6811; loss parents use the existing OBE exclusion. Foul/clearance rules unchanged. No pass-duration0.5–10filter."
     },
-    "as_stack": "Reuse verified RR75 full-data stack: P(carry) from five fixed8-fit/2-omitted AS277-tree models on unchanged16918AS rows. No AS refit. Inference uses unchanged installed all-ten-match AS73.",
+    "as_stack": "Training P(carry) comes from five eight-match action-selection fits, each predicting two omitted matches, using the production hyperparameters and 277 trees. Inference uses the action-selection model fitted on all ten matches.",
     "as_inner_fits_reused": 5,
     "as_inner_fits_new": 0,
-    "benchmark_source": "77_residual_risk_verified_endpoints_20261029_170451",
     "refit_is_not_held_out_evaluation": true
   },
   "upstream": {

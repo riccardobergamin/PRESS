@@ -1,7 +1,7 @@
 """Prepare observed tracking and raw possession events without importing PRESS.
 
-Uses the companion analysis checkout's tracking loader, so smoothing and native
-coordinate conventions are identical to the research pipeline. Scientific
+Uses the tracking loader included in pipeline/preprocessing/tracking.py.
+Smoothing and coordinate conventions match the research pipeline. Scientific
 Python dependencies are NumPy, pandas, SciPy and PyArrow; no fitted model runs.
 """
 from __future__ import annotations
@@ -17,7 +17,6 @@ import pandas as pd
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--match-dir", type=Path, required=True)
-    parser.add_argument("--analysis-source", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     match_dir = args.match_dir.resolve()
@@ -27,8 +26,8 @@ def main():
     if output_dir == match_dir or match_dir in output_dir.parents:
         parser.error("Keep derived files separate from the raw match directory")
 
-    sys.path.insert(0, str(args.analysis_source.resolve() / "scripts"))
-    from utils.base_pipeline import load_raw_tracking
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from pipeline.preprocessing.tracking import load_raw_tracking
 
     tracking, players, metadata = load_raw_tracking(match_dir)
     match_id = match_dir.name
