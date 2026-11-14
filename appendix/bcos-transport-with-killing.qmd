@@ -6,7 +6,7 @@ This appendix develops a model of deterministic transport with interior killing 
 
 ## 1. Reference transport model {#reference-transport-model}
 
-Consider a particle moving along a one-dimensional domain $(0,L)$, with absorption at $L$. Conditional on its initial position or boundary entry, its motion in the domain is deterministic until killing or absorption. Let $L>0$ and let $\tau:[0,L]\to\mathbb R$ be continuous, strictly increasing and $C^1$ on $(0,L]$, with $\tau'(\ell)>0$ and $\tau'$ integrable near zero. Define
+Consider a particle moving along a one-dimensional domain $(0,L)$, with absorption at $L$. Conditional on its initial position or boundary entry, its motion in the domain is deterministic until killing or absorption. Let $L>0$ and let $\tau:[0,L]\to\mathbb R$ be continuous, strictly increasing and $C^1$ on $(0,L]$, with $\tau'(\ell)>0$. Define
 
 $$
 \nu(\ell)=\frac{1}{\tau'(\ell)},\qquad \dot X_t=\nu(X_t),\quad \ell>0.
@@ -67,7 +67,7 @@ $$
 \boxed{M_{\mathrm{res}}(t)=\frac{1-F(0,t)}{Z}.}
 $$
 
-Thus $M_{\mathrm{res}}(t)\ge0$, $M_{\mathrm{res}}(t)\to0$, and $\int_0^\infty j_{\mathrm{in}}(t)\,\mathrm{d} t=M_{\mathrm{res}}(0)$. The inflow transfers probability from the reservoir into the domain. 
+Thus $M_{\mathrm{res}}(t)\ge0$, $M_{\mathrm{res}}(t)\to0$, and $\int_0^\infty j_{\mathrm{in}}(t)\,\mathrm{d} t=M_{\mathrm{res}}(0)$.
 
 The inflow is driven by the boundary logistic $F(0,t)$, centred at $\tau(0)$. For any $0<\epsilon<L$, the conditioned initial probability of being beyond $\epsilon$ in the domain is
 
@@ -75,7 +75,7 @@ $$
 \Pr(X_0>\epsilon\mid\text{not absorbed})=\frac{F(\epsilon,0)-F(L,0)}{Z}.
 $$
 
-If $\tau(0)\ge0$, strict monotonicity implies $\tau(\epsilon)>0$, so this probability tends to zero as $\kappa\to\infty$. The initial law therefore concentrates at the origin, with the reservoir interpreted as mass waiting to enter. When $\tau(0)=0$, the unconditioned boundary logistic has $F(0,0)=1/2$; retaining the reservoir preserves this uncertainty without requiring a spatial extension to negative positions. Only the mass already absorbed at $L$ is removed by conditioning.
+If $\tau(0)\ge0$, strict monotonicity implies $\tau(\epsilon)>0$, so this probability tends to zero as $\kappa\to\infty$. The initial law therefore concentrates at the origin, with the reservoir interpreted as mass waiting to enter. When $\tau(0)=0$, the unconditioned boundary logistic has $F(0,0)=1/2$; retaining the reservoir preserves this uncertainty without requiring a spatial extension to negative positions.
 
 ## 3. Transport with killing {#transport-with-killing}
 
@@ -110,7 +110,7 @@ $$
 \xi_*(\ell,t)=\max\{0,t-\tau(\ell)+\tau(0)\}.
 $$
 
-The inverse of $\tau$ is evaluated only on its range over $[0,L]$. If $t<\tau(\ell)-\tau(0)$, the characteristic starts inside the domain at $X_0>0$; otherwise it enters at $X_{\xi_*}=0$. No extension to negative positions is needed.
+The inverse of $\tau$ is evaluated only on its range over $[0,L]$. If $t<\tau(\ell)-\tau(0)$, the characteristic starts inside the domain at $X_0>0$; otherwise it enters at $X_{\xi_*}=0$.
 
 Write $J_k=\nu p_k$. To derive the characteristic equation without differentiating $\nu$, change to the transport-time coordinate $\zeta=\tau(\ell)-\tau(0)$. Since $\mathrm d\ell=\nu(\ell)\,\mathrm d\zeta$, the density in this coordinate is $J_k$, expressed as a function of $(\zeta,t)$. The conservative equation becomes
 
@@ -272,22 +272,22 @@ For multiple killing causes, $C_L(\infty)+\sum_i C_i(\infty)=1$.
 
 ### Time to intercept and reference law
 
- The function $\tau(\ell)$ of the transport model is the time to intercept (TTI) of the carrier along the candidate route, and the killing is the interception of the carrier by the defenders. For a player $m$ and a target location $x$ on the pitch, the nominal TTI is
+ The function $\tau(\ell)$ of the transport model is the time to intercept (TTI) of the carrier along the candidate route, and the killing is the interception of the carrier by the defenders. For a player $j$ and a target location $x$ on the pitch, the nominal TTI is
 
 $$
-\tau_m(x)=t_{\mathrm{turn},m}(x)+t_{\mathrm{move},m}(x),
+\tau_j(x)=t_{\mathrm{turn},j}(x)+t_{\mathrm{move},j}(x),
 $$
 
-the sum of the turning delay and the acceleration-limited travel time, both computed from the observed position and velocity of the player. For a defender, $\tau_m(x)$ is the nominal time to reach a potential interception location; for the carrier, it is the nominal time to reach $x$. Following Spearman [@spearman2017; @spearman2018beyond], the uncertainty around the TTI is logistic, with arrival-time distribution and arrival hazard
+the sum of the turning delay and the acceleration-limited travel time, both computed from the observed position and velocity of the player. For a defender, $\tau_j(x)$ is the nominal time to reach a potential interception location; for the carrier, it is the nominal time to reach $x$. Following Spearman [@spearman2017; @spearman2018beyond], the uncertainty around the TTI is logistic, with arrival-time distribution and arrival hazard
 
 $$
-F_m(x,t)=\left[1+\exp\{-\kappa\,[t-\tau_m(x)]\}\right]^{-1},\qquad
-\lambda_m^{\mathrm{arr}}(t\mid x)=\frac{\partial_tF_m(x,t)}{1-F_m(x,t)}=\kappa F_m(x,t).
+F_j(x,t)=\left[1+\exp\{-\kappa\,[t-\tau_j(x)]\}\right]^{-1},\qquad
+\lambda_j^{\mathrm{arr}}(t\mid x)=\frac{\partial_tF_j(x,t)}{1-F_j(x,t)}=\kappa F_j(x,t).
 $$
 
 Here $\kappa=\pi/(\sqrt{3}\,s)$, where $s$ is the standard deviation of arrival-time uncertainty.
 
-For a carrier initially at $x_{\mathrm{bc}}(0)$, the route is $x(\ell;z)=x_{\mathrm{bc}}(0)+\ell(z-x_{\mathrm{bc}}(0))/L_z$, with $L_z=\|z-x_{\mathrm{bc}}(0)\|$. Along this route, $\tau(\ell)=\tau_{\mathrm{bc}}(x(\ell;z))$ is the nominal TTI of the carrier, $\nu=\nu_{\mathrm{bc}}$ is the transport velocity, and $F=F_{\mathrm{bc}}$ is its logistic arrival-time distribution. The transport model is applied with $L=L_z$, $Z=Z_z$, $k=k_z$ and $k_i=k_{z,i}$. The killing intensity is the arrival hazard of the defenders at the carrier's location, as specified in the next section. 
+For a carrier initially at $x_{\mathrm{bc}}(0)$, the route is $x(\ell;z)=x_{\mathrm{bc}}(0)+\ell(z-x_{\mathrm{bc}}(0))/L$, with $L=\|z-x_{\mathrm{bc}}(0)\|$. Along this route, $\tau(\ell)$ is the nominal TTI of the carrier at $x(\ell;z)$, and $F(\ell,t)$ is its logistic arrival-time distribution. The killing intensity is the arrival hazard of the defenders at the carrier's location, as specified in the next section. 
 
 ### Transport velocity
 
@@ -339,7 +339,7 @@ $$
 
 For $u\ge v_{\max}$, the inverse is $\tau^{-1}(t)=u(t-t_{\mathrm{turn}})$. These expressions can be substituted directly into the characteristic solution. The constant $t_{\mathrm{turn}}$ cancels from $\nu$, $\xi_*$ and the characteristic trajectories, but affects the logistic reference weights and initial conditioning.
 
-Since $\tau(0)=t_{\mathrm{turn}}\ge0$, the initial concentration result applies. The reservoir and boundary inflow preserve the reference uncertainty without extending the route behind the observed position.
+Since $\tau(0)=t_{\mathrm{turn}}\ge0$, the initial concentration result applies.
 
 ### Interception intensities
 
@@ -354,10 +354,10 @@ Interception occurs when a defender reaches the location occupied by the carrier
 
 ### Accessibility and defender-specific risks
 
-The accessibility probability is $p_{\mathrm{bc}}(z)=C_L(\infty)$. The terminal incidence $P_i(z)=C_i(\infty)$ is the probability that defender $i$ causes the first interception. Hence
+The accessibility probability is $p_{\mathrm{bc}}(z)=C_L(\infty)$. The terminal incidence $C_i(\infty)$ is the probability that defender $i$ causes the first interception. Hence
 
 $$
-p_{\mathrm{bc}}(z)+\sum_{i\in\mathrm{opp}} P_i(z)=1.
+p_{\mathrm{bc}}(z)+\sum_{i\in\mathrm{opp}} C_i(\infty)=1.
 $$
 
 These incidences quantify the contributions of individual defenders under the joint model. Evaluating $p_{\mathrm{bc}}(z)$ across candidate destinations produces the BCOS accessibility surface.
