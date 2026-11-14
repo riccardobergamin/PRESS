@@ -1,7 +1,7 @@
 {
   "archive": "pipeline/press-training-pipeline.zip",
-  "sha256": "11480e8d2f7093b619304dc9cff136a19353d30f0d213f7fc64fb254392fa542",
-  "file_count": 68,
+  "sha256": "942a1ddd0e64e49797e99f4e10267e054ce83590ddce6600d42916dfd5b3b834",
+  "file_count": 67,
   "files": [
     {
       "path": "pipeline/00_pipeline.py",
@@ -105,7 +105,7 @@
     },
     {
       "path": "pipeline/checks/run.py",
-      "sha256": "8612ecc8e34019283e8a8131ff4832a631926cdb45a0bcc5e3d4811fc55af8b2"
+      "sha256": "9a30c9f7a093c1ca12896c4e706e568f14b40e501ce23f5c278df678185941e8"
     },
     {
       "path": "pipeline/checks/xt_steps.py",
@@ -181,11 +181,7 @@
     },
     {
       "path": "pipeline/pass_probability/README.md",
-      "sha256": "2308da97b059990d5fc4a7733d1df69d84676952d272568f1e587021bad08449"
-    },
-    {
-      "path": "pipeline/pass_probability/check_equivalence.py",
-      "sha256": "0cd9443e57eeaf4dfd6720793629f5c0450ed043eea24872b148d2ce88ced908"
+      "sha256": "3423f999f6351d1a88c0088d147bc6452a250536c599a6677d12f4809f2c1bb7"
     },
     {
       "path": "pipeline/pass_probability/filters.py",

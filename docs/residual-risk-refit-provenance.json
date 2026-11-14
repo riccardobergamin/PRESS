@@ -5,7 +5,7 @@
   "rounds": 118,
   "calibration": "none",
   "model_id": "skillcorner_outfield_residual_risk_verified_v2",
-  "manifest_sha256": "3d6fcd557bf803b56dab328aaf64992aad80b472876f19d1f9b24d33d93f8053",
+  "manifest_sha256": "981130868fcf54bf898aacdf0045235d47e8896327f5e122b10e73edf7c02fd1",
   "booster_sha256": "38db08cdf20dbd7caf9a619b6e007713f3a55a706ea4c8d4b412ce529924c457",
   "benchmark_unchanged": true,
   "features_full_data": true,

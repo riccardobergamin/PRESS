@@ -24,7 +24,7 @@
   "outer_fold": 1,
   "installed_probability": 0.6048426942292121,
   "model_id": "skillcorner_outfield_ball_drive_obe_v2",
-  "model_sha256": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+  "model_sha256": "0a63465b8009d70d46167cbe91df724481e4b8890d03c7abdd423b0d2a3515e6",
   "cause_probabilities": {
     "home_1": 6.942254043870134e-17,
     "home_14": 0.09850824650274907,

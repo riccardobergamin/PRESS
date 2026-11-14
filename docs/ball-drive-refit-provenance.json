@@ -1,6 +1,6 @@
 {
   "model_id": "skillcorner_outfield_ball_drive_obe_v2",
-  "model_sha256": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+  "model_sha256": "0a63465b8009d70d46167cbe91df724481e4b8890d03c7abdd423b0d2a3515e6",
   "benchmark": {
     "role": "pooled_out_of_fold",
     "model": "refitted_filtered_model",
@@ -19,7 +19,7 @@
   "export_verification": {
     "status": "ready_to_import",
     "model_id": "skillcorner_outfield_ball_drive_obe_v2",
-    "model_sha256": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+    "model_sha256": "0a63465b8009d70d46167cbe91df724481e4b8890d03c7abdd423b0d2a3515e6",
     "observations": 9114,
     "losses": 456,
     "lambda0": 0.34456260008941997,

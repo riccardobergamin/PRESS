@@ -1,7 +1,7 @@
 {
   "method": "Joint log-coordinate MAP with inverse-Hessian Laplace approximation",
   "model_id": "skillcorner_outfield_ball_drive_obe_v2",
-  "model_sha256": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+  "model_sha256": "0a63465b8009d70d46167cbe91df724481e4b8890d03c7abdd423b0d2a3515e6",
   "parameters": {
     "lambda_0": {
       "index": 0,

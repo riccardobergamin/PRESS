@@ -3,9 +3,9 @@ title: "Expected threat benchmark"
 jupyter: python3
 ---
 
-[Model and example](../vignettes/spatial_features/expected_threat/11.expected_threat.ipynb) · [All benchmarks](../benchmark.qmd)
+[Model and example](../vignettes/spatial_features/expected_threat/11_expected_threat.ipynb) · [All benchmarks](../benchmark.qmd)
 
-The xT benchmark documents the training of the expected-threat surface and the selection of its grid resolution and smoothing bandwidths. The [model vignette](../vignettes/spatial_features/expected_threat/11.expected_threat.ipynb) introduces the value equation, the fitted surface and its use in PRESS. This benchmark describes the event cohort, the training procedure and the selection, which relies on leave-one-match-out validation of the destination and goal-given-shot components.
+The xT benchmark documents the training of the expected-threat surface and the selection of its grid resolution and smoothing bandwidths. The [model vignette](../vignettes/spatial_features/expected_threat/11_expected_threat.ipynb) introduces the value equation, the fitted surface and its use in PRESS. This benchmark describes the event cohort, the training procedure and the selection, which relies on leave-one-match-out validation of the destination and goal-given-shot components.
 
 ## 1. Evaluation cohort {#evaluation-cohort}
 

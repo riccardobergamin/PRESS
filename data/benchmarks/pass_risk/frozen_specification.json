@@ -112,7 +112,7 @@
     "lambda_control": 5.437829752595985,
     "s": 0.29455974908543886,
     "boundary": "fit_positions",
-    "model_sha256": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+    "model_sha256": "9297f3490f601da7c7ae62e4235c880b0c1764e840a782e93a7641519e137502",
     "verification": {
       "status": "ready_to_import",
       "n": 6706,
@@ -123,7 +123,7 @@
   },
   "installed_artifact": {
     "model_id": "skillcorner_outfield_pass_risk_uniform_tti_v4",
-    "model_sha256": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+    "model_sha256": "9297f3490f601da7c7ae62e4235c880b0c1764e840a782e93a7641519e137502",
     "lambda_control": 5.437829752595985,
     "s": 0.29455974908543886,
     "matches_current_benchmark": true

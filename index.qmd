@@ -52,7 +52,7 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 ### Spatial features: accessibility and value {#extras}
 
 - [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb)
-- [Expected Threat](vignettes/spatial_features/expected_threat/11.expected_threat.ipynb)
+- [Expected Threat](vignettes/spatial_features/expected_threat/11_expected_threat.ipynb)
 :::
 
 ::: {.directory-section}

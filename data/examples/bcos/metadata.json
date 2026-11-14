@@ -33,7 +33,7 @@
   "source_sha256": {
     "opendata/data/processed/2026-10-15_training_v5_outfield/matches/1925299/1925299_tracking.parquet": "7c04a9ada7f871d493992922dfd78dcc4011ef07f038eb6456adab43c230ef23",
     "opendata/data/matches/1925299/1925299_match.json": "f4345b32c0fdd7c9990df70050b3a74f57b1992cf762e20f2a4d309bd2fba7d2",
-    "PRESS/utils/data/ball_drive_model.json": "4605b4477fb31a5ebfb74eec2542aa8aeee30894106560332feec508afd27776",
+    "PRESS/utils/data/ball_drive_model.json": "0a63465b8009d70d46167cbe91df724481e4b8890d03c7abdd423b0d2a3515e6",
     "opendata/data/matches/1925299/1925299_dynamic_events.csv": "a84ca873474e1708ea703bcd8db8a19b2c8cc8137a4353880be1976a7db2ecc7"
   },
   "no_new_fit": true,

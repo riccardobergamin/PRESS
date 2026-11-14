@@ -1,7 +1,7 @@
 {
   "status": "installed_verified_full_refit",
   "model_id": "skillcorner_outfield_pass_risk_uniform_tti_v4",
-  "model_sha256": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+  "model_sha256": "9297f3490f601da7c7ae62e4235c880b0c1764e840a782e93a7641519e137502",
   "source_protocol_sha256": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
   "benchmark": "Nested held-out match pairs,6706 passes; operational full-data fit is separate",
   "cohort": {
@@ -19,7 +19,7 @@
   },
   "verification": {
     "status": "ready_to_import",
-    "model_sha256": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+    "model_sha256": "9297f3490f601da7c7ae62e4235c880b0c1764e840a782e93a7641519e137502",
     "n": 6706,
     "protocol_sha256": "be0d59098dd3dd99d3b04ffbe144cd475eb138f3a83011edd63d47e88cf58cec",
     "oof_sha256": "d9a931017bbb52eae3e4b56f855c8f5eee3def9a041c069b5127967ba14fa444",

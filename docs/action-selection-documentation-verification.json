@@ -27,7 +27,7 @@
     "PRESS/model/bcos_fine.py": "c530588146581aadd2237298867d0502130bbcd1761dfddc558958e522ccc0b6",
     "PRESS/extras/bcos_legacy.py": "9d6d0d34fba392a9e8d4b8c520143037e8cb6db863353a5df189abde17c33e9d",
     "PRESS/extras/bcos.py": "5597e2b5e92dba82aa1fd5c54270a7b1ffa57d8174f48c439b12536684364aee",
-    "PRESS/utils/data/action_selection_model.json": "85885cfdfb3b6dc627b9e3ae2c2f712f9da14ab88beea073879e0d586d94ea7a",
+    "PRESS/utils/data/action_selection_model.json": "57d1d166981d1b90310ddf0f908f18b81d5163422109edbeffa2eebf5868a1df",
     "PRESS/utils/data/action_selection_feature_columns.json": "4aeecc35043e69b0daeffc60c521c76789ebc74ddcc8a0249318ccb466190866",
     "PRESS/utils/data/action_selection_model.ubj": "307dc003bede024a60110b57aa8af2233e67d1b04651632ff4cbaaa50f853b77",
     "PRESS/datasets.py": "96266458f15a24ea02cfe1f61bd4ddf38b78628847c417de4378279fd977ba48"
@@ -40,6 +40,6 @@
     "usage.qmd": "1a124da9fcb0f63892476a232d433a694d52abe1b6d017c5f420cb1268759f60",
     "vignettes/04_action_selection/04_action_selection.ipynb": "a65af72f83543ade59a9fac727ae5417600a8607d8cec4496f95ae71c9540f50",
     "figures/action_selection_pooled_calibration.png": "10f8e15e44552d544ac3cd691891cc2f2bea0dc0213cf6b034f7a9c6fdb095b7",
-    "docs/action-selection-refit-provenance.json": "feadc80c3dec1e74fee387c597c69193eda56566a84444ee27e0b886531dbfd5"
+    "docs/action-selection-refit-provenance.json": "c953e195cfed237884f743e2dd5955441879dd7bc6644b02c4f7b54d5347ed47"
   }
 }

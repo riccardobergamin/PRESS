@@ -12,7 +12,7 @@
   "publication": "Aggregates only; no raw tracking, per-pass rows, models or cached paths copied to the portfolio",
   "operational_weights_updated": true,
   "full_refit_sources": {
-    "pass_risk_final_refit/run/pass_risk_model.json": "f7d93499238a9ba98285a884a9280d84cc53e66c441c76d32e0653ae7f9e0240",
+    "pass_risk_final_refit/run/pass_risk_model.json": "9297f3490f601da7c7ae62e4235c880b0c1764e840a782e93a7641519e137502",
     "pass_risk_final_refit/run/verification.json": "74c9bef99fc4ccff42e8d7d859b705b8cc9b81f097444b3ec8c61867b16332c2",
     "pass_risk_final_refit/scripts/02_install.py": "6162a2f5126270e9030a24fdb5042d2f782b3d15107a217ed6d29c2e9930cbeb"
   }

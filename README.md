@@ -91,7 +91,7 @@ All plot functions return figure and axes. Getters copy results by default. Save
 
 **Benchmarks.** The [benchmark overview](benchmark.qmd) describes the dataset, the shared evaluation protocol and the metrics. Each task has its own page: [ball-drive risk](benchmarks/01_ball_drive_risk.qmd), [pass probability](benchmarks/02_pass_probability.qmd), [pass selection](benchmarks/03_pass_selection.qmd), [action selection](benchmarks/04_action_selection.qmd), [residual risk](benchmarks/05_residual_risk.qmd) and [composed risk](benchmarks/06_composed_risk.qmd).
 
-**Extras.** [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb), whose scalar area is a feature of action selection, and [Expected Threat](vignettes/spatial_features/expected_threat/11.expected_threat.ipynb), which builds the xT grid consumed by PRESS (Singh, 2018).
+**Extras.** [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb), whose scalar area is a feature of action selection, and [Expected Threat](vignettes/spatial_features/expected_threat/11_expected_threat.ipynb), which builds the xT grid consumed by PRESS (Singh, 2018).
 
 **Reference.** [Initialization and classes](api.qmd), [solvers](solvers.qmd), [getters and saved results](reference/getters.qmd), [plot functions](reference/plots.qmd), the [research pipeline](pipeline.qmd) and the [project plan](roadmap.qmd).
 
