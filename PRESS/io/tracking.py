@@ -14,7 +14,7 @@ def _require(table, columns, name):
         raise ValueError(f"{name} contains duplicate column names.")
 
 
-def tracking_from_long(players, ball, context, *, home_team="home", away_team="away"):
+def convert_long_tracking(players, ball, context, *, home_team="home", away_team="away"):
     """Return canonical wide tracking and a source-to-internal player roster.
 
     Parameters

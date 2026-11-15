@@ -6,182 +6,107 @@ This appendix develops a model of deterministic transport with interior killing 
 
 ## 1. Reference transport model {#reference-transport-model}
 
-Consider a particle moving along a one-dimensional domain $(0,L)$, with absorption at $L$. Conditional on its initial position or boundary entry, its motion in the domain is deterministic until killing or absorption. Let $L>0$ and let $\tau:[0,L]\to\mathbb R$ be continuous, strictly increasing and $C^1$ on $(0,L]$, with $\tau'(\ell)>0$. Define
+Consider a particle on $(-\infty,L)$, with absorption at $L>0$. Conditional on its initial position, its motion is deterministic until killing or absorption. Let $\tau:(-\infty,L]\to\mathbb R$ be continuous, strictly increasing, locally absolutely continuous, with $\tau'>0$ almost everywhere and $\tau(\ell)\to-\infty$ as $\ell\to-\infty$. Define the transport velocity almost everywhere by
 
 $$
-\nu(\ell)=\frac{1}{\tau'(\ell)},\qquad \dot X_t=\nu(X_t),\quad \ell>0.
+\nu(\ell)=1/\tau'(\ell).
 $$
 
 For $\kappa>0$, introduce the logistic reference function
 
 $$
-F(\ell,t)=\left[1+\exp\{-\kappa\,[t-\tau(\ell)]\}\right]^{-1}.
+F(\ell,t)=[1+\exp\{-\kappa[t-\tau(\ell)]\}]^{-1}.
 $$
 
 Its spatial density and current are
 
 $$
 \begin{aligned}
-p_0(\ell,t)&=-\partial_\ell F(\ell,t)=\kappa\,\tau'(\ell)F(\ell,t)[1-F(\ell,t)],\\
- \nu(\ell)p_0(\ell,t)&=\partial_tF(\ell,t)=\kappa F(\ell,t)[1-F(\ell,t)].
+p_0(\ell,t)&=-\partial_\ell F(\ell,t)=\kappa\tau'(\ell)F(\ell,t)[1-F(\ell,t)],\\
+\nu(\ell)p_0(\ell,t)&=\partial_tF(\ell,t)=\kappa F(\ell,t)[1-F(\ell,t)].
 \end{aligned}
 $$
 
-Since $p_0=-\partial_\ell F$ and $\nu p_0=\partial_tF$, equality of the mixed derivatives gives
+Equality of the mixed derivatives, in the distributional sense, gives
 
 $$
 \partial_tp_0+\partial_\ell(\nu p_0)=0.
 $$
 
-## 2. Initial conditioning and boundary inflow {#initial-conditioning-and-boundary-inflow}
+## 2. Initial conditioning {#initial-conditioning}
 
-At $t=0$, the reference probability is partitioned into a left reservoir of mass $1-F(0,0)$, an interior mass $F(0,0)-F(L,0)$, and a right component of mass $F(L,0)$. We remove only the right component and condition on non-absorption at time zero. Set
-
-$$
-\boxed{Z=1-F(L,0)>0.}
-$$
-
-The initial interior density and reservoir mass are
+At $t=0$, the reference law assigns mass $F(L,0)$ to the destination or beyond. We condition on non-absorption, retaining all mass on $(-\infty,L)$:
 
 $$
-p_k(\ell,0)=\frac{p_0(\ell,0)}{Z},\quad 0<\ell<L,\qquad M_{\mathrm{res}}(0)=\frac{1-F(0,0)}{Z}.
+Z=1-F(L,0),\qquad p_k(\ell,0)=p_0(\ell,0)/Z.
 $$
 
-By integration of $-\partial_\ell F$,
-
-$$
-M_{\mathrm{res}}(0)+\int_0^L p_0(\ell,0)/Z\,\mathrm{d} \ell=\frac{1-F(0,0)+F(0,0)-F(L,0)}{Z}=1.
-$$
-
-The reservoir is a scalar state that represents probability not yet entered into the transport domain. No killing occurs in this state.
-
-The conditioned reference inflow is
-
-$$
-j_{\mathrm{in}}(t)=\frac{\partial_tF(0,t)}{Z},\qquad M_{\mathrm{res}}'(t)=-j_{\mathrm{in}}(t).
-$$
-
-Integrating with the initial reservoir mass yields
-
-$$
-\boxed{M_{\mathrm{res}}(t)=\frac{1-F(0,t)}{Z}.}
-$$
-
-Thus $M_{\mathrm{res}}(t)\ge0$, $M_{\mathrm{res}}(t)\to0$, and $\int_0^\infty j_{\mathrm{in}}(t)\,\mathrm{d} t=M_{\mathrm{res}}(0)$.
-
-The inflow is driven by the boundary logistic $F(0,t)$, centred at $\tau(0)$. For any $0<\epsilon<L$, the conditioned initial probability of being beyond $\epsilon$ in the domain is
-
-$$
-\Pr(X_0>\epsilon\mid\text{not absorbed})=\frac{F(\epsilon,0)-F(L,0)}{Z}.
-$$
-
-If $\tau(0)\ge0$, strict monotonicity implies $\tau(\epsilon)>0$, so this probability tends to zero as $\kappa\to\infty$. The initial law therefore concentrates at the origin, with the reservoir interpreted as mass waiting to enter. When $\tau(0)=0$, the unconditioned boundary logistic has $F(0,0)=1/2$; retaining the reservoir preserves this uncertainty without requiring a spatial extension to negative positions.
+Since $F(-\infty,0)=1$, the initial density integrates to one. The reference law has median at the point where $\tau(\ell)=0$, when that point exists. In particular, if $\tau(0)=0$, its unconditioned median is zero; truncation at $L$ shifts the conditioned median. The negative half-line can represent a latent waiting state, as in the BCOS application below.
 
 ## 3. Transport with killing {#transport-with-killing}
 
-Let $k(\ell,t)\ge0$ be a killing intensity on $(0,L)$. Assume that $k$ is measurable and bounded on $[0,L]$ over each finite time interval (boundary values may be assigned arbitrarily). This sufficient condition ensures finite characteristic integrals and the flux balances below. Boundary currents are understood as traces, almost everywhere in time when necessary. The defective density $p_k$ satisfies
+Let $k(\ell,t)\ge0$ be measurable and bounded on the domain over each finite time interval. The surviving density satisfies
 
 $$
 \boxed{\begin{aligned}
- \partial_tp_k+\partial_\ell(\nu p_k)&=-kp_k, &&0<\ell<L,\\
- p_k(\ell,0)&=p_0(\ell,0)/Z,\\
- \lim_{\ell\downarrow0}\nu(\ell)p_k(\ell,t)&=j_{\mathrm{in}}(t), &&t>0.
- \end{aligned}}
+\partial_tp_k+\partial_\ell(\nu p_k)&=-kp_k, &&\ell<L,\\
+p_k(\ell,0)&=p_0(\ell,0)/Z.
+\end{aligned}}
 $$
 
-No density boundary condition is imposed at the outflow boundary $L$. The left condition is stated on the current. The initial current is compatible with the boundary data:
-
-$$
-\lim_{\ell\downarrow0}\nu(\ell)p_k(\ell,0)=\frac{\partial_tF(0,0)}{Z}=j_{\mathrm{in}}(0).
-$$
+The absorbing outflow boundary $L$ is the only finite boundary of the domain, and the density there is determined by the transport. The current vanishes at $-\infty$, as follows from the characteristic solution below.
 
 ## 4. Solution by characteristics {#solution-by-characteristics}
 
-For a characteristic ending at $(\ell,t)$,
+Use the transport-time coordinate $\zeta=\tau(\ell)-\tau(0)$. The density in this coordinate is the current $J_k=\nu p_k$, since $\mathrm d\ell=\nu\,\mathrm d\zeta$ almost everywhere. The conservative equation becomes
 
 $$
-\frac{\mathrm d}{\mathrm d\xi}\tau(X_\xi)=\tau'(X_\xi)\nu(X_\xi)=1,
-\qquad X_\xi=\tau^{-1}(\tau(\ell)-t+\xi).
+\partial_tJ_k+\partial_\zeta J_k=-kJ_k,
 $$
 
-The backward characteristic reaches either the initial line at $\xi=0$ or the inflow boundary at $\xi=t-\tau(\ell)+\tau(0)$. Both cases are represented by
+where $k$ is evaluated at $\ell=\tau^{-1}(\zeta+\tau(0))$. The characteristic ending at $(\ell,t)$ is
 
 $$
-\xi_*(\ell,t)=\max\{0,t-\tau(\ell)+\tau(0)\}.
+X_\xi=\tau^{-1}(\tau(\ell)-t+\xi),\qquad 0\le\xi\le t.
 $$
 
-The inverse of $\tau$ is evaluated only on its range over $[0,L]$. If $t<\tau(\ell)-\tau(0)$, the characteristic starts inside the domain at $X_0>0$; otherwise it enters at $X_{\xi_*}=0$.
+Every backward characteristic reaches the initial line because $\tau$ tends to $-\infty$ at the left end. This construction also specifies the passage through points where the spatial velocity vanishes: transport proceeds at unit speed in $\zeta$, with no additional waiting at such points.
 
-Write $J_k=\nu p_k$. To derive the characteristic equation without differentiating $\nu$, change to the transport-time coordinate $\zeta=\tau(\ell)-\tau(0)$. Since $\mathrm d\ell=\nu(\ell)\,\mathrm d\zeta$, the density in this coordinate is $J_k$, expressed as a function of $(\zeta,t)$. The conservative equation becomes
-
-$$
-\partial_t J_k+\partial_\zeta J_k=-kJ_k,
-$$
-
-where $k$ is evaluated at $\ell=\tau^{-1}(\zeta+\tau(0))$. Along a characteristic,
+Along a characteristic,
 
 $$
 \frac{\mathrm d}{\mathrm d\xi}J_k(X_\xi,\xi)=-k(X_\xi,\xi)J_k(X_\xi,\xi).
 $$
 
-Integration gives
+The reference function and current are constant along characteristics because $\xi-\tau(X_\xi)=t-\tau(\ell)$. The initial current is therefore $\partial_tF(\ell,t)/Z$. Integration yields
 
 $$
-J_k(\ell,t)=J_k(X_{\xi_*},\xi_*)\exp\!\left[-\int_{\xi_*}^t k(X_\xi,\xi)\,\mathrm d\xi\right].
+\boxed{p_k(\ell,t)=\frac{p_0(\ell,t)}{Z}w(\ell,t),\qquad w(\ell,t)=\exp\!\left[-\int_0^t k(X_\xi,\xi)\,\mathrm d\xi\right].}
 $$
 
-The reference function $F$ is constant along each characteristic because $\xi-\tau(X_\xi)=t-\tau(\ell)$. Its reference current $\partial_tF=\kappa F(1-F)$ is therefore also constant. Both the initial current and the inflow current are equal to the corresponding reference current divided by $Z$. Hence
-
-$$
-J_k(X_{\xi_*},\xi_*)=\frac{\partial_tF(\ell,t)}{Z}.
-$$
-
-Dividing by $\nu(\ell)$ yields the solution
-
-$$
-\boxed{p_k(\ell,t)=\frac{p_0(\ell,t)}{Z}w(\ell,t),\qquad
-w(\ell,t)=\exp\!\left[-\int_{\xi_*}^t k(X_\xi,\xi)\,\mathrm d\xi\right].}
-$$
-
-The weight $w$ is the probability of surviving killing along the characteristic segment inside the domain. The inflow preserves the reference density on characteristics originating at the boundary. For finite integrated killing, the density is positive throughout the interior at finite times. Without killing, $p_k=p_0/Z$.
-
-The solution satisfies the inflow condition of the problem. For fixed $t>0$ and sufficiently small $\ell>0$, $\xi_*=t-\tau(\ell)+\tau(0)$. By continuity of $\tau$ at zero, $t-\xi_*=\tau(\ell)-\tau(0)\to0$. If $K$ bounds the killing intensity over the relevant finite time interval,
-
-$$
-0\le\int_{\xi_*}^t k(X_\xi,\xi)\,\mathrm{d}\xi\le K[\tau(\ell)-\tau(0)]\longrightarrow0.
-$$
-
-Thus $w(\ell,t)\to1$ and, using the reference current identity,
-
-$$
-\lim_{\ell\downarrow0}J_k(\ell,t)
- =\lim_{\ell\downarrow0}\frac{\partial_t F(\ell,t)}{Z}w(\ell,t)
- =\frac{\partial_t F(0,t)}{Z}=j_{\mathrm{in}}(t).
-$$
-
-At $t=0$ the weight is identically one, so the initial and boundary currents also agree at the corner.
+The weight $w$ is the probability of surviving killing along the entire characteristic since time zero. Since $0\le w\le1$, the current $J_k=\partial_tF\,w/Z$ vanishes as $\ell\to-\infty$. Without killing, $p_k=p_0/Z$.
 
 ## 5. Competing risks {#competing-risks}
 
 The terminal fluxes are
 
 $$
-\boxed{j_L(t)=\nu(L)p_k(L^-,t),\qquad j_k(t)=\int_0^L k(\ell,t)p_k(\ell,t)\,\mathrm{d} \ell.}
+\boxed{j_L(t)=\nu(L)p_k(L^-,t),\qquad j_k(t)=\int_{-\infty}^L k(\ell,t)p_k(\ell,t)\,\mathrm{d} \ell.}
 $$
 
-Integration of the transport equation over $(0,L)$ gives
+Integration of the transport equation over $(-\infty,L)$ gives
 
 $$
-\frac{\mathrm d}{\mathrm dt}\int_0^L p_k(\ell,t)\,\mathrm d\ell=j_{\mathrm{in}}(t)-j_L(t)-j_k(t).
+\frac{\mathrm d}{\mathrm dt}\int_{-\infty}^L p_k(\ell,t)\,\mathrm d\ell= -j_L(t)-j_k(t).
 $$
 
-The total at-risk probability includes the reservoir:
+The total at-risk probability is the surviving mass:
 
 $$
-\boxed{S(t)=M_{\mathrm{res}}(t)+\int_0^L p_k(\ell,t)\,\mathrm d\ell.}
+\boxed{S(t)=\int_{-\infty}^L p_k(\ell,t)\,\mathrm d\ell.}
 $$
 
-Since $M_{\mathrm{res}}'=-j_{\mathrm{in}}$, the inflow cancels from the total balance. With $C_L$ and $C_k$ denoting cumulative incidences of absorption and of killing, respectively,
+With $C_L$ and $C_k$ denoting cumulative incidences of absorption and of killing, respectively,
 
 $$
 \boxed{\begin{aligned}
@@ -191,7 +116,7 @@ $$
  \end{aligned}}
 $$
 
-Adding the equations yields $S(t)+C_L(t)+C_k(t)=1$. These balances hold almost everywhere in time under the stated integrability assumptions.
+Adding the equations yields $S(t)+C_L(t)+C_k(t)=1$. These balances hold almost everywhere in time under the stated assumptions.
 
 For $S(t)>0$, the cause-specific hazards are
 
@@ -208,7 +133,7 @@ S(t)&=\exp\!\left[-\int_0^t [h_L(\xi)+h_k(\xi)]\,\mathrm{d}\xi\right],\\
 \end{aligned}
 $$
 
-The reservoir contributes to the denominator but not to either terminal flux. Since $M_{\mathrm{res}}(t)>0$ at every finite time, $S(t)>0$.
+Bounded killing on finite time intervals implies $S(t)>0$ at every finite time.
 
 ### Multiple killing causes
 
@@ -221,13 +146,13 @@ $$
 Along a characteristic, the survival weight factorizes as
 
 $$
-w(\ell,t)=\prod_{i}\exp\!\left[-\int_{\xi_*}^t k_i(X_\xi,\xi)\,\mathrm d\xi\right].
+w(\ell,t)=\prod_{i}\exp\!\left[-\int_{0}^t k_i(X_\xi,\xi)\,\mathrm d\xi\right].
 $$
 
-The additive sink partitions the interception flux into mutually exclusive terminal causes:
+The additive sink partitions the killing flux into mutually exclusive terminal causes:
 
 $$
-j_i(t)=\int_0^L k_i(\ell,t)p_k(\ell,t)\,\mathrm{d}\ell,\qquad
+j_i(t)=\int_{-\infty}^L k_i(\ell,t)p_k(\ell,t)\,\mathrm{d}\ell,\qquad
 j_k(t)=\sum_i j_i(t).
 $$
 
@@ -253,16 +178,11 @@ $$
 C_L(\infty)=\frac1Z\int_0^\infty \partial_tF(L,t)w(L,t)\,\mathrm{d}t.
 $$
 
-If $k(\ell,t)=k(\ell)$, the change of variable $\eta=X_\xi$ gives $\,\mathrm{d} \xi=\,\mathrm{d} \eta/\nu(\eta)$. The survival weight is $\exp[-\int_y^\ell k(\eta)/\nu(\eta)\,\mathrm{d} \eta]$ for initial-line characteristics and $\exp[-\int_0^\ell k(\eta)/\nu(\eta)\,\mathrm{d} \eta]$ for boundary characteristics. The final probability is therefore
+If $k(\ell,t)=k(\ell)$, changing variables along each characteristic gives $\mathrm d\xi=\mathrm d\eta/\nu(\eta)$ almost everywhere. The terminal probability is
 
 $$
-\begin{aligned}
-C_L(\infty)={}&\int_0^L p_0(y,0)/Z\exp\!\left[-\int_y^L\frac{k(\eta)}{\nu(\eta)}\,\mathrm{d} \eta\right]\,\mathrm{d} y\\
- &+M_{\mathrm{res}}(0)\exp\!\left[-\int_0^L\frac{k(\eta)}{\nu(\eta)}\,\mathrm{d} \eta\right].
-\end{aligned}
+C_L(\infty)=\int_{-\infty}^L \frac{p_0(y,0)}{Z}\exp\!\left[-\int_y^L\frac{k(\eta)}{\nu(\eta)}\,\mathrm d\eta\right]\,\mathrm dy.
 $$
-
-The two terms correspond to the initial interior mass and the initial reservoir, respectively.
 
 Without killing, $w=1$ and $j_L(t)=\partial_tF(L,t)/Z$, so $C_L(\infty)=[1-F(L,0)]/Z=1$.
 
@@ -272,13 +192,13 @@ For multiple killing causes, $C_L(\infty)+\sum_i C_i(\infty)=1$.
 
 ### Time to intercept and reference law
 
- The function $\tau(\ell)$ of the transport model is the time to intercept (TTI) of the carrier along the candidate route, and the killing is the interception of the carrier by the defenders. For a player $j$ and a target location $x$ on the pitch, the nominal TTI is
+The function $\tau(\ell)$ of the transport model is the time to intercept (TTI) of the carrier along the candidate route, and the killing is the interception of the carrier by the defenders. For a player $j$ and a target location $x$ on the pitch, the nominal TTI is
 
 $$
 \tau_j(x)=t_{\mathrm{turn},j}(x)+t_{\mathrm{move},j}(x),
 $$
 
-the sum of the turning delay and the acceleration-limited travel time, both computed from the observed position and velocity of the player. For a defender, $\tau_j(x)$ is the nominal time to reach a potential interception location; for the carrier, it is the nominal time to reach $x$. Following Spearman [@spearman2017; @spearman2018beyond], the uncertainty around the TTI is logistic, with arrival-time distribution and arrival hazard
+the sum of the turning delay and the acceleration-limited travel time, both computed from the observed position and velocity of the player. The maximal speed and acceleration of the movement model are set separately for the carrier, who moves with the ball, and for the defenders. For a defender, $\tau_j(x)$ is the nominal time to reach a potential interception location; for the carrier, it is the nominal time to reach $x$. Following Spearman [@spearman2017; @spearman2018beyond], the uncertainty around the TTI is logistic, with arrival-time distribution and arrival hazard
 
 $$
 F_j(x,t)=\left[1+\exp\{-\kappa\,[t-\tau_j(x)]\}\right]^{-1},\qquad
@@ -287,17 +207,17 @@ $$
 
 Here $\kappa=\pi/(\sqrt{3}\,s)$, where $s$ is the standard deviation of arrival-time uncertainty.
 
-For a carrier initially at $x_{\mathrm{bc}}(0)$, the route is $x(\ell;z)=x_{\mathrm{bc}}(0)+\ell(z-x_{\mathrm{bc}}(0))/L$, with $L=\|z-x_{\mathrm{bc}}(0)\|$. Along this route, $\tau(\ell)$ is the nominal TTI of the carrier at $x(\ell;z)$, and $F(\ell,t)$ is its logistic arrival-time distribution. The killing intensity is the arrival hazard of the defenders at the carrier's location, as specified in the next section. 
+For a carrier initially at $x_{\mathrm{bc}}(0)$, the route is $x(\ell;z)=x_{\mathrm{bc}}(0)+\ell(z-x_{\mathrm{bc}}(0))/L$ for $0\le\ell\le L$, with $L=\|z-x_{\mathrm{bc}}(0)\|$. Along this route, $\tau(\ell)$ is the nominal TTI of the carrier at $x(\ell;z)$, and $F(\ell,t)$ is its logistic arrival-time distribution. The extension to negative transport coordinates represents waiting at the observed origin, as specified below.
 
 ### Transport velocity
 
-The TTI of the carrier along a straight ray follows from the acceleration-limited movement model of PRESS. Let $\ell$ denote distance along a straight ray from the player's initial position. The observed speed is $u\ge0$, the acceleration is $a>0$, and $v_{\max}>0$. The angle $\theta$ is fixed along the ray. The turning contribution is the constant
+The TTI of the carrier along a straight ray follows from the acceleration-limited movement model of PRESS. Let $\ell$ denote distance along a straight ray from the carrier's initial position. The observed speed is $u\ge0$, and $a>0$ and $v_{\max}>0$ are the carrier's acceleration and maximal speed. The angle $\theta$ is fixed along the ray. The turning contribution is the constant
 
 $$
 t_{\mathrm{turn}}=\frac{u\theta}{a_{\mathrm{turn}}},\qquad a_{\mathrm{turn}}>0.
 $$
 
-It is an additive delay. For $u<v_{\max}$, set
+For $u<v_{\max}$, set
 
 $$
 t_a=\frac{v_{\max}-u}{a},\qquad d_a=ut_a+\tfrac12at_a^2.
@@ -328,29 +248,50 @@ $$
 
 At $d_a$, $u^2+2ad_a=v_{\max}^2$, so $\tau$ is $C^1$.
 
-The inverse in the accelerating case is
+Write $t_{\mathrm{move}}(\ell)=\tau(\ell)-t_{\mathrm{turn}}$ for $\ell\ge0$. Extend the movement time antisymmetrically:
 
 $$
-\tau^{-1}(t)=\begin{cases}
- u(t-t_{\mathrm{turn}})+\tfrac12a(t-t_{\mathrm{turn}})^2,&0\le t-t_{\mathrm{turn}}\le t_a,\\
- d_a+v_{\max}(t-t_{\mathrm{turn}}-t_a),&t-t_{\mathrm{turn}}>t_a.
- \end{cases}
+\boxed{\tau(\ell)=t_{\mathrm{turn}}+\begin{cases}
+-t_{\mathrm{move}}(-\ell),&\ell<0,\\
+t_{\mathrm{move}}(\ell),&\ell\ge0.
+\end{cases}}
 $$
 
-For $u\ge v_{\max}$, the inverse is $\tau^{-1}(t)=u(t-t_{\mathrm{turn}})$. These expressions can be substituted directly into the characteristic solution. The constant $t_{\mathrm{turn}}$ cancels from $\nu$, $\xi_*$ and the characteristic trajectories, but affects the logistic reference weights and initial conditioning.
+This extension is strictly increasing and tends to $-\infty$ at the left end. For $u>0$, it is $C^1$ at zero, with $\tau'(0)=1/u$. For $u=0$, the derivative has an integrable singularity at zero; the velocity tends to zero from both sides. The transport-time coordinate specifies passage through zero without an additional delay. No new movement parameter is introduced.
 
-Since $\tau(0)=t_{\mathrm{turn}}\ge0$, the initial concentration result applies.
+The inverse of the positive movement time is, for $r\ge0$ and $u<v_{\max}$,
+
+$$
+t_{\mathrm{move}}^{-1}(r)=\begin{cases}
+ur+\tfrac12ar^2,&0\le r\le t_a,\\
+d_a+v_{\max}(r-t_a),&r>t_a.
+\end{cases}
+$$
+
+For $u\ge v_{\max}$, $t_{\mathrm{move}}^{-1}(r)=ur$. Thus the extended inverse is
+
+$$
+\tau^{-1}(t)=\operatorname{sgn}(t-t_{\mathrm{turn}})\,t_{\mathrm{move}}^{-1}(|t-t_{\mathrm{turn}}|).
+$$
+
+The constant turning delay cancels from the characteristic trajectories but affects the reference weights and initial conditioning. Negative coordinates are latent waiting states, whose physical location is the observed origin:
+
+$$
+x(\ell;z)=x_{\mathrm{bc}}(0)+\frac{\max(\ell,0)}{L}(z-x_{\mathrm{bc}}(0)),\qquad \ell\le L.
+$$
+
+For $\tau(0)=t_{\mathrm{turn}}\ge0$, the initial physical position concentrates at the observed origin as $\kappa\to\infty$: for $0<\epsilon<L$, the conditioned probability of being beyond $\epsilon$ is $[F(\epsilon,0)-F(L,0)]/Z\to0$. When the turning delay is positive, the latent reference median lies on the negative half-line, which maps to the origin.
 
 ### Interception intensities
 
- For the route $x(\ell;z)$, PRESS specifies the local killing intensity as
+Interception occurs when a defender reaches the location occupied by the carrier while the carrier is still in possession. In pitch control, the arrival of each player is evaluated at every point of the ball trajectory, and each point represents an opportunity for interception. Here the arrival of each defender is evaluated in the same way at every point of the carrier's route, and we model the local interception intensity by the defender’s arrival hazard at that location. Conditional on the carrier’s characteristic and the observed tracking state, the defenders’ interception processes are assumed independent; their intensities therefore add. This neglects explicit interactions between defenders. For the route $x(\ell;z)$, PRESS specifies the local killing intensity as
 
 $$
 k(\ell,t)=\sum_{i\in\mathrm{opp}} k_i(\ell,t),\qquad
 k_i(\ell,t)=\lambda_i^{\mathrm{arr}}\big(t\mid x(\ell;z)\big)=\kappa F_i(x(\ell;z),t).
 $$
 
-Interception occurs when a defender reaches the location occupied by the carrier while the carrier is still in possession. We model the local interception intensity by the defender’s arrival hazard at that location. Conditional on the carrier’s characteristic and the observed tracking state, the defenders’ interception processes are assumed independent; their intensities therefore add. This neglects explicit interactions between defenders. The arrival hazard is evaluated at the current location, not derived from a joint model of player trajectories. For a finite number of defenders, $0\le k\le n_{\mathrm{opp}}\kappa$, satisfying the boundedness assumption above.
+On the negative half-line, the same intensity is evaluated at $x_{\mathrm{bc}}(0)$, so interception can occur during waiting and turning. For a finite number of defenders, $0\le k\le n_{\mathrm{opp}}\kappa$, satisfying the boundedness assumption above.
 
 ### Accessibility and defender-specific risks
 

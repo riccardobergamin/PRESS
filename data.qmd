@@ -31,38 +31,23 @@ Event IDs and possession IDs are local to a match. Identify an individual posses
 
 The example uses **Melbourne City FC–Macarthur FC, 7 March 2025**, match `2006229`. It is the match containing Ivan Vujica’s pressure-escape example in the [case studies](vignettes/07_case_studies/07_case_studies.ipynb).
 
-### Base preprocessing, before installing PRESS
+### Load the original files
 
-The base step reads the observations, estimates velocity and acceleration, preserves player identities, and extracts the unfiltered individual-possession events. It **does not import PRESS or load any fitted model**. Use a scientific Python environment with NumPy, pandas, SciPy and PyArrow. The tracking loader is included in `pipeline/preprocessing/tracking.py`.
+After [installation](vignettes/00_match_workflow/00_match_workflow.ipynb#installation), call:
 
-```bash
-# Run from the project root; set the path to the public data.
-export SKILLCORNER_OPENDATA="/path/to/opendata"
-export PRESS_TRACKING_ROOT="$SKILLCORNER_OPENDATA/data/processed/user_guide_tracking"
-
-python examples/preprocess_tracking.py \
-  --match-dir "$SKILLCORNER_OPENDATA/data/matches/2006229" \
-  --output-dir "$PRESS_TRACKING_ROOT"
+```python
+from PRESS import PRESS
+press = PRESS.from_skillcorner(match_dir)
 ```
 
-Use a new output directory. This writes the base tracking, the player map, raw individual-possession rows and a summary. The base tracking retains the provider’s carrier assignment; verified control intervals and canonical actions are prepared separately.
-
-```text
-user_guide_tracking/
-  2006229_tracking_base.parquet
-  2006229_player_map.parquet
-  2006229_raw_possessions.parquet
-  preprocessing_summary.json
-```
-
-PRESS installation and preparation of the annotated model-input tables appear in [part 3](vignettes/00_match_workflow/00_match_workflow.ipynb#prepare-model-inputs). The full preparation command uses shared PRESS helpers to link team possessions and encode context; that dependency is separate from this base tracking step. Both commands were tested on the observed match, with outputs kept separate from the frozen training data.
+`match_dir` is the original match folder shown above. PRESS reads the metadata, tracking and dynamic events, calculates kinematics, prepares annotated possessions and builds canonical actions in memory. No intermediate Parquet files or separate preprocessing command are required. The following steps describe what this loader does.
 
 ### What preprocessing does
 
 1. **Load observations and identities.** Preserve frame IDs, period, timestamps, pitch dimensions and detection flags. Map provider player IDs to canonical labels such as `away_13`, retaining the original mapping.
 2. **Estimate kinematics.** Apply a centred Savitzky–Golay derivative with polynomial order two: seven frames for players and five for the ball. Estimate acceleration by differentiating velocity again. Runs are split at missing frames, period changes and nonfinite coordinates; runs shorter than three observations have unavailable derivatives. Positions are not spatially rescaled or filled by this step.
 
-The following annotation stages add the possession/action structure described in [part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb) and prepared after installation in part 3:
+The loader also constructs the possession/action structure described in [part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb):
 
 3. **Match individual control intervals.** Retain recognized individual possessions with explicitly matched start and end. Preserve the full event audit separately, including excluded intervals and reasons.
 4. **Link passes and team possessions.** Verify release and the immediate subsequent control. A completed pass can link two individual possessions into one team possession. A break in verified continuity starts a new reconstructed team interval.
@@ -72,25 +57,7 @@ The centred velocity estimate uses observations after the selected frame: three 
 
 ## The annotated input tables {#input-tables}
 
-After installation, the [full preparation command](vignettes/00_match_workflow/00_match_workflow.ipynb#prepare-model-inputs) writes the tables consumed by the package:
-
-```text
-user_guide_match/
-  manifest.json
-  coverage.csv
-  actions.parquet
-  ... component base tables ...
-  matches/2006229/
-    2006229_tracking.parquet
-    2006229_possession.parquet
-    2006229_team_possession.parquet
-    2006229_actions.parquet
-    2006229_player_map.parquet
-    2006229_possession_audit.parquet
-    ... component base tables ...
-```
-
-The local example produced **59,270 tracking frames**, **959 matched individual intervals**, **259 reconstructed team intervals**, and **2,627 action/snapshot rows**. These are preprocessing coverage counts, not the final task-specific benchmark cohorts.
+The loader retains these tables in the PRESS object. They can also be supplied explicitly to `PRESS(...)` when prepared separately. They are in-memory DataFrames; saving them is optional.
 
 | Table | Structure and use |
 |---|---|
@@ -102,10 +69,10 @@ The local example produced **59,270 tracking frames**, **959 matched individual 
 
 Positions use metres, velocity m/s and acceleration m/s². A frame ID is an observation index, not a time in seconds: use the input frequency to convert frame differences to elapsed time.
 
-The [installation and use example](vignettes/00_match_workflow/00_match_workflow.ipynb) reads these tables, initializes the object, evaluates a generic frame and all canonical checkpoints, and saves and reloads the calculated results. The five fitted models distributed with PRESS include their parameters, category vocabularies and fitted xT surfaces; no training step is needed to use them.
+The [installation and use example](vignettes/00_match_workflow/00_match_workflow.ipynb) loads the original files, initializes the object, evaluates a generic frame and all canonical checkpoints, and saves and reloads the calculated results. The five fitted models distributed with PRESS include their parameters, category vocabularies and fitted xT surfaces; no training step is needed to use them.
 
 ## Other tracking sources
 
-The physical solvers consume positions and velocities, not provider-specific raw files. Supply the same canonical wide tables to `PRESS(...)`, or use `PRESS.from_long(...)` for long player, ball and frame-context tables. Convert coordinates and units, provide the actual frame frequency and map event labels to the concepts in [part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb#context-labels). The [initialization reference](api.qmd) specifies both input schemas. A format adapter does not establish calibration on another dataset.
+The physical solvers consume positions and velocities, not provider-specific raw files. Supply canonical tables to `PRESS(...)`. The optional `PRESS.io.convert_long_tracking(...)` helper converts long tracking tables before initialization. If individual controls/actions are missing, call `PRESS.io.segment_possessions(...)` on the aligned canonical tracking and events. Convert coordinates and units, provide the actual frame frequency and map event labels to the concepts in [part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb#context-labels). The [initialization reference](api.qmd) specifies both input schemas. A format adapter does not establish calibration on another dataset.
 
 The [pipeline page](pipeline.qmd) describes the research stages beyond this one-match example; task-specific outcome filters and validation protocols are documented in the [benchmarks](benchmark.qmd).

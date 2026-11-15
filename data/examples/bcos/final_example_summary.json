@@ -1,0 +1,28 @@
+{
+  "match_id": "1925299",
+  "frame_id": 3800,
+  "formulation": "transport",
+  "bcos_area_m2": 613.6669395247186,
+  "max_probability_mass_error": 4.440892098500626e-16,
+  "n_targets": 3679,
+  "params": {
+    "formulation": "transport",
+    "waiting_interception": true,
+    "time": "infinity (terminal probabilities)",
+    "s": 0.2996318904783872,
+    "v_bc_max": 6.6,
+    "v_def_max": 7.0,
+    "a_bc_max": 7.0,
+    "a_def_max": 7.0,
+    "a_turn_bc": 7.0,
+    "a_turn_def": 7.0,
+    "arrival_order": 48,
+    "path_order": 64,
+    "batch_size": 8,
+    "r_max": 40.0,
+    "step": 1.0,
+    "pitch_length": 105.0,
+    "pitch_width": 68.0,
+    "cell_area": 1.0
+  }
+}

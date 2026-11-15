@@ -23,10 +23,11 @@ def line_values(points, centres, direction):
 
 
 def xt(points, direction, length, width, surface):
-    """Read the saved 10 × 6 xT surface in the supplied attack direction."""
+    """Read an xT cell-value surface in the supplied attack direction."""
+    nx, ny = surface.shape
     oriented = direction * np.asarray(points)
-    ix = np.clip(((oriented[:, 0] + length / 2) / length * 10).astype(int), 0, 9)
-    iy = np.clip(((oriented[:, 1] + width / 2) / width * 6).astype(int), 0, 5)
+    ix = np.clip(((oriented[:, 0] + length / 2) / length * nx).astype(int), 0, nx-1)
+    iy = np.clip(((oriented[:, 1] + width / 2) / width * ny).astype(int), 0, ny-1)
     return surface[ix, iy]
 
 

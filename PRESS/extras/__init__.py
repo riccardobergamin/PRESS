@@ -1,6 +1,0 @@
-"""Optional spatial descriptor and terminal individual-loss composition."""
-
-from .bcos import BCOS
-from .residual_risk import compose_individual_xloss
-
-__all__ = ["BCOS", "compose_individual_xloss"]

@@ -104,18 +104,26 @@ class ResidualRiskModel:
         """Encode an explicit 31-feature data frame in the saved column order."""
         return encode(frame, self.vocabulary)
 
-    def features_from_action_record(self, record, *, time_since_start, action_model):
+    def features_from_action_record(self, record, *, time_since_start, action_model,
+                                    action_carry_probability=None):
         """Reuse a current-state action record, replacing whole-carry count by age.
 
         P(carry) comes from the supplied full-data action model. Its booster
         hash must match this residual model's deployment dependency.
+        Pass its already computed native probability for the same record via
+        action_carry_probability to reuse that prediction. Otherwise predict it.
         """
         if not np.isfinite(time_since_start) or time_since_start < 0:
             raise ValueError('Elapsed possession time must be finite and nonnegative.')
         if action_model.to_dict()['booster_sha256'] != self._artifact['upstream']['action_booster_sha256']:
             raise ValueError('Residual risk requires its matched action-selection model.')
-        action = pd.DataFrame([record])
-        carry = 1 - float(action_model.predict_features(action_model.encode(action))[0])
+        if action_carry_probability is None:
+            action = pd.DataFrame([record])
+            carry = 1 - float(action_model.predict_features(action_model.encode(action))[0])
+        else:
+            carry = float(action_carry_probability)
+            if not np.isfinite(carry) or not 0 <= carry <= 1:
+                raise ValueError('action_carry_probability must be in [0, 1].')
         residual = dict(
             record,
             time_since_start=float(time_since_start),

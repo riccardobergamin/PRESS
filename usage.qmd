@@ -8,6 +8,8 @@ The guide follows the path from raw observations to a possession-level risk prof
 2. **[Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb).** Define individual possessions, canonical actions and checkpoints, additional snapshots, start type and previous action, and the labels used by the learned models.
 3. **[Installation and use](vignettes/00_match_workflow/00_match_workflow.ipynb).** Install PRESS, load a real match, select Vujica’s possession, inspect its frames and checkpoints, calculate the possession-loss hazard h and the expected loss xLoss, and save and reload the results.
 
-To run the example, first install PRESS with the commands in part 3. If the processed data of the match are not available yet, run the one-match preprocessing command in part 1; otherwise go directly to the loading example in part 3.
+To run the example, first install PRESS with the commands in part 3. Download the original SkillCorner match files and follow part 3: `PRESS.from_skillcorner(...)` prepares the required inputs in memory. For already prepared tables from another source, use `PRESS(...)` directly and call the separate segmentation function when needed.
 
 The four-part [reference](api.qmd) documents individual classes and functions: [initialization](api.qmd), [solvers](solvers.qmd), [getters](reference/getters.qmd) and [plots](reference/plots.qmd). The [model pages](index.qmd#models) explain the mathematical components; the [benchmarks](benchmark.qmd) describe their training and held-out evaluation.
+
+[Models, calculation configurations and frame results](api.qmd#model-configuration-result) explains where fitted coefficients, spline designs, physical settings and predictions are stored, with ball-drive, pitch-control and BCOS examples.

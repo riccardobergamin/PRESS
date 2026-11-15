@@ -63,7 +63,7 @@ def link_team_possessions(player_possessions):
         One match, with player_id (home/away shirt label), frame_start,
         frame_end, end_type, pass_outcome, target_pass, frame_receipt, loss.
         Optional interruption and period columns prevent linking across
-        stoppages and periods. Loss must be a boolean, not a string.
+        stoppages and periods. Loss must be boolean or missing (unverified), never a string.
 
     Returns
     -------
@@ -79,8 +79,8 @@ def link_team_possessions(player_possessions):
     ])
     if not rows.player_id.astype(str).str.fullmatch(r"(home|away)_\d+").all():
         raise ValueError("player_id must use home_<number> or away_<number>.")
-    if not rows.loss.map(lambda v: isinstance(v, (bool, np.bool_))).all():
-        raise ValueError("loss must contain booleans.")
+    if not rows.loss.map(lambda v: pd.isna(v) or isinstance(v, (bool, np.bool_))).all():
+        raise ValueError("loss must contain booleans or missing values.")
     if len(rows) > 1 and np.any(rows.frame_start.to_numpy()[1:] <= rows.frame_end.to_numpy()[:-1]):
         raise ValueError("Player possession intervals must not overlap.")
     labels = []
@@ -93,6 +93,7 @@ def link_team_possessions(player_possessions):
             join = (
                 previous.end_type == "pass"
                 and previous.pass_outcome == "successful"
+                and pd.notna(previous.loss)
                 and not previous.loss
                 and pd.isna(interruption)
                 and pd.notna(previous.target_pass)
@@ -115,7 +116,8 @@ def link_team_possessions(player_possessions):
             "team_id": segments.iloc[0].player_id.split("_")[0],
             "frame_start": int(segments.frame_start.iloc[0]),
             "frame_end": int(segments.frame_end.iloc[-1]),
-            "lost": bool(segments.loss.iloc[-1]),
+            "lost": (bool(segments.loss.iloc[-1])
+                     if pd.notna(segments.loss.iloc[-1]) else pd.NA),
             "n_player_possessions": len(segments),
         })
     return pd.DataFrame(teams, columns=[

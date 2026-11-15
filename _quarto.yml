@@ -4,6 +4,7 @@ project:
   execute-dir: project
   resources:
   - pipeline/**
+  - examples/preprocessing/**
   - "!pipeline/**/__pycache__/**"
   - "!pipeline/outputs/**"
   - "!pipeline/local_history/**"
@@ -20,6 +21,8 @@ project:
   - benchmarks/04_action_selection.qmd
   - benchmarks/05_residual_risk.qmd
   - data.qmd
+  - external-data.qmd
+  - vignettes/00_external_data/idsse.ipynb
   - pipeline.qmd
   - usage.qmd
   - api.qmd
@@ -57,6 +60,8 @@ website:
       menu:
       - text: 1 · Dataset and preprocessing
         href: data.qmd
+      - text: External event and tracking data
+        href: external-data.qmd
       - text: 2 · Possession segmentation and context
         href: vignettes/setup/possession_and_checkpoint_setup.ipynb
       - text: 3 · Installation and use
@@ -122,6 +127,8 @@ website:
       contents:
       - text: 1 · Dataset and preprocessing
         href: data.qmd
+      - text: External event and tracking data
+        href: external-data.qmd
       - text: 2 · Possession segmentation and context
         href: vignettes/setup/possession_and_checkpoint_setup.ipynb
       - text: 3 · Installation and use

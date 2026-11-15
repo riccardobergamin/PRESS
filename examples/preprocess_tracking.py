@@ -1,8 +1,8 @@
-"""Prepare observed tracking and raw possession events without importing PRESS.
+"""Optionally export observed tracking and raw possession tables.
 
 Uses the tracking loader included in pipeline/preprocessing/tracking.py.
 Smoothing and coordinate conventions match the research pipeline. Scientific
-Python dependencies are NumPy, pandas, SciPy and PyArrow; no fitted model runs.
+Python dependencies are NumPy, pandas, SciPy and PyArrow; PRESS is installed, but no fitted model runs.
 """
 from __future__ import annotations
 

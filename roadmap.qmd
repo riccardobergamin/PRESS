@@ -18,6 +18,8 @@ The training pipelines remain a work in progress and will continue to be revised
 
 ## Possible research extensions
 
+**Final BCOS in fitted predictors.** The package provides the final transport-with-killing accessibility model. The existing action-selection and residual-risk benchmarks use a preliminary effective-hazard BCOS formulation. Recompute fold-specific BCOS features, retrain and repeat held-out evaluation with the final formulation before replacing the frozen classifier feature. The effective-hazard solver remains available until that evaluation is complete.
+
 **High-risk calibration and component performance.** Investigate the High band of h in greater detail, separating limited-sample uncertainty from possible calibration errors in the passing and carrying branches. Review discrimination and calibration across the five individual tasks and their contribution to composed risk, retaining held-out evaluation and uncertainty estimates. Seek additional tracking-and-event datasets to expand the sample and assess whether the findings persist beyond the current ten matches, checking compatibility of action labels and outcome definitions before comparison or pooling.
 
 **A richer description of accessible space.** Explore directional, radial and spatial summaries of the BCOS field beyond its total area. Their additional value for action selection and residual risk would need held-out evaluation. The current scalar already combines movement and defensive reachability; richer summaries should demonstrate useful information beyond the existing features.

@@ -16,7 +16,7 @@ import pandas as pd
 import xgboost as xgb
 
 from PRESS.model import BallDriveModel, PassRiskModel, PassSelectionModel
-from PRESS.model.bcos_fine import compute_bcos_state
+from PRESS.model.bcos_effective import compute_bcos_state
 from PRESS.model.action_features import ahead, line_values, xt
 from PRESS.utils.state import compute_dynamic_pressure_lines
 

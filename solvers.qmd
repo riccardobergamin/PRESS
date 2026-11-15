@@ -9,16 +9,25 @@ The match-level methods extract the current frame and store results; the numeric
 ## Complete frame and possession calculations
 
 ```python
-outputs = press.compute_frame(frame_id, include_residual=True)
+outputs = press.compute_risk_frame(frame_id, include_residual=True)
 h = outputs["HAZARD"]["Hazard"]
+band = outputs["HAZARD"]["band"]
 xloss = outputs["XLOSS"]["xLoss"]
 ```
 
-`compute_frame(frame_id, xT_grid=None, *, start_type=None, previous_action=None, bcos_value=None, ppcf_kwargs=None, ball_drive_kwargs=None, bcos_kwargs=None, pass_selection_kwargs=None, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None, include_residual=False, time_since_start=None)` computes prerequisites in order. It evaluates any usable frame, not only training checkpoints. Current context is read from annotations unless supplied explicitly. The fitted xT surface is used by default; each fitted feature builder retains its saved surface when an explicit `xT_grid` argument is supplied.
+`compute_risk_frame(frame_id, xT_grid=None, *, start_type=None, previous_action=None, bcos_value=None, ppcf_kwargs=None, ball_drive_kwargs=None, bcos_kwargs=None, pass_selection_kwargs=None, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None, include_residual=False, time_since_start=None, keep_details=False)` computes prerequisites in order. It evaluates any usable frame, not only training checkpoints. Current context is read from annotations unless supplied explicitly. xT uses the frame argument when supplied, then the object map, then the fitted production surface. The resolved map is passed to both choice-model feature builders; residual risk reuses their feature record. Separately called action selection reuses the map stored by pass selection and rejects a conflicting map.
 
-It always recomputes the requested frame and returns copied `PPCF`, `BALL_DRIVE_RISK`, `ACTION_SELECTION` and `HAZARD` results. With `include_residual=True`, it also returns `RESIDUAL_RISK` and `XLOSS`. Elapsed individual-possession time must be observed or explicitly supplied in seconds; a missing value raises an error and is never replaced by zero. A custom `bcos_value` reuses an already computed area in m²; otherwise BCOS is calculated with its default settings. BCOS can be the expensive part of a full-frame calculation.
+It always recomputes the requested frame and returns copied `PPCF`, `BALL_DRIVE_RISK`, `ACTION_SELECTION` and `HAZARD` results. With `include_residual=True`, it also returns `RESIDUAL_RISK` and `XLOSS`. Elapsed individual-possession time must be observed or explicitly supplied in seconds; a missing value raises an error and is never replaced by zero. A custom `bcos_value` reuses an already computed area in m²; otherwise only the preliminary effective-hazard BCOS required by the fitted trees is calculated. The standalone `compute_bcos()` default remains final transport. BCOS can be the expensive part of a full-frame calculation.
 
-`compute_possession(possession_id, xT_grid=None, *, frame_ids=None, include_snapshots=True, **frame_kwargs)` evaluates a **team** interval. `compute_player_possession(player_possession_id, ...)` evaluates an **individual** interval. Both return a chronological DataFrame with frame IDs, canonical/snapshot kind, P(pass) and h; xLoss is included when requested. Default frames come from the supplied action table. Explicit `frame_ids` must be nonempty, unique integer usable frames within the chosen interval. No new segmentation or observed outcome is inferred.
+`compute_possession(possession_id, xT_grid=None, *, frame_ids=None, include_snapshots=True, **frame_kwargs)` evaluates a **team** interval. `compute_risk_player_possession(player_possession_id, ...)` evaluates an **individual** interval. Both return a chronological DataFrame with frame IDs, canonical/snapshot kind, P(pass), h and its automatically assigned `band`; xLoss is included when requested. Default frames come from the canonical actions constructed by PRESS from individual possessions, or from an explicitly supplied action table. Explicit `frame_ids` must be nonempty, unique integer usable frames within the chosen interval. No new segmentation or observed outcome is inferred.
+
+The `band` field in each `HAZARD` result classifies h as `None`, `Low`, `Medium` or `High`, using the existing half-life cutoffs. It is assigned during risk calculation and returned by `get_hazard_result`; no additional band calculation is required. These are h bands, not classifications of xLoss.
+
+Complete risk calculations use `keep_details=False` by default. Every dependency is evaluated before discarding spatial fields, integration curves and feature records. Scalar component probabilities, BCOS area, h, its band and optional xLoss remain in `press.results`. `keep_details=True` additionally retains the arrays needed for spatial plots and feature inspection. Both modes produce the same numerical predictions. The possession methods accept the same option through their frame keywords.
+
+`press.result_configurations` stores physical/numerical settings and the xT input once per distinct configuration. Results refer to them through `configuration_id`. `press.result_models` holds fitted model instances once per distinct artifact, including custom per-call physical parameters. Inspect them with `get_result_configuration(frame_id, component=None)` and `get_result_model(component, frame_id)`. The latter returns the shared model; use `.to_dict()` for an editable copy. Coefficients and spline transformations are not copied into each frame's result.
+
+Individual component calls retain their detailed outputs for step-by-step computation, but physical/numerical settings are still stored in shared configurations. No match-level component result repeats fitted coefficients, spline design, `lambda_control`, `s` or calibration; retrieve the fitted quantities from its model. BCOS dispersion is an explicit physical input in its configuration. Spatial plots never trigger model calculation: when a map was discarded, rerun the complete calculation with `keep_details=True`, or calculate the required component explicitly. `plot_risk` works with compact outputs.
 
 Additional snapshot forecasts can overlap canonical actions. They are useful for plotting, but must not be multiplied blindly into a survival sequence. Frame sampling never changes the modeled one-second carry action.
 
@@ -31,17 +40,58 @@ Call these methods in dependency order when only some outputs are needed.
 | `compute_ppcf(frame_id, r_max=150, step=1.0, physics_kwargs=None, model=None)` | Current physical state → raw player/attacking control and isotonic pass completion on a candidate grid. Stores `PPCF`; returns `None`. |
 | `compute_ball_drive_risk(frame_id, t_press=1.0, physics_kwargs=None, model=None)` | Current physical state → total and cause-specific drive loss over `t_press` seconds. Stores `BALL_DRIVE_RISK`; returns `None`. |
 | `compute_pass_selection(frame_id, xT_grid=None, *, start_type_raw=None, previous_action_raw=None, match_clock_min=None, score_difference_prefix=None)` | Requires PPCF and one-second drive loss. Uses **raw** control for destination choice, stores `Pass selection probabilities` inside PPCF, and returns that normalized vector. |
-| `compute_bcos(frame_id, r_max=40.0, step=1.0, physics_args=None)` | Current state and physical drive dispersion → spatial field and area. Stores `BCOS` and returns its copied mapping. |
+| `compute_bcos(frame_id, r_max=40.0, step=1.0, physics_args=None, *, formulation="transport")` | Current state and physical drive dispersion → spatial field and area. Stores `BCOS` and returns its copied mapping. |
 | `compute_action_selection_probability(frame_id, xT_grid=None, start_type=None, previous_action=None, bcos_value=None, *, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None)` | Requires PPCF, destination choice, one-second drive loss and a BCOS area. The builder converts the stored loss d to **`drive_success_1s = 1 - d`** and uses **calibrated** pass completion. Stores `ACTION_SELECTION`; returns native P(pass). |
 | `compute_hazard(frame_id)` | Requires the preceding pass/drive/choice/policy results. Returns and stores raw marginal next-action loss; no post-hoc h calibrator. |
 | `compute_residual_risk(frame_id, *, time_since_start=None, model=None)` | Requires the current action feature record and its matching action model. Reuses the record plus native P(carry) and the observed elapsed time. Returns/stores terminal individual loss conditional on a successful carry. |
 | `compute_xloss(frame_id, *, time_since_start=None, model=None)` | Requires pass/drive/choice/policy results. Computes residual risk if needed and composes the terminal individual loss. Returns/stores xLoss. |
 
+### Reusing calculations within inference
+
+A complete frame call extracts the physical state and context once and shares the pressure-line centres. The pass solver reuses player TTI for receiver-based flight selection and control, without changing the nearest-receiver convention. Candidate ball trajectories are reused across frames only when their launch and ball-physics settings match; this numerical cache is bounded to eight configurations. Frame-dependent flight times, control fields and predictions are recalculated.
+
+Residual risk reuses the native P(carry) already returned by the matching production action model, retaining its model-dependency check. xLoss reuses the current h; changing an upstream component invalidates its dependent results. Frame-state reuse ends when the call returns or raises, so later calls see tracking/annotation edits. These are computational reuse rules; training and cross-fitting procedures are unchanged.
+
+The autonomous final BCOS solver reuses defender TTI at the physical origin during waiting and omits zero-duration integration segments. Quadrature nodes, weights, precision, spatial grid and model equations are unchanged. Complete risk calls compute only the preliminary BCOS needed by the fitted tree models.
+
+### Frame inspection and many-possession analysis
+
+| Purpose | Call/storage setting | Available afterwards |
+|---|---|---|
+| Inspect one component at one frame | Call its `compute_*` method directly. | Detailed component outputs; model and physical/numerical configuration are referenced separately. |
+| Inspect a complete frame | `compute_risk_frame(..., keep_details=True, include_residual=True)` | Scalar predictions, spatial maps, defender contributions, survival curve and action-selection feature record. |
+| Process many possessions | `compute_risk_player_possession(..., include_snapshots=False, keep_details=False, include_residual=True)` | Scalar predictions and h bands for canonical checkpoints, shared models/settings; maps and feature records are discarded after calculation. |
+
+Both retention levels use the same model inputs and produce identical predictions. `plot_risk` and `plot_action_selection` work with compact predictions. Spatial maps and defender-risk coloring require details; plotting never starts a new model calculation.
+
+The tree feature **schema** (names, order, categories and encoding) belongs to the fitted model. The feature **values** at a frame are calculation inputs: pass-selection's destination-wise matrix and the encoded residual matrix are temporary; action selection retains its named `Features` record for residual risk and detailed inspection. Compact complete calls discard that record only after all requested predictions finish. These frame values are neither fitted model parameters nor predicted outcomes.
+
+### Example: change the model or the configuration
+
+```python
+# Configuration change: same fitted coefficients/bases, different defender motion.
+press.compute_ball_drive_risk(frame_id, physics_kwargs={"v_max": 6.5})
+
+# Model change: custom coefficients/dispersion, with omitted bases inherited.
+press.compute_ball_drive_risk(frame_id, model={"s": 0.35, "gamma_v": [0, 0, 0]})
+fitted_model_used = press.get_result_model("BALL_DRIVE_RISK", frame_id)
+parameters_used = fitted_model_used.parameters
+physical_settings_used = press.get_result_configuration(frame_id, "BALL_DRIVE_RISK")["BALL_DRIVE_RISK"]
+
+# Complete calculation: scalar results, shared configuration and automatic h band.
+outputs = press.compute_risk_frame(frame_id, include_residual=True)
+settings_used = press.get_result_configuration(frame_id)
+h = outputs["HAZARD"]["Hazard"]
+band = outputs["HAZARD"]["band"]
+```
+
+The first two calls replace the stored ball-drive result and invalidate its dependants; they do not change the default model. The final call omits overrides and recomputes the complete analysis with the object's default models/settings. Model parameters and spline bases remain in the shared model, physical/numerical inputs in the shared configuration, and frame predictions in the results. [The three levels, with movement-setting examples](api.qmd#model-configuration-result).
+
 ### Fitted-model settings
 
 The default pass-risk artifact uses `v_max=5.5`, `a_max=a_turn=7`, overspeed-preserving TTI, `dt_ball=0.04`, `t_max_flight=10`, `dt_pc=0.01`, `t_max_pc=15`, exact target distances and exponential integration. Launch candidates span 5–25 m/s and 0–45 degrees, 30 values on each axis; drag settings are `rho=1.22`, `Cd=0.25`, `A=0.038`, `m=0.42`, `g=9.81`, controllable height `z_max=2`. The full-data parameters are `lambda_control=5.437830`, `s=0.294560`; isotonic knots are separate from those physical estimates. [Export provenance](docs/pass-risk-refit-provenance.json).
 
-The default drive artifact uses the verified additive splines and angle term, `v_max=7`, independent linear/turning acceleration settings, preserved initial overspeed, signed boundary distance, constant carrier velocity and exponential integration with partial final steps. The wrapper supplies native pitch dimensions. Only physics overrides are accepted. [Model and spline definitions](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb).
+The default drive artifact uses the verified additive splines and angle term, `v_max=7`, independent linear/turning acceleration settings, preserved initial overspeed, signed boundary distance, constant carrier velocity and exponential integration with partial final steps. The wrapper supplies native pitch dimensions. Physical overrides and named fitted-parameter dictionaries are supported; omitted settings retain their model defaults. [Model and spline definitions](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb).
 
 The operational pass-selection model is the verified flat refit, with its saved vocabulary, xT surface and temperature. Candidate cells use the native one-metre grid at the default settings. Coarse/restricted grids are supported as explicit sensitivities and recorded as differing from the benchmark. Action selection and residual risk retain their native probabilities without scaling. No training occurs in these methods.
 
@@ -53,7 +103,7 @@ $$h=(1-p)d+pf,$$
 
 $$xLoss=pf+(1-p)\{d+(1-d)r\}.$$
 
-A completed pass terminates the **individual** possession without loss; h describes the **current action**, not the outcome of the whole individual possession. `PRESS.extras.compose_individual_xloss(*, p_pass, drive_loss, pass_failure, residual_loss)` exposes the same probability-only composition for scalar/broadcastable array inputs. It loads no model. [Residual risk and xLoss](vignettes/05_residual_risk/05_residual_risk.ipynb).
+A completed pass terminates the **individual** possession without loss; h describes the **current action**, not the outcome of the whole individual possession. `PRESS.model.compose_individual_xloss(*, p_pass, drive_loss, pass_failure, residual_loss)` exposes the same probability-only composition for scalar/broadcastable array inputs. It loads no model. [Residual risk and xLoss](vignettes/05_residual_risk/05_residual_risk.ipynb).
 
 ## Numerical functions
 
@@ -133,3 +183,64 @@ The flight ODE includes gravity and constant-coefficient aerodynamic drag. Below
 ### Fitted pass settings for the low-level solvers
 
 The fitted pass model uses `v_max=5.5`, `a_max=7`, `a_turn=7` and `preserve_initial_overspeed=True` consistently. The lower-level trajectory and target-control solvers accept the same `a_turn` and `preserve_initial_overspeed` keyword arguments. Their compatibility defaults remain unchanged; pass the fitted artifact settings to reproduce it. Physical λ,s are MLE estimates along reconstructed paths; isotonic knots are learned separately on cross-fitted hypothetical PPCF scores.
+
+
+## BCOS formulations
+
+`compute_bcos` defaults to the [final transport-with-killing model](appendix/bcos-transport-with-killing.qmd). It returns destination accessibility, per-defender interception incidences, unresolved/reservoir/interior mass at a finite `time`, and the probability-weighted area. The default evaluates terminal probabilities (`time=np.inf`). The square-cell area is `step**2`; the 40 m disc is clipped to the physical pitch without rescaling its area.
+
+Interception acts both while the carrier waits at the observed origin and while it moves along the route. `Reservoir probability` is the surviving mass still waiting at the origin, not a protected probability component. Use `formulation="transport_reservoir"` for the retained alternative with no interception before route entry; its model is `PRESS.model.ReservoirBCOSModel` in `model/bcos_reservoir.py`.
+
+Use `formulation="effective_hazard"` to reproduce the preliminary BCOS field used in the existing benchmarks. Complete risk calculations evaluate only that preliminary feature once and store its area/map under `BCOS`; no final transport descriptor is computed in addition. To inspect final transport, call `compute_bcos()` explicitly. When final transport was explicitly calculated before standalone action selection, the classifier helper derives its required preliminary feature from the same physical settings. An explicit `bcos_value` remains a caller override. The configuration records the BCOS formulation and the action result records the classifier feature's formulation. A different `formulation` in complete-call `bcos_kwargs` is rejected; use the standalone descriptor call instead. Changing that feature requires retraining; see the [roadmap](roadmap.qmd).
+
+The final solver integrates the appendix's characteristic solution. A positive quadrature over conditioned no-killing exit times includes both initial interior trajectories and later boundary inflow. Integrated killing determines survival along each trajectory. Ordered exponential competing-risk updates keep all cause incidences nonnegative and conserve probability. The implementation is checked against independent characteristic/density integrals, no-killing and constant-killing limits, finite-time reservoir balances and numerical refinement. `arrival_order` and `path_order` are numerical quadrature settings, not fitted coefficients.
+
+
+## Physical parameter inputs
+
+`compute_ball_drive_risk(..., physics_kwargs=...)` accepts `v_max`, `a_linear`,
+`a_turn` and the supported solver/pitch settings. `compute_ppcf(...,
+physics_kwargs=...)` accepts the pass model's physical settings, including
+`v_max`, `a_max`, `a_turn` and ball-flight constants. Flight-time and
+pitch-control calculations use the same resolved pass settings.
+
+`compute_bcos(..., physics_args=...)` accepts `v_bc_max`, `v_def_max`,
+`a_bc_max`, `a_def_max`, `a_turn_bc`, `a_turn_def` and `s`, plus numerical
+quadrature settings for final transport. Omitting settings uses the deployed
+physical conventions and ball-drive dispersion.
+
+In a complete `compute_risk_frame` call these dictionaries are nested under
+`ball_drive_kwargs`, `ppcf_kwargs` and `bcos_kwargs`, respectively. Fitted
+parameters such as pass-control lambda, ball-drive spline coefficients and
+fitted dispersion are supplied through a named `model` dictionary, model
+object or manifest. Constructor inputs `ball_drive_model` and `pass_risk_model`
+accept the same named dictionaries. Changing inputs does not refit coefficients
+or calibration maps.
+
+### Named model parameters {#named-model-parameters}
+
+```python
+press.compute_ball_drive_risk(frame_id, model={
+    "s": 0.35,
+    "gamma_v": [0.0, 0.0, 0.0],
+})
+press.compute_ppcf(frame_id, model={
+    "lambda_control": 5.0,
+    "s": 0.30,
+})
+```
+
+These are explicit sensitivity inputs. Omitted entries inherit the model supplied at initialization, or the production fit otherwise. A dictionary is resolved for that call; omitting `model` on a later call restores the base model. Each call replaces its cached component result and invalidates dependent outputs. Motion settings can be supplied together through `physics_kwargs`.
+
+| Ball-drive key | Meaning |
+|---|---|
+| `lambda_0`, `s` | Positive baseline tackle rate and arrival-time dispersion, both in their natural scales. |
+| `beta_v`, `beta_B` | Linear effects of speed and boundary distance in their original units. |
+| `gamma_v`, `gamma_B` | Three nonlinear coefficients for each saved spline basis. |
+| `beta_angle` | Linear coefficient for the saved standardized angle. |
+| `gamma_angle` | Two nonlinear angle coefficients. |
+| `speed_basis`, `boundary_basis`, `angle_basis` | Optional fitted basis dictionaries for another fit, including normalization, knots, projection and transformation. Supplying a basis also requires its corresponding coefficients. |
+
+Unspecified bases are reused without refitting. `BallDriveModel.pretrained().parameters` shows the production coefficients with these names. Full exported artifacts remain accepted as `model` dictionaries.
+
+For pitch control/pass probability, named keys are `lambda_control`, `s` and optional `calibration` (`method`, `x`, `y` for an isotonic map). `PassRiskModel.pretrained().parameters` shows the physical-control parameters. Changing lambda or s changes the raw control field. If no new calibration is supplied, the saved map is still applied, and `params["calibration_matches_parameters"]` records whether the physical-control parameters match its reference. `calibration_matches_model` additionally requires matching movement/flight settings. These flags describe correspondence with the saved map, not a new validation of its performance.

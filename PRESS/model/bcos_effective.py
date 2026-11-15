@@ -1,4 +1,4 @@
-"""Verified BCOS64 conditional hazards; shared exponential survival integration."""
+"""BCOS with effective hazards and exponential survival integration."""
 
 import math
 from functools import lru_cache
@@ -155,14 +155,12 @@ def compute_bcos_state(
         raise ValueError('Expected nonempty finite BCOS targets.')
     if np.any(np.linalg.norm(targets - position[10], axis=1) > r_max + 1e-05):
         raise ValueError('Target outside BCOS domain.')
-    context = getattr(jax, 'enable_x64', None)
-    if context is None:
-        from jax.experimental import enable_x64 as context
+    from PRESS.physics.numerics import float64_context
     values = []
     defence = []
     survival = []
     steps = []
-    with context(True):
+    with float64_context():
         kernel = make_adaptive_kernel(dx, radius=r_max, eps=stop_eps, dt=dt, horizon=T_max)
         for start in range(0, len(targets), 16):
             block = targets[start:start + 16]

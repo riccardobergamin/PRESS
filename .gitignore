@@ -21,3 +21,7 @@ __pycache__/
 /pipeline/inputs/**/*.pkl
 /data/benchmarks/**/old/
 /data/benchmarks/*/*_oof.parquet
+# Downloaded external match data and generated full-match preprocessing caches.
+/data/external/
+# Private numerical diagnostics; not part of the published site or package.
+/.local/

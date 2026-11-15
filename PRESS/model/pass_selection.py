@@ -94,9 +94,9 @@ def build_choice_features(
         raise ValueError('Expected carrier (2,) and a nonempty target grid (N,2).')
     if not all((np.isfinite(z).all() for z in (bc, velocity, targets))):
         raise ValueError('Carrier state and targets must be finite.')
-    surface = np.asarray(xt_grid)
-    if surface.shape != (10, 6) or not np.isfinite(surface).all() or (surface < 0).any():
-        raise ValueError('Expected the fitted nonnegative 10x6 xT surface.')
+    from PRESS.utils.state import validate_xt_grid
+    surface = validate_xt_grid(xt_grid)
+    nx, ny = surface.shape
     control = np.asarray(target_pitch_control)
     if (
         control.shape != (len(targets),)
@@ -110,8 +110,8 @@ def build_choice_features(
 
     def xt(points, direction):
         q = np.asarray(points) * direction
-        ix = np.clip(((q[:, 0] + pitch_length / 2) / pitch_length * 10).astype(int), 0, 9)
-        iy = np.clip(((q[:, 1] + pitch_width / 2) / pitch_width * 6).astype(int), 0, 5)
+        ix = np.clip(((q[:, 0] + pitch_length / 2) / pitch_length * nx).astype(int), 0, nx-1)
+        iy = np.clip(((q[:, 1] + pitch_width / 2) / pitch_width * ny).astype(int), 0, ny-1)
         return surface[ix, iy]
 
     def clean(players):
@@ -265,10 +265,12 @@ class PassSelectionModel:
         """Return a copy of the model manifest."""
         return deepcopy(self._artifact)
 
-    def build_features(self, **state):
-        """Use the saved vocabulary/xT; remaining arguments describe one frame."""
+    def build_features(self, *, xt_grid=None, **state):
+        """Use saved encoding and the supplied map, or the fitted default."""
+        from PRESS.utils.state import validate_xt_grid
+        surface = self.xt_grid if xt_grid is None else validate_xt_grid(xt_grid)
         return build_choice_features(
-            xt_grid=self.xt_grid,
+            xt_grid=surface,
             vocabulary=self.vocabulary,
             feature_contract=self.feature_contract,
             **state,

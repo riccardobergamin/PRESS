@@ -10,42 +10,69 @@ Getters inspect existing inputs or outputs; they never run predictions. Tables a
 
 | Method | Return value and selection |
 |---|---|
+| `get_xt_grid(frame_id=None)` | Copy of the supplied/default xT map; with a frame ID, the map actually used by stored pass selection. |
 | `get_match_info()` | Dictionary: input `fps`, pitch dimensions and optional match ID. |
 | `get_players(*, team_id=None)` | Roster with internal IDs and optional original provider IDs/names. Team filter is `home`/`away`. |
-| `get_possessions(*, team_id=None)` | Explicit **team** intervals. Raises `ValueError` if no interval table was supplied. |
-| `get_possession(possession_id)` | One team interval as a copied Series; unknown ID raises `KeyError`. |
-| `get_player_possessions(possession_id=None, *, team_id=None, player_id=None)` | Individual intervals; optional positional argument restricts to a **team** possession ID. Additional filters use internal team/player aliases. |
-| `get_player_possession(player_possession_id)` | One **individual** interval selected by its source `possession_id`. Requires unique IDs in the input table. |
+| `get_team_possessions(possession_id=None, *, team_id=None)` | Explicit **team** intervals, optionally selected by team-possession ID and team. Always returns a DataFrame; omitted filters select all and unmatched filters return an empty table. Raises `ValueError` if no interval table was supplied. |
+| `get_player_possessions(possession_id=None, *, team_id=None, player_id=None, team_possession_id=None)` | Individual intervals, optionally selected by individual possession ID, team, player or linked team interval. |
+| `get_actions(possession_id=None, *, team_id=None, player_id=None, team_possession_id=None, include_snapshots=False, valid_only=False)` | Canonical pass/carry action intervals. Each `frame_start` is a checkpoint. Optional snapshots retain their noncanonical flag; `valid_only=True` selects usable start states. |
 | `get_frame(frame_id)` | One wide tracking row as a DataFrame; unknown ID raises `KeyError`. |
 | `get_frames(possession_id=None, *, valid_only=False)` | Sorted tracking, optionally inside a team interval. Includes both endpoints and in-flight rows. |
 | `get_player_frames(player_possession_id, *, valid_only=False)` | Sorted tracking inside one individual interval. |
 | `get_state(frame_id)` | Carrier, teammates, defenders, velocity arrays, IDs, direction and native pitch dimensions. Teammates/opponents have padded shapes `(10,2)` / `(11,2)`. Missing carrier/direction or nonfinite carrier state raises `ValueError`. |
-| `get_checkpoints(possession_id=None, *, eligible_only=True, include_snapshots=False)` | Canonical action starts, optionally evaluation-only snapshots, within a team interval if selected. Adds `frame_id`, standardized context, eligibility, canonical/snapshot kind. |
 | `get_frame_context(frame_id, *, granular=None)` | Known current action origin/previous action; granular mode also includes completed one-second carries and elapsed time when recoverable. Default returns raw context independently of model loading; `granular=False` provides descriptive grouped categories. |
 | `get_elapsed_time(frame_id)` | Elapsed individual-possession time in seconds, from annotations and `fps`. Raises `ValueError` when unavailable; does not invent zero. |
 
-`valid_only` checks for a known carrier, usable attack direction and finite carrier position/velocity. It does not establish an observed terminal outcome or apply benchmark cohort filters. Those evaluation filters are documented in the [benchmark](../benchmark.qmd).
+For `get_player_possessions` and `get_actions`, `possession_id` always identifies an **individual** possession. Omit it to select all possessions, or combine it with `team_id="home"` / `"away"` and the internal `player_id`. Filters are intersected. Use `team_possession_id` to restrict these tables to a team possession instead. IDs retain their input types; an unmatched filter returns an empty table.
+
+`get_team_possessions` selects team intervals instead. Both possession getters always return DataFrames, even when selecting a single ID.
+
+```python
+# Inspect the roster, then use its internal player_id.
+players = press.get_players(team_id="home")
+team_intervals = press.get_team_possessions(team_id="home")
+possessions = press.get_player_possessions(player_id="home_8")
+actions = press.get_actions(player_id="home_8")
+
+# The same individual possession ID selects possessions and actions.
+# Use an ID shown by get_player_possessions(); here, the user-guide example.
+individual_id = "8_774"
+possession = press.get_player_possessions(possession_id=individual_id)
+actions = press.get_actions(possession_id=individual_id)
+# Evaluate the actions at their starts: these are the canonical checkpoints.
+usable_actions = press.get_actions(possession_id=individual_id, valid_only=True)
+checkpoint_frames = usable_actions.frame_start.to_list()
+```
+
+`valid_only` checks for a known carrier, usable attack direction and finite carrier position/velocity, either in tracking frames or at action starts. It does not establish an observed terminal outcome or apply benchmark cohort filters. Those evaluation filters are documented in the [benchmark](../benchmark.qmd).
 
 Checkpoint sampling is separate from evaluating an arbitrary frame. Successful short control tails and terminal foul/clearance snapshots can be included for inspection; they do not become action-selection training examples. Prefer canonical action starts when forming a non-overlapping survival sequence.
 
-## Computed results
+## Computed results {#computed-results}
 
 | Getter | Stored output |
 |---|---|
 | `get_result(component, frame_id, *, copy=True)` | One result mapping, copied by default. `copy=False` explicitly accesses the internal cache. |
 | `get_results(component=None)` | Copied cache for a component, or all component caches. |
-| `get_ppcf_result(frame_id)` | Grid, raw control, calibrated pass completion, flight time and physical settings; stored pass selection is included when computed. |
+| `get_ppcf_result(frame_id)` | Compact weighted success/failure summaries, or detailed control/completion/choice maps and flight times; configuration and model references. |
 | `get_pass_selection_result(frame_id)` | Grid, conditional destination probabilities and stored context. |
-| `get_ball_drive_risk_result(frame_id)` | Total loss, defender-specific causes, survival and integration metadata. |
+| `get_ball_drive_risk_result(frame_id)` | Total loss/survival; defender causes and survival curve when details are retained; configuration and model references. |
 | `get_action_selection_result(frame_id)` | Native pass/carry probabilities, current feature record and model ID. |
-| `get_hazard_result(frame_id)` | `Hazard`, `Drive risk`, destination-weighted `Pass failure expected`, and weighted pass success `rppcf`. |
-| `get_bcos_result(frame_id)` | Spatial probability field, BCOS area, grid and settings. |
+| `get_hazard_result(frame_id)` | `Hazard`, automatically assigned `band`, `Drive risk`, destination-weighted `Pass failure expected`, and weighted pass success `rppcf`. |
+| `get_bcos_result(frame_id)` | BCOS area; accessibility field, grid and interception diagnostics when details are retained; configuration reference. |
 | `get_residual_risk_result(frame_id)` | `Residual loss probability`, observed elapsed time and model dependencies. |
 | `get_xloss_result(frame_id)` | `xLoss`, local `Hazard`, conditional residual probability and model metadata. |
 
+The getters distinguish [model, configuration and result](../api.qmd#model-configuration-result). For ball drive, the fitted `s`, coefficients and spline transformations belong to the model; the defender `v_max` and integration step actually used belong to the configuration; the loss probability belongs to the frame result. For BCOS, the carrier and defender maximum speeds are configuration inputs and the area in m² is a result. The default dispersion is supplied by the ball-drive model.
+
+After a complete risk calculation, the default outputs are compact: `PPCF` contains destination-weighted expected success/failure, ball-drive risk contains total loss/survival, BCOS contains its area, and the other components retain their scalar predictions. Spatial fields, defender causes and feature records in the table above require `keep_details=True` or separate component calculations.
+
+- `get_result_configuration(frame_id, component=None)` returns copied shared physical/numerical settings and model references after standalone or complete calls. Omit `component` to collect settings from all currently valid components; supply e.g. `"BALL_DRIVE_RISK"` to select one. The xT input is included once destination features have been calculated.
+- `get_result_model(component, frame_id)` returns the shared fitted model actually used, including custom parameters. `PASS_SELECTION` selects the destination model; `PPCF`/`PASS_RISK` selects the completion model. Inspect `.parameters`, spline bases or `.to_dict()`; use the latter for an editable copy.
+
 Component names are `PPCF`, `BALL_DRIVE_RISK`, `ACTION_SELECTION`, `HAZARD`, `BCOS`, `RESIDUAL_RISK`, `XLOSS`, case-insensitive. Aliases: `PASS_RISK` / `PASS_SELECTION` select `PPCF`, `BALL_DRIVE` selects `BALL_DRIVE_RISK`, `H` selects `HAZARD`, and `RESIDUAL` selects `RESIDUAL_RISK`. Unknown components raise `ValueError`; uncomputed or invalidated outputs raise `KeyError`.
 
-`clear_results(component=None, *, frame_ids=None)` clears selected results. Omitted component means all; omitted frames means all stored frames. Recomputing/clearing an upstream component invalidates its dependants: pass/drive changes invalidate destination choice, action choice, h, residual risk and xLoss; BCOS changes invalidate action choice onward. Recompute prerequisites before requesting a downstream output.
+`clear_results(component=None, *, frame_ids=None)` clears selected results and releases configurations/models no longer referenced by any retained result. Omitted component means all; omitted frames means all stored frames. Recomputing/clearing an upstream component invalidates its dependants: pass/drive changes invalidate destination choice, action choice, h, residual risk and xLoss; BCOS changes invalidate action choice onward. Recompute prerequisites before requesting a downstream output.
 
 ## Saving and restoring
 
@@ -57,14 +84,14 @@ other.load_results(folder)
 
 `save_results(path, *, overwrite=False)` creates a directory with:
 
-- `metadata.json`: format version, match metadata, input/model fingerprints and the typed result structure;
+- `metadata.json`: format version, match metadata, input/model fingerprints, shared calculation configurations, model manifests and the typed result structure;
 - `arrays.npz`: compressed numerical arrays, preserving shapes and dtypes.
 
-It returns the directory as a `Path`. It does not serialize a Python object, raw tracking, model weights or any training outputs. No pickle is used. Existing exports require `overwrite=True`.
+It returns the directory as a `Path`. It does not serialize a Python object, raw tracking, tree weights or training outputs. Physical model parameters and bases are saved once in their model manifests. Tree manifests identify the installed/supplied weights; custom tree weights must also be available when restoring. No pickle is used. Existing exports require `overwrite=True`.
 
 `load_results(path, *, overwrite=False)` verifies the format, array checksum, input tables, frequency/pitch metadata and fitted model settings before changing the cache. A mismatching match/model or malformed export raises an error. Existing component/frame results require explicit overwrite. Recreating an object for loading requires the same annotations as well as the same tracking, because annotations affect model context.
 
-For scalar possession summaries returned by `compute_possession` or `compute_player_possession`, use normal DataFrame exports such as `summary.to_csv(path, index=False)` or `to_parquet`. Those summaries are distinct from full spatial fields.
+For scalar possession summaries returned by `compute_possession` or `compute_risk_player_possession`, use normal DataFrame exports such as `summary.to_csv(path, index=False)` or `to_parquet`. Those summaries are distinct from full spatial fields.
 
 ## Retrospective summaries
 
@@ -75,3 +102,9 @@ Import from `PRESS.utils.possession`.
 | `hazard_band_thresholds()` | Exact theoretical cutoffs keyed by half-life in 1, 2, 4 or 8 canonical actions. Operational bands use half-lives of 8, 4 and 2 actions, i.e. cutoffs 0.082996, 0.159104 and 0.292893. |
 | `hazard_to_band(hazard)` | Finite scalar/array in `[0,1]` → `None`, `Low`, `Medium`, `High`; `None` is a string label. |
 | `possession_survival(hazards)` | Nonempty one-dimensional sequence → difficulty increments, cumulative difficulty, survival and bands. The sequence is supplied by the caller; overlapping forecasts do not define additional independent actions. |
+
+## External preparation audit
+
+`get_preparation_report()` returns a copied original-file loading summary; `get_preprocessing_events()` returns the original SkillCorner dynamic-event audit. Both return `None` when tables are supplied directly; external segmentation
+returns its report separately. These records are separate from numerical
+component results and can be exported as ordinary tables/JSON.

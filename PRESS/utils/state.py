@@ -88,6 +88,18 @@ def get_pv_players(frame, tracking_df):
     }
 
 
+def validate_xt_grid(grid):
+    """Return a copied xT surface: first axis attack x, second lateral y.
+
+    Any nonempty two-dimensional resolution is accepted. The map represents
+    cell values (not xT changes), so entries must be finite and nonnegative.
+    """
+    values = np.asarray(grid, dtype=float)
+    if values.ndim != 2 or 0 in values.shape or not np.isfinite(values).all() or (values < 0).any():
+        raise ValueError('xT_grid must be a finite nonnegative (n_x, n_y) array.')
+    return values.copy()
+
+
 def get_xt_values(targets, attacking_side, xt_grid, *, pitch_length=105.0, pitch_width=68.0):
     """
     Get attacking-team and opponent xT

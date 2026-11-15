@@ -509,8 +509,8 @@
     {
       "path": "data/examples/bcos/README.md",
       "role": "Resource documentation",
-      "bytes": 2065,
-      "sha256": "3b5c6ac5aa5f606bbce9a659ee86224095d1543a8bbe99c34b3aca3d9252240f"
+      "bytes": 2286,
+      "sha256": "9a03f0e2662e648fec3f6df2a199832919dbc53dca1a52b00984e804f3d679b9"
     },
     {
       "path": "data/examples/bcos/checkpoint_series.csv",
@@ -547,6 +547,12 @@
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 25034,
       "sha256": "43cfc34630ac3df942bbbef825ca6a9491ab73d3513810055ba6d3c3d037974b"
+    },
+    {
+      "path": "data/examples/bcos/final_example_summary.json",
+      "role": "Descriptive example/report summary or selected-case metadata",
+      "bytes": 627,
+      "sha256": "41152afcfac22057da1ba02c807dfe913e5e97fbff9ad2c4a15da416f5cbf1b6"
     },
     {
       "path": "data/examples/bcos/grid_bootstrap_summary.csv",

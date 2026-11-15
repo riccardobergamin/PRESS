@@ -1,53 +1,133 @@
 """Possession/frame navigation over explicit canonical tables."""
 
 
+from copy import deepcopy
+
+
 class NavigationMixin:
     """Internal implementation of the public PRESS methods."""
 
-    def get_possessions(self, *, team_id=None):
-        """Return a copy of explicit team intervals, optionally filtered by team.
+    def get_team_possessions(self, possession_id=None, *, team_id=None):
+        """Return team intervals, optionally selected by their ID and team.
 
+        Always returns a copied DataFrame, including for a single ID.
+        Omitted filters select all intervals; unmatched filters select none.
         Raises ValueError when no team/player interval table was supplied.
         Carrier labels alone do not define verified team possessions.
         """
         if self.possessions_data is None:
             raise ValueError('Supply possessions_data or player_possessions_data to navigate possessions.')
         table = self.possessions_data
+        if possession_id is not None:
+            table = table.loc[table.possession_id.eq(possession_id)]
         if team_id is not None:
             if team_id not in ('home', 'away'):
                 raise ValueError('team_id must be home or away.')
             table = table.loc[table.team_id == team_id]
         return table.copy().reset_index(drop=True)
 
-    def get_possession(self, possession_id):
-        """Return one team interval as a copied Series; unknown ID raises KeyError."""
-        table = self.get_possessions()
-        selected = table.loc[table.possession_id == possession_id]
-        if selected.empty:
-            raise KeyError(f'Unknown possession_id {possession_id!r}.')
-        return selected.iloc[0].copy()
+    def get_player_possessions(self, possession_id=None, *, team_id=None,
+                               player_id=None, team_possession_id=None):
+        """Select individual controls by their ID, team, player or team interval.
 
-    def get_player_possessions(self, possession_id=None, *, team_id=None, player_id=None):
-        """Return linked player intervals, optionally restricted to one team possession."""
+        No filters returns all individual possessions. possession_id always
+        identifies an INDIVIDUAL control; team_possession_id is explicitly
+        separate. Combined filters are intersected. Return a copied DataFrame.
+        """
         if self.player_possessions_data is None:
             raise ValueError('No player_possessions_data was supplied.')
         table = self.player_possessions_data
         if possession_id is not None:
-            self.get_possession(possession_id)
-            table = table.loc[table.team_possession_id == possession_id]
+            if 'possession_id' not in table:
+                raise ValueError('Individual intervals require possession_id for ID-based selection.')
+            table = table.loc[table.possession_id.eq(possession_id)]
+        if team_possession_id is not None:
+            table = table.loc[table.team_possession_id.eq(team_possession_id)]
         if team_id is not None:
             if team_id not in ('home', 'away'):
                 raise ValueError('team_id must be home or away.')
             table = table.loc[table.player_id.str.startswith(team_id + '_')]
         if player_id is not None:
-            table = table.loc[table.player_id == player_id]
+            table = table.loc[table.player_id.eq(player_id)]
+        return table.copy().reset_index(drop=True)
+
+    def get_actions(self, possession_id=None, *, team_id=None, player_id=None,
+                    team_possession_id=None, include_snapshots=False,
+                    valid_only=False):
+        """Select actions by individual possession, team, player or team interval.
+
+        By default returns all canonical pass/carry actions. Set
+        include_snapshots=True to include exposure/terminal snapshots.
+        Each canonical action's frame_start is its checkpoint. valid_only
+        retains starts with a usable carrier, attack direction and kinematics;
+        it does not verify the observed outcome or run any model.
+        Supplied action identifiers are preserved. Missing identifiers are
+        recovered from explicit individual intervals, never carrier changes.
+        Player identity can also be read from the action's tracking frame.
+        """
+        import numpy as np
+
+        if self.actions_data is None:
+            raise ValueError('Supply player_possessions_data or actions_data to navigate actions and checkpoints.')
+        table = self.actions_data.copy()
+        parents = self.player_possessions_data
+        # Attach optional identity columns without mutating actions_data.
+        # Inclusive, nonoverlapping parent intervals uniquely identify each
+        # action start; this also supports explicitly supplied minimal tables.
+        if parents is not None and len(parents):
+            parents = parents.sort_values('frame_start', kind='stable')
+            indices = np.searchsorted(parents.frame_start.to_numpy(),
+                                      table.frame_start.to_numpy(), side='right')-1
+            covered = indices >= 0
+            covered[covered] &= (table.frame_start.to_numpy()[covered]
+                                <= parents.frame_end.to_numpy()[indices[covered]])
+            for column in ['possession_id', 'player_id', 'team_possession_id']:
+                if column not in table and column in parents:
+                    values = np.full(len(table), None, dtype=object)
+                    values[covered] = parents[column].to_numpy(dtype=object)[indices[covered]]
+                    table[column] = values
+        if 'player_id' not in table:
+            carriers = self.tracking_data.set_index('frame').player_possession
+            table['player_id'] = table.frame_start.map(carriers)
+        if 'team_id' not in table:
+            table['team_id'] = table.player_id.astype('string').str.split('_').str[0]
+        if 'is_canonical' not in table:
+            table['is_canonical'] = table.action.isin(['ball_drive', 'pass'])
+        if not include_snapshots:
+            table = table.loc[table.is_canonical]
+        if possession_id is not None:
+            if 'possession_id' not in table:
+                raise ValueError('Individual selection requires actions_data.possession_id or explicit individual intervals.')
+            table = table.loc[table.possession_id.eq(possession_id)]
+        if team_possession_id is not None:
+            interval = self.get_team_possessions(team_possession_id)
+            if interval.empty:
+                return table.head(0).copy().reset_index(drop=True)
+            table = table.loc[table.frame_start.between(interval.frame_start.item(), interval.frame_end.item())]
+        if team_id is not None:
+            if team_id not in ('home', 'away'):
+                raise ValueError('team_id must be home or away.')
+            table = table.loc[table.team_id.eq(team_id)]
+        if player_id is not None:
+            table = table.loc[table.player_id.eq(player_id)]
+        if valid_only:
+            valid_frames = self.get_frames(team_possession_id, valid_only=True).frame
+            kinds = ['ball_drive', 'pass'] + (['snapshot'] if include_snapshots else [])
+            table = table.loc[table.action.isin(kinds) & table.frame_start.isin(valid_frames)]
+            if table.frame_start.duplicated().any():
+                raise ValueError('Ambiguous duplicate action starts; resolve actions_data first.')
         return table.copy().reset_index(drop=True)
 
     def get_frame(self, frame_id):
         """Return one wide tracking row as a copied DataFrame; unknown ID raises KeyError."""
+        cache = getattr(self, '_frame_inputs', None)
+        if cache is not None and cache['frame_id'] == frame_id and 'frame' in cache:
+            return cache['frame'].copy().reset_index(drop=True)
         frame = self.tracking_data.loc[self.tracking_data.frame == frame_id]
         if frame.empty:
             raise KeyError(f'Unknown frame_id {frame_id!r}.')
+        if cache is not None and cache['frame_id'] == frame_id:
+            cache['frame'] = frame
         return frame.copy().reset_index(drop=True)
 
     def get_frames(self, possession_id=None, *, valid_only=False):
@@ -61,8 +141,10 @@ class NavigationMixin:
 
         table = self.tracking_data
         if possession_id is not None:
-            interval = self.get_possession(possession_id)
-            table = table.loc[table.frame.between(interval.frame_start, interval.frame_end)]
+            interval = self.get_team_possessions(possession_id)
+            if interval.empty:
+                raise KeyError(f'Unknown team possession_id {possession_id!r}.')
+            table = table.loc[table.frame.between(interval.frame_start.item(), interval.frame_end.item())]
         if valid_only:
             mask = table.player_possession.notna() & table.attacking_side.isin(['left_to_right', 'right_to_left'])
             for player in table.loc[mask, 'player_possession'].unique():
@@ -71,45 +153,6 @@ class NavigationMixin:
                 mask.loc[selected] &= np.isfinite(table.loc[selected, columns]).all(axis=1)
             table = table.loc[mask]
         return table.sort_values('frame').copy().reset_index(drop=True)
-
-    def get_checkpoints(self, possession_id=None, *, eligible_only=True, include_snapshots=False):
-        """Return canonical action starts, optionally with evaluation-only snapshots.
-
-        Adds frame_id, start_type_std, previous_action_std, eligible.
-        Canonical rows include drive attempts (also early failures) and pass
-        releases. Short non-loss control tails and other terminal snapshots
-        are optional and never action-selection training examples.
-        Source possession_id, if present, remains a PLAYER-possession ID.
-        """
-        from PRESS.utils.match import standardize_action_context
-
-        if self.actions_data is None:
-            raise ValueError('Supply actions_data to navigate action checkpoints.')
-        table = self.actions_data.copy()
-        if possession_id is not None:
-            interval = self.get_possession(possession_id)
-            table = table.loc[table.frame_start.between(interval.frame_start, interval.frame_end)].copy()
-        table['frame_id'] = table.frame_start
-        if 'is_canonical' not in table:
-            table['is_canonical'] = table.action.isin(['ball_drive', 'pass'])
-        table['checkpoint_kind'] = table.is_canonical.map({True: 'canonical', False: 'snapshot'})
-        table['start_type_std'] = table.start_type.map(standardize_action_context)
-        table['previous_action_std'] = table.previous_action.map(
-            lambda value: standardize_action_context(value, previous=True)
-        )
-        valid_frames = self.get_frames(possession_id, valid_only=True).frame
-        table['eligible'] = (
-            (
-                table.is_canonical & table.action.isin(['ball_drive', 'pass'])
-                | include_snapshots & table.action.eq('snapshot')
-            )
-            & table.frame_id.isin(valid_frames)
-        )
-        if eligible_only:
-            table = table.loc[table.eligible]
-            if table.frame_id.duplicated().any():
-                raise ValueError('Ambiguous duplicate checkpoints; resolve actions_data first.')
-        return table.reset_index(drop=True)
 
     def get_frame_context(self, frame_id, *, granular=None):
         """Read action context for any annotated tracking frame.
@@ -168,6 +211,9 @@ class NavigationMixin:
         import numpy as np
         import pandas as pd
 
+        cache = getattr(self, '_frame_inputs', None)
+        if cache is not None and cache['frame_id'] == frame_id and 'context' in cache:
+            return dict(cache['context'])
         frame = self.get_frame(frame_id).iloc[0]
         context = dict(
             start_type=frame.get('start_type_raw', frame.get('start_type', None)),
@@ -194,6 +240,8 @@ class NavigationMixin:
                     time_since_start=float(elapsed),
                     source='individual_possession',
                 )
+                if cache is not None and cache['frame_id'] == frame_id:
+                    cache['context'] = dict(context)
                 return context
         if self.actions_data is not None:
             intervals = self.actions_data.loc[
@@ -219,6 +267,8 @@ class NavigationMixin:
                         time_since_start=float(elapsed),
                         previous_action='ball_drive' if count >= 1 else row.start_type,
                     )
+        if cache is not None and cache['frame_id'] == frame_id:
+            cache['context'] = dict(context)
         return context
 
     def get_state(self, frame_id):
@@ -227,6 +277,11 @@ class NavigationMixin:
         """
         from PRESS.utils.state import get_pv_players
 
+        cache = getattr(self, '_frame_inputs', None)
+        if cache is not None and cache['frame_id'] == frame_id:
+            if 'state' not in cache:
+                cache['state'] = get_pv_players(frame_id, self.get_frame(frame_id))
+            return deepcopy(cache['state'])
         return get_pv_players(frame_id, self.tracking_data)
 
     def get_match_info(self):
@@ -242,27 +297,15 @@ class NavigationMixin:
             table = table.loc[table.team_id == team_id]
         return table.copy().reset_index(drop=True)
 
-    def get_player_possession(self, player_possession_id):
-        """Return one individual interval by its source possession_id.
-
-        This differs from get_possession(), which selects a TEAM interval.
-        No individual interval is inferred from changes of carrier labels.
-        """
-        table = self.get_player_possessions()
-        if 'possession_id' not in table:
-            raise ValueError('Individual intervals require possession_id for ID-based selection.')
-        selected = table.loc[table.possession_id == player_possession_id]
-        if selected.empty:
-            raise KeyError(f'Unknown player_possession_id {player_possession_id!r}.')
-        if len(selected) != 1:
-            raise ValueError('Individual possession IDs must be unique within a match.')
-        return selected.iloc[0].copy()
-
     def get_player_frames(self, player_possession_id, *, valid_only=False):
         """Return copied tracking rows inside an individual possession interval."""
-        interval = self.get_player_possession(player_possession_id)
+        interval = self.get_player_possessions(possession_id=player_possession_id)
+        if interval.empty:
+            raise KeyError(f'Unknown player_possession_id {player_possession_id!r}.')
+        if len(interval) != 1:
+            raise ValueError('Individual possession IDs must be unique within a match.')
         frames = self.get_frames(valid_only=valid_only)
-        return frames.loc[frames.frame.between(interval.frame_start, interval.frame_end)].reset_index(drop=True)
+        return frames.loc[frames.frame.between(interval.frame_start.item(), interval.frame_end.item())].reset_index(drop=True)
 
     def get_elapsed_time(self, frame_id):
         """Return observed individual-possession age in seconds.
@@ -287,3 +330,29 @@ class NavigationMixin:
                 'time_since_start explicitly.'
             )
         return float(value)
+
+
+    def get_preparation_report(self):
+        """Return the raw-loader preparation report, or None for direct table input."""
+        from copy import deepcopy
+        return deepcopy(getattr(self, 'data_preparation_report', None))
+
+    def get_preprocessing_events(self):
+        """Return original-loader event audit records, or None for direct table input."""
+        events = getattr(self, 'preprocessing_events', None)
+        return None if events is None else events.copy(deep=True)
+
+
+    def get_xt_grid(self, frame_id=None):
+        """Return a copied xT map; optional frame selects the map actually used."""
+        if frame_id is not None:
+            field = self.get_ppcf_result(frame_id)
+            if 'configuration_id' in field:
+                configuration = self.result_configurations[field['configuration_id']]
+                if 'xT grid' not in configuration:
+                    raise ValueError('Compute pass selection to identify the frame xT map.')
+                return configuration['xT grid'].copy()
+            if 'xT grid' not in field:
+                raise ValueError('Compute pass selection to identify the frame xT map.')
+            return field['xT grid'].copy()
+        return self._resolve_xt_grid(None)

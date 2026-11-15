@@ -135,6 +135,8 @@ def plot_pass_map(press, frame_id, pitch_length=None, pitch_width=None, figsize=
             raise ValueError("pass_target must contain two finite pitch coordinates.")
     result = press.get_ppcf_result(frame_id)
     if keys[field] not in result:
+        if result.get('details_available') is False:
+            raise ValueError('Spatial details were not retained; rerun compute_risk_frame with keep_details=True.')
         raise ValueError("Compute the requested pass field before plotting it.")
     fig, ax, pitch, frame, players = _canvas(
         press,
@@ -197,6 +199,8 @@ def plot_ball_drive_risk(press, frame_id, pitch_length=None, pitch_width=None, f
     player padding. A zero total loss produces zero relative shares.
     """
     result = press.get_ball_drive_risk_result(frame_id)
+    if 'Individual tackle probabilities' not in result:
+        raise ValueError('Defender details were not retained; rerun compute_risk_frame with keep_details=True.')
     state = press.get_state(frame_id)
     total = float(result["Ball drive risk"])
     probabilities = np.asarray(result["Individual tackle probabilities"], float)
@@ -235,6 +239,8 @@ def plot_bcos(bcos, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 
     """Draw a stored BCOS probability field from PRESS or BCOS; return (fig, ax)."""
     result = (bcos.get_bcos_result(frame_id) if hasattr(bcos, "get_bcos_result")
               else bcos.get_result(frame_id))
+    if 'grid' not in result or 'Ball carrier open space' not in result:
+        raise ValueError('BCOS map is unavailable; compute_bcos or run compute_risk_frame with keep_details=True.')
     fig, ax, pitch, frame, players = _canvas(bcos, frame_id, pitch_length, pitch_width, figsize, ax)
     _field(fig, ax, result["grid"], result["Ball carrier open space"],
            label="Ball carrier open space", cmap="inferno", legend_fontsize=legend_fontsize)

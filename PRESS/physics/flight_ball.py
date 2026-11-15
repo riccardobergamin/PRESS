@@ -278,6 +278,7 @@ def player_arrival_time(
     *,
     a_turn=None,
     preserve_initial_overspeed=True,
+    arrival_times=None,
 ):
     """
     Arrival time of the player closest to each target position.
@@ -287,6 +288,8 @@ def player_arrival_time(
 
     After selecting the closest player, its arrival time is
     computed using the same time-to-intercept model used by F().
+    Optional arrival_times is the already computed (players, targets) TTI
+    matrix under those same settings; nearest-player selection is unchanged.
     """
 
     # --------------------------------------------------------
@@ -325,7 +328,7 @@ def player_arrival_time(
     # Time to intercept for every player-target pair
     # --------------------------------------------------------
 
-    tau_players = time_to_intercept(
+    tau_players = arrival_times if arrival_times is not None else time_to_intercept(
         p_attackers,
         v_attackers,
         r_target,
@@ -443,6 +446,8 @@ def time_flight(
     distance_mode="exact",
     a_turn=None,
     preserve_initial_overspeed=True,
+    trajectories=None,
+    receiver_arrival_times=None,
 ):
     """
     Compute final ball arrival time.
@@ -455,6 +460,8 @@ def time_flight(
 
     distance_mode='lookup' is an explicitly approximate, correctly spaced
     table for sensitivities. The final benchmark uses 'exact'.
+    Optional trajectories and receiver_arrival_times reuse numerical inputs;
+    selecting a flight still uses this frame's distances and nearest receiver.
     """
 
     if r_target.shape[0] == 0:
@@ -466,7 +473,7 @@ def time_flight(
         dt_ball,
     )
 
-    trajectories = generate_ball_trajectories(
+    trajectories = trajectories if trajectories is not None else generate_ball_trajectories(
         v0_candidates,
         theta_candidates,
         t_span,
@@ -487,6 +494,7 @@ def time_flight(
         a_max,
         a_turn=a_turn,
         preserve_initial_overspeed=preserve_initial_overspeed,
+        arrival_times=receiver_arrival_times,
     )
 
     if distance_mode == "exact":

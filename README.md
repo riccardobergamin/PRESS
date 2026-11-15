@@ -48,9 +48,9 @@ The package checks the integrity and feature contract of each tree model when it
 
 ## Package API
 
-`PRESS` represents one match. Initialize it from canonical wide tables, use `PRESS.from_long(players, ball, context, ...)` for another provider's long tables, or use `PRESS.from_skillcorner(...)` for this project's processed parquet files. Input frequency, pitch dimensions and source-ID mapping are explicit. Initialization validates and copies the inputs and performs no inference.
+`PRESS` represents one match. Use `PRESS.from_skillcorner(...)` to read original SkillCorner match files and prepare velocities, possessions and actions in memory. For other data already prepared by the caller, initialize `PRESS(tracking_data, ...)` directly; `PRESS.io.segment_possessions(...)` constructs individual controls/actions when they are missing. Input frequency, pitch dimensions and source-ID mapping are explicit. Initialization validates and copies the inputs and performs no inference.
 
-The workflow is load → navigate → compute → retrieve → plot or save. Team and individual possessions have separate getters. Any usable frame can be evaluated independently of canonical checkpoint sampling. `compute_frame(frame_id)` computes h, and `include_residual=True` also computes the conditional residual risk and the terminal individual xLoss, deriving the elapsed time from annotations and never imputing zero. The fitted xT surface and the frozen model parameters are included in the pretrained artifacts.
+The workflow is load → navigate → compute → retrieve → plot or save. Team and individual possessions have separate getters. Any usable frame can be evaluated independently of canonical checkpoint sampling. `compute_risk_frame(frame_id)` computes h, and `include_residual=True` also computes the conditional residual risk and the terminal individual xLoss, deriving the elapsed time from annotations and never imputing zero. The fitted xT surface and the frozen model parameters are included in the pretrained artifacts.
 
 ```python
 from PRESS import PRESS
@@ -91,7 +91,7 @@ All plot functions return figure and axes. Getters copy results by default. Save
 
 **Benchmarks.** The [benchmark overview](benchmark.qmd) describes the dataset, the shared evaluation protocol and the metrics. Each task has its own page: [ball-drive risk](benchmarks/01_ball_drive_risk.qmd), [pass probability](benchmarks/02_pass_probability.qmd), [pass selection](benchmarks/03_pass_selection.qmd), [action selection](benchmarks/04_action_selection.qmd), [residual risk](benchmarks/05_residual_risk.qmd) and [composed risk](benchmarks/06_composed_risk.qmd).
 
-**Extras.** [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb), whose scalar area is a feature of action selection, and [Expected Threat](vignettes/spatial_features/expected_threat/11_expected_threat.ipynb), which builds the xT grid consumed by PRESS (Singh, 2018).
+**Spatial features: accessibility and value.** [Ball Carrier Open Space](vignettes/spatial_features/bcos/10_bcos.ipynb), whose scalar area is a feature of action selection, and [Expected Threat](vignettes/spatial_features/expected_threat/11_expected_threat.ipynb), which builds the xT grid consumed by PRESS (Singh, 2018).
 
 **Reference.** [Initialization and classes](api.qmd), [solvers](solvers.qmd), [getters and saved results](reference/getters.qmd), [plot functions](reference/plots.qmd), the [research pipeline](pipeline.qmd) and the [project plan](roadmap.qmd).
 
@@ -125,7 +125,7 @@ python scripts/rebuild_vignettes.py
 python scripts/check_docs.py
 ```
 
-The checked-in model examples use observed matches and saved figures. Re-executing them requires the local processed tracking, whereas rendering the saved outputs does not. The examples read the processed matches from the folder given by the `PRESS_PROCESSED_ROOT` environment variable. The command-line example requires `--match-dir` and reads an observed match. See the [dataset and preprocessing guide](data.qmd) and [data/README.md](data/README.md) for local data preprocessing.
+The checked-in model examples use observed matches and saved figures. Re-executing SkillCorner examples requires the original match JSON, tracking JSONL and dynamic-event CSV under the root selected by `SKILLCORNER_OPENDATA`; no precomputed Parquet files are required. Rendering saved outputs does not require the input data. The command-line example requires `--match-dir` and reads an observed match. See the [dataset and preprocessing guide](data.qmd) and [data/README.md](data/README.md) for local data preprocessing.
 
 ## Build the website
 
@@ -143,8 +143,8 @@ PRESS uses ten matches of the Australian A-League 2024/25 season from the [Skill
 
 ## Repository map
 
-- `PRESS/`: the importable package, split into `core`, `io`, `model`, `physics`, `utils`, `extras` and `visualization`.
-- `vignettes/`: runnable notebooks for the models, the case studies, the match workflow and the setup page. BCOS and expected threat are under `vignettes/extras/`.
+- `PRESS/`: the importable package, split into `core`, `io`, `model`, `physics`, `utils`, `spatial_features` and `visualization`.
+- `vignettes/`: runnable notebooks for the models, the case studies, the match workflow and the setup page. BCOS and expected threat are under `vignettes/spatial_features/`.
 - `benchmarks/`: one benchmark page per task, and `benchmark.qmd` for the shared protocol.
 - `index.qmd`, `data.qmd`, `usage.qmd`, `api.qmd`, `solvers.qmd`, `reference/`, `pipeline.qmd`, `roadmap.qmd`, `_quarto.yml`: site pages and navigation.
 - `docs/`, `figures/`, `data/`: provenance records, figures and data setup notes.

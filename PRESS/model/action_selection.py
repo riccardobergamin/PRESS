@@ -153,6 +153,7 @@ class ActionSelectionModel:
         pitch_length=105.0,
         pitch_width=68.0,
         pressure_lines=None,
+        xt_grid=None,
     ):
         """All geometry is current/hypothetical; no realized pass outcome input.
 
@@ -164,6 +165,8 @@ class ActionSelectionModel:
         it once to the fitted feature drive_success_1s = 1 - ball_drive_loss.
         """
         from .action_features import aggregate
+        from PRESS.utils.state import validate_xt_grid
+        surface = self.xt_grid if xt_grid is None else validate_xt_grid(xt_grid)
         from PRESS.utils.state import compute_dynamic_pressure_lines
 
         if attacking_side not in ['left_to_right', 'right_to_left']:
@@ -212,7 +215,7 @@ class ActionSelectionModel:
             completion=pass_success_probability,
             drive_loss=ball_drive_loss,
             bcos=bcos,
-            xt_grid=self.xt_grid,
+            xt_grid=surface,
             pitch_length=pitch_length,
             pitch_width=pitch_width,
             match_clock_min=match_clock_min,

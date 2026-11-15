@@ -32,3 +32,7 @@ cells; they are hatched and labelled 0. `temporal_display.csv` distinguishes
 actual five-minute window means from internal linear interpolation, plotted
 with dashed segments. Original checkpoint values, spatial aggregates and
 reported statistics remain unchanged. No model is refitted.
+
+`final_example_summary.json` and `vignette_10_bcos_transport.png` use the final
+transport formulation. Match-wide descriptive summaries retain the preliminary
+effective-hazard formulation used by the frozen classifiers.

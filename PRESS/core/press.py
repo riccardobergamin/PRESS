@@ -14,9 +14,8 @@ from .results import ResultsMixin
 class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
     """Load one match, navigate its states and evaluate possession risk.
 
-    Use canonical wide tracking directly, ``from_long`` for long tables from
-    another provider, or ``from_skillcorner`` for the project's processed
-    files. Initialization validates/copies inputs; it runs no predictions.
+    Use canonical tracking tables directly, or ``from_skillcorner`` for
+    original SkillCorner match files. Initialization validates/copies inputs; it runs no predictions.
     Individual/team possessions and action annotations are optional for
     explicit-context frame calculations. Model instances or exported manifest
     paths can replace the bundled pretrained models.
@@ -40,6 +39,7 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
         pitch_width=None,
         match_id=None,
         player_metadata=None,
+        xT_grid=None,
     ):
         """Initialize canonical centred-metre tracking for one match.
 
@@ -60,7 +60,9 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
             team intervals; see ``link_team_possessions`` in the reference.
         actions_data : pandas.DataFrame, optional
             Canonical action intervals with ``frame_start, frame_end,
-            action, start_type, previous_action``. No segmentation is guessed.
+            action, start_type, previous_action``. When omitted and individual
+            possessions are supplied, PRESS constructs actions using its
+            canonical one-second carry/pass convention.
         fps : float
             Input frame frequency. Default 10 Hz preserves the original
             dataset; use the actual frequency for another tracking source.
@@ -71,10 +73,14 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
             User/provider match identifier, retained in metadata and exports.
         player_metadata : pandas.DataFrame, optional
             Roster keyed by canonical ``player_id``; source IDs/names may be
-            included. ``from_long`` constructs the source-ID mapping itself.
+            included. The long-table conversion helper returns the source-ID mapping.
+        xT_grid : array-like, optional
+            Value surface (n_x, n_y), oriented to attack toward positive x.
+            Used by all contextual models. None selects the bundled surface.
         ball_drive_model, pass_risk_model, pass_selection_model,
         action_selection_model, residual_risk_model : model or path, optional
-            Explicit fitted model or JSON-manifest path. Bundled production
+            Explicit fitted model or JSON-manifest path. The two physical
+            models also accept named parameter dictionaries. Bundled production
             models are resolved lazily when their component is requested.
         """
         from PRESS.io.validation import prepare_tracking
@@ -101,6 +107,8 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
         self.action_selection_model = self._load_model(action_selection_model, ActionSelectionModel)
         self.residual_risk_model = self._load_model(residual_risk_model, ResidualRiskModel)
 
+        from PRESS.utils.state import validate_xt_grid
+        self.xT_grid = None if xT_grid is None else validate_xt_grid(xT_grid)
         self.player_metadata = self._prepare_roster(player_metadata)
         self.player_possessions_data = None
         if player_possessions_data is not None:
@@ -125,6 +133,27 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
                 raise ValueError("Team possession intervals must not overlap.")
             self.possessions_data = table
         self.actions_data = None
+        if actions_data is None and self.player_possessions_data is not None:
+            from PRESS.io.segmentation import canonical_actions
+
+            # Possession boundaries belong to the input dataset. The action
+            # unit and checkpoint convention belong to PRESS, not the provider.
+            intervals = self.player_possessions_data.copy()
+            if "possession_id" not in intervals:
+                raise ValueError(
+                    "Individual possessions require possession_id to construct canonical actions."
+                )
+            if "match_id" not in intervals:
+                intervals["match_id"] = "" if match_id is None else str(match_id)
+            if "game_interruption_after" not in intervals:
+                intervals["game_interruption_after"] = None
+            if "start_type" not in intervals:
+                intervals["start_type"] = "unknown"
+            actions_data = canonical_actions(intervals, fps=self.fps)
+            if "outcome_verified" in intervals:
+                actions_data["outcome_verified"] = actions_data.possession_id.map(
+                    intervals.set_index("possession_id").outcome_verified
+                )
         if actions_data is not None:
             self.actions_data = validate_intervals(actions_data, [
                 "frame_start", "frame_end", "action", "start_type", "previous_action",
@@ -132,6 +161,9 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
         self.results = {name: {} for name in (
             "PPCF", "BALL_DRIVE_RISK", "ACTION_SELECTION", "HAZARD", "BCOS", "RESIDUAL_RISK", "XLOSS",
         )}
+        # Shared objects: result rows contain references, never copies of models.
+        self.result_models = {}
+        self.result_configurations = {}
 
     @property
     def fps(self):
@@ -140,9 +172,11 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
 
     @staticmethod
     def _load_model(value, model_class):
-        """Validate a model instance or load its exported manifest."""
+        """Resolve a model, physical-parameter dictionary or exported manifest."""
         if value is None or isinstance(value, model_class):
             return value
+        if isinstance(value, dict) and hasattr(model_class, 'from_parameters'):
+            return model_class.from_parameters(value)
         if isinstance(value, (str, Path)):
             return model_class.from_json(value)
         raise TypeError(f"Expected {model_class.__name__}, a manifest path, or None.")
@@ -170,73 +204,24 @@ class PRESS(NavigationMixin, ComputationMixin, ResultsMixin):
         return roster
 
     @classmethod
-    def from_long(cls, players, ball, context, *, home_team="home", away_team="away", **kwargs):
-        """Initialize from provider-independent long player/ball/context tables.
+    def from_skillcorner(cls, match_dir, *, match_id=None, fps=10.0, xT_grid=None, **models):
+        """Load one original SkillCorner match and initialize PRESS.
 
-        See ``PRESS.io.tracking_from_long`` for the three table schemas.
-        Source IDs are mapped to internal home/away aliases and retained by
-        ``get_players``. Optional player/event/team interval tables in kwargs
-        use source IDs too; they are remapped without inferring outcomes.
-        Rename source columns and convert coordinates/units before this call.
+        The folder contains <id>_match.json, <id>_tracking_extrapolated.jsonl
+        and <id>_dynamic_events.csv. The folder name supplies id unless
+        match_id is explicit. Velocities, annotated possessions, context and
+        canonical actions are prepared in memory; no Parquet is required.
+        Optional model arguments replace the bundled pretrained models.
         """
-        from PRESS.io import tracking_from_long
+        from PRESS.io.skillcorner import load_skillcorner
 
-        tracking, roster = tracking_from_long(
-            players, ball, context, home_team=home_team, away_team=away_team,
-        )
-        teams = {home_team: "home", away_team: "away"}
-        sources = roster.groupby("source_player_id", sort=False).player_id.agg(list).to_dict()
-        pairs = {(r.source_team_id, r.source_player_id): r.player_id for r in roster.itertuples()}
-        for name in ("player_possessions_data", "events_data", "possessions_data", "actions_data"):
-            if kwargs.get(name) is None:
-                continue
-            table = kwargs[name].copy()
-            for column in ("player_id", "target_pass", "receiver_player_id"):
-                if column not in table:
-                    continue
-                mapped = []
-                for _, row in table.iterrows():
-                    value = row[column]
-                    if pd.isna(value):
-                        mapped.append(None)
-                        continue
-                    alias = pairs.get((row.get("team_id"), value))
-                    candidates = sources.get(value, [])
-                    if alias is None and len(candidates) == 1:
-                        alias = candidates[0]
-                    if alias is None:
-                        raise ValueError(f"Unknown or ambiguous source ID in {name}.{column}.")
-                    mapped.append(alias)
-                table[column] = mapped
-            if "team_id" in table:
-                if not table.team_id.isin(teams).all():
-                    raise ValueError(f"Unknown source team in {name}.")
-                table["team_id"] = table.team_id.map(teams)
-            kwargs[name] = table
-        if "player_metadata" in kwargs:
-            raise ValueError("from_long builds player_metadata from the source roster.")
-        return cls(tracking, player_metadata=roster, **kwargs)
-
-    @classmethod
-    def from_skillcorner(cls, match_dir, *, actions_path=None, **kwargs):
-        """Load the project's processed SkillCorner parquet files at 10 Hz.
-
-        The directory contains ``<match_id>_tracking.parquet`` and
-        ``<match_id>_possession.parquet``. Optional multi-match actions are
-        filtered by match_id. This is a convenience file adapter, not a raw
-        SkillCorner preprocessing pipeline. Requires the ``io`` extra.
-        """
-        match_dir = Path(match_dir)
-        match_id = match_dir.name
-        tracking = pd.read_parquet(match_dir / f"{match_id}_tracking.parquet")
-        players = pd.read_parquet(match_dir / f"{match_id}_possession.parquet")
-        actions = None
-        if actions_path is not None:
-            actions_path = Path(actions_path)
-            actions = (pd.read_parquet(actions_path) if actions_path.suffix == ".parquet"
-                       else pd.read_csv(actions_path, dtype={"match_id": str}))
-            if "match_id" not in actions:
-                raise ValueError("Actions must contain match_id.")
-            actions = actions.loc[actions.match_id.astype(str) == match_id].copy()
-        kwargs.setdefault("match_id", match_id)
-        return cls(tracking, player_possessions_data=players, actions_data=actions, **kwargs)
+        allowed = {'ball_drive_model', 'pass_risk_model', 'pass_selection_model',
+                   'action_selection_model', 'residual_risk_model'}
+        unknown = set(models)-allowed
+        if unknown:
+            raise TypeError('Unsupported SkillCorner loader arguments: '+str(sorted(unknown)))
+        inputs, source_events, report = load_skillcorner(match_dir, match_id=match_id, fps=fps)
+        press = cls(**inputs, xT_grid=xT_grid, **models)
+        press.preprocessing_events = source_events
+        press.data_preparation_report = report
+        return press

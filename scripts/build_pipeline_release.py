@@ -54,6 +54,8 @@ def inventory_objects():
             if not path.is_file() or path.name == '.DS_Store':
                 continue
             relative = str(path.relative_to(ROOT))
+            if relative.startswith('data/external/'):
+                continue
             if 'old' in path.relative_to(ROOT).parts:
                 raise ValueError(f'Excluded object in public resources: {relative}')
             if folder == 'data':

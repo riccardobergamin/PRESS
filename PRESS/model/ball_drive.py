@@ -134,6 +134,105 @@ class BallDriveModel:
         return deepcopy(self._artifact)
 
     @property
+    def parameters(self):
+        """Named fitted parameters; positive scales are in their natural units.
+
+        gamma_v/gamma_B multiply the saved nonlinear speed/boundary bases.
+        beta_angle multiplies the saved standardized linear angle term;
+        gamma_angle multiplies its two nonlinear components.
+        """
+        values = dict(lambda_0=float(np.exp(self.theta[0])),
+                      beta_v=float(self.theta[1]), beta_B=float(self.theta[2]),
+                      s=float(np.exp(self.theta[3])))
+        if self.count:
+            values.update(gamma_v=self.theta[4:7].tolist(),
+                          gamma_B=self.theta[7:10].tolist())
+        if self.kind == 'individual_angle':
+            start = 4+self.count
+            values.update(beta_angle=float(self.theta[start]),
+                          gamma_angle=self.theta[start+1:start+3].tolist())
+        return values
+
+    @classmethod
+    def from_parameters(cls, parameters, *, base=None):
+        """Apply named inputs to a fitted base without refitting or mutating it.
+
+        Missing values/bases are inherited from base (production if omitted).
+        A complete exported artifact is also accepted unchanged. Supplying
+        another basis requires its corresponding fitted coefficients.
+        """
+        if not isinstance(parameters, dict):
+            raise TypeError('Ball-drive model parameters must be a dictionary.')
+        if 'schema_version' in parameters:
+            return cls(parameters)
+        if base is None:
+            base = cls.pretrained()
+        if not isinstance(base, cls):
+            raise TypeError('base must be a BallDriveModel.')
+        allowed = {'lambda_0','beta_v','beta_B','s','gamma_v','gamma_B',
+                   'beta_angle','gamma_angle','speed_basis','boundary_basis',
+                   'angle_basis','model_id'}
+        unknown = set(parameters)-allowed
+        if unknown:
+            raise ValueError('Unknown ball-drive parameters: '+str(sorted(unknown)))
+        artifact = base.to_dict()
+        theta = base.theta.copy()
+        for key, index in [('lambda_0',0),('beta_v',1),('beta_B',2),('s',3)]:
+            if key not in parameters:
+                continue
+            try:
+                value = float(parameters[key])
+            except (TypeError, ValueError):
+                raise ValueError(f'{key} must be a finite scalar.') from None
+            if not np.isfinite(value) or (key in {'lambda_0','s'} and value <= 0):
+                raise ValueError(f'{key} must be finite'+(' and positive.' if key in {'lambda_0','s'} else '.'))
+            # Keep an exact round trip when the natural-scale input is unchanged.
+            if key in {'lambda_0','s'}:
+                if value != float(np.exp(theta[index])):
+                    theta[index] = np.log(value)
+            else:
+                theta[index] = value
+        for key, start, count in [('gamma_v',4,3),('gamma_B',7,3),
+                                  ('gamma_angle',5+base.count,2)]:
+            if key not in parameters:
+                continue
+            if (key in {'gamma_v','gamma_B'} and not base.count
+                    or key == 'gamma_angle' and base.kind != 'individual_angle'):
+                raise ValueError(f'{key} has no active basis in the selected model.')
+            values = np.asarray(parameters[key], float)
+            if values.shape != (count,) or not np.isfinite(values).all():
+                raise ValueError(f'{key} must contain {count} finite coefficients.')
+            theta[start:start+count] = values
+        if 'beta_angle' in parameters:
+            if base.kind != 'individual_angle':
+                raise ValueError('beta_angle has no active basis in the selected model.')
+            value = np.asarray(parameters['beta_angle'], float)
+            if value.shape != () or not np.isfinite(value):
+                raise ValueError('beta_angle must be a finite scalar.')
+            theta[4+base.count] = float(value)
+        for key, coefficient_keys in [
+            ('speed_basis',{'gamma_v'}), ('boundary_basis',{'gamma_B'}),
+            ('angle_basis',{'beta_angle','gamma_angle'}),
+        ]:
+            if key not in parameters:
+                continue
+            if not coefficient_keys.issubset(parameters):
+                raise ValueError(f'{key} also requires coefficients: {sorted(coefficient_keys)}')
+            if not isinstance(parameters[key],dict):
+                raise ValueError(f'{key} must be a fitted basis dictionary.')
+            if key == 'angle_basis':
+                artifact['angle_design'] = deepcopy(parameters[key])
+            else:
+                artifact['design'][key] = deepcopy(parameters[key])
+        artifact['theta'] = theta.tolist()
+        if parameters:
+            identifier = parameters.get('model_id',base.model_id+':custom')
+            if not isinstance(identifier,str) or not identifier:
+                raise ValueError('model_id must be a nonempty string.')
+            artifact['model_id'] = identifier
+        return cls(artifact)
+
+    @property
     def model_id(self):
         """Identifier recorded by the exporting training run."""
         return self._artifact['model_id']

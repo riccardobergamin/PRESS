@@ -14,7 +14,7 @@ class ComputationMixin:
             self.action_selection_model = ActionSelectionModel.pretrained()
         return self.action_selection_model
 
-    def compute_frame(
+    def compute_risk_frame(
         self,
         frame_id,
         xT_grid=None,
@@ -31,74 +31,100 @@ class ComputationMixin:
         completed_canonical_drives=None,
         include_residual=False,
         time_since_start=None,
+        keep_details=False,
     ):
-        """Compute all core outputs in dependency order for one frame.
+        """Compute component outputs, h and its band for one frame.
 
         Any usable tracking frame can be evaluated independently of the
         possession sampling. Resolve missing context from frame annotations
         or a containing action interval; explicit arguments override it.
         The fitted model accepts raw categories with missing/unseen buckets.
-        Supply bcos_value to reuse an external BCOS area; otherwise BCOS
-        computes it. Keyword dictionaries pass to their component methods.
+        Supply bcos_value to reuse an external BCOS area; otherwise compute
+        only the preliminary effective-hazard BCOS required by the fitted
+        trees. The standalone compute_bcos default remains final transport.
+        Keyword dictionaries pass to their component methods.
         Always recomputes this frame; returns four core result mappings. With
         include_residual=True, also computes residual risk and xLoss using
-        observed/supplied elapsed time. Omitted xT_grid uses the fitted surface.
+        observed/supplied elapsed time. Omitted xT_grid uses the object map or fitted surface.
+        By default retain scalar summaries only after all dependencies finish.
+        keep_details=True also retains spatial fields, feature records and
+        integration diagnostics for inspection/plots. It changes storage only.
         """
         import numpy as np
 
-        self.get_frame(frame_id)
-        context = (
-            self.get_frame_context(frame_id)
-            if start_type is None or previous_action is None
-            else {}
-        )
-        if start_type is None:
-            start_type = context.get('start_type')
-        if previous_action is None:
-            previous_action = context.get('previous_action')
-        choice_start, choice_previous = (start_type, previous_action)
-        grid = self._resolve_xt_grid(xT_grid)
-        if include_residual:
-            if time_since_start is None:
-                time_since_start = self.get_elapsed_time(frame_id)
-            try:
-                time_since_start = float(time_since_start)
-            except (TypeError, ValueError):
-                raise ValueError('time_since_start must be finite and nonnegative seconds.') from None
-            if not np.isfinite(time_since_start) or time_since_start < 0:
-                raise ValueError('time_since_start must be finite and nonnegative seconds.')
-        if bcos_value is not None and (not np.isfinite(bcos_value) or bcos_value < 0):
-            raise ValueError('bcos_value must be a finite nonnegative scalar.')
-        self.compute_ppcf(frame_id, **ppcf_kwargs or {})
-        self.compute_ball_drive_risk(frame_id, **ball_drive_kwargs or {})
-        choice_context = dict(pass_selection_kwargs or {})
-        choice_context.setdefault('start_type_raw', choice_start)
-        choice_context.setdefault('previous_action_raw', choice_previous)
-        if match_clock_min is not None:
-            choice_context['match_clock_min'] = match_clock_min
-        if score_difference_prefix is not None:
-            choice_context['score_difference_prefix'] = score_difference_prefix
-        self.compute_pass_selection(frame_id, grid, **choice_context)
+        if not isinstance(keep_details, bool):
+            raise TypeError('keep_details must be True or False.')
+        feature_bcos_kwargs = dict(bcos_kwargs or {})
         if bcos_value is None:
-            field = self.compute_bcos(frame_id, **bcos_kwargs or {})
-            bcos_value = float(field['BCOS area'])
-        self.compute_action_selection_probability(
-            frame_id,
-            grid,
-            start_type,
-            previous_action,
-            bcos_value,
-            match_clock_min=match_clock_min,
-            score_difference_prefix=score_difference_prefix,
-            completed_canonical_drives=completed_canonical_drives,
-        )
-        self.compute_hazard(frame_id)
-        components = ['PPCF', 'BALL_DRIVE_RISK', 'ACTION_SELECTION', 'HAZARD']
-        if include_residual:
-            self.compute_residual_risk(frame_id, time_since_start=time_since_start)
-            self.compute_xloss(frame_id)
-            components += ['RESIDUAL_RISK', 'XLOSS']
-        return {key: self.get_result(key, frame_id) for key in components}
+            feature_bcos_kwargs.setdefault('formulation', 'effective_hazard')
+            if feature_bcos_kwargs['formulation'] != 'effective_hazard':
+                raise ValueError(
+                    'The fitted trees require effective_hazard BCOS. '
+                    'Use compute_bcos() separately for the final transport descriptor.'
+                )
+        # Reuse inputs only within this evaluation. Standalone calls and the
+        # next frame always see fresh tracking/annotations, including edits.
+        previous_inputs = getattr(self, '_frame_inputs', None)
+        self._frame_inputs = {'frame_id': frame_id}
+        try:
+            self.get_frame(frame_id)
+            context = (
+                self.get_frame_context(frame_id)
+                if start_type is None or previous_action is None
+                else {}
+            )
+            if start_type is None:
+                start_type = context.get('start_type')
+            if previous_action is None:
+                previous_action = context.get('previous_action')
+            choice_start, choice_previous = (start_type, previous_action)
+            grid = self._resolve_xt_grid(xT_grid)
+            if include_residual:
+                if time_since_start is None:
+                    time_since_start = self.get_elapsed_time(frame_id)
+                try:
+                    time_since_start = float(time_since_start)
+                except (TypeError, ValueError):
+                    raise ValueError('time_since_start must be finite and nonnegative seconds.') from None
+                if not np.isfinite(time_since_start) or time_since_start < 0:
+                    raise ValueError('time_since_start must be finite and nonnegative seconds.')
+            if bcos_value is not None and (not np.isfinite(bcos_value) or bcos_value < 0):
+                raise ValueError('bcos_value must be a finite nonnegative scalar.')
+            self.compute_ppcf(frame_id, **ppcf_kwargs or {})
+            self.compute_ball_drive_risk(frame_id, **ball_drive_kwargs or {})
+            choice_context = dict(pass_selection_kwargs or {})
+            choice_context.setdefault('start_type_raw', choice_start)
+            choice_context.setdefault('previous_action_raw', choice_previous)
+            if match_clock_min is not None:
+                choice_context['match_clock_min'] = match_clock_min
+            if score_difference_prefix is not None:
+                choice_context['score_difference_prefix'] = score_difference_prefix
+            self.compute_pass_selection(frame_id, grid, **choice_context)
+            if bcos_value is None:
+                self.compute_bcos(frame_id, **feature_bcos_kwargs)
+            else:
+                self.results['BCOS'][frame_id] = {'BCOS area': float(bcos_value)}
+                self._record_component_configuration('BCOS', frame_id, {'formulation': 'explicit'})
+            self.compute_action_selection_probability(
+                frame_id,
+                grid,
+                start_type,
+                previous_action,
+                bcos_value,
+                match_clock_min=match_clock_min,
+                score_difference_prefix=score_difference_prefix,
+                completed_canonical_drives=completed_canonical_drives,
+            )
+            self.compute_hazard(frame_id)
+            components = ['PPCF', 'BALL_DRIVE_RISK', 'ACTION_SELECTION', 'HAZARD']
+            if include_residual:
+                self.compute_residual_risk(frame_id, time_since_start=time_since_start)
+                self.compute_xloss(frame_id)
+                components += ['RESIDUAL_RISK', 'XLOSS']
+            self._finalize_frame_results(frame_id, grid, keep_details=keep_details)
+            return {key: self.get_result(key, frame_id) for key in components}
+        finally:
+            self._frame_inputs = previous_inputs
 
     def compute_possession(
         self,
@@ -115,7 +141,7 @@ class ComputationMixin:
         by default. include_snapshots=False restricts this to canonical rows.
         Explicit nonempty unique integer frame_ids choose another sampling;
         all must be usable frames inside the selected possession. Returns
-        rows sorted by frame_id. Each row calls the same compute_frame API;
+        rows sorted by frame_id. Each row calls the same compute_risk_frame API;
         sampling does not change its physics horizon or predict the outcome.
         checkpoint_kind/is_canonical distinguish additional evaluations;
         their overlapping forecasts must not be multiplied into survival.
@@ -123,20 +149,22 @@ class ComputationMixin:
         import numpy as np
         import pandas as pd
 
-        self.get_possession(possession_id)
+        if self.get_team_possessions(possession_id).empty:
+            raise KeyError(f'Unknown team possession_id {possession_id!r}.')
         kinds = {}
         if self.actions_data is not None:
-            checkpoint_table = self.get_checkpoints(
-                possession_id,
-                eligible_only=False,
+            action_table = self.get_actions(
+                team_possession_id=possession_id,
                 include_snapshots=True,
             )
-            kinds = dict(zip(checkpoint_table.frame_id, checkpoint_table.checkpoint_kind))
+            kinds = dict(zip(action_table.frame_start,
+                             action_table.is_canonical.map({True: 'canonical', False: 'snapshot'})))
         if frame_ids is None:
-            frames = self.get_checkpoints(
-                possession_id,
+            frames = self.get_actions(
+                team_possession_id=possession_id,
                 include_snapshots=include_snapshots,
-            ).frame_id.to_numpy()
+                valid_only=True,
+            ).frame_start.to_numpy()
             if not len(frames):
                 raise ValueError(
                     'This possession has no eligible default checkpoints; supply '
@@ -161,7 +189,7 @@ class ComputationMixin:
         frames = np.sort(frames)
         rows = []
         for frame in frames:
-            result = self.compute_frame(int(frame), xT_grid, **frame_kwargs)
+            result = self.compute_risk_frame(int(frame), xT_grid, **frame_kwargs)
             rows.append({
                 'possession_id': possession_id,
                 'frame_id': int(frame),
@@ -197,6 +225,9 @@ class ComputationMixin:
         fitted = model if model is not None else self.pass_risk_model
         if fitted is None:
             fitted = PassRiskModel.pretrained()
+            self.pass_risk_model = fitted
+        elif isinstance(fitted,dict):
+            fitted = PassRiskModel.from_parameters(fitted,base=self.pass_risk_model)
         if not isinstance(fitted, PassRiskModel):
             fitted = PassRiskModel.from_json(fitted)
         state = self.get_state(frame_id)
@@ -244,6 +275,7 @@ class ComputationMixin:
             physics_kwargs=physics_kwargs,
         )
         self.results['PPCF'][frame_id] = {
+            'model_ref': self._register_result_model(fitted),
             'Pitch control field': result['control'],
             'Attacking pitch control field': result['raw'],
             'Pass probability': result['calibrated'],
@@ -251,20 +283,18 @@ class ComputationMixin:
             'ball_carrier_idx': carrier,
             'grid': targets,
             'ball flight time': result['flight_time'],
-            'params': dict(
-                model_id=fitted.model_id,
-                lambda_control=fitted.lambda_control,
-                s=fitted.s,
-                physics=result['physics'],
-                calibration='isotonic',
-                calibration_matches_physics=result['calibration_matches_physics'],
-                r_max=r_max,
-                step=step,
-                choice_grid_matches_benchmark=(step == 1.0 and state['pitch_length'].is_integer() and
-                    state['pitch_width'].is_integer() and
-                    len(targets) == round(state['pitch_length']) * round(state['pitch_width'])),
-            ),
+            'calibration_matches_physics': result['calibration_matches_physics'],
+            'calibration_matches_parameters': result.get(
+                'calibration_matches_parameters', fitted.calibration_matches_parameters),
+            'calibration_matches_model': result.get('calibration_matches_model',
+                result['calibration_matches_physics'] and fitted.calibration_matches_parameters),
         }
+        self._record_component_configuration('PPCF', frame_id, dict(
+            physics=result['physics'], r_max=r_max, step=step,
+            choice_grid_matches_benchmark=(step == 1.0 and state['pitch_length'].is_integer() and
+                state['pitch_width'].is_integer() and
+                len(targets) == round(state['pitch_length']) * round(state['pitch_width'])),
+        ))
         self._invalidate(frame_id, 'ACTION_SELECTION', 'HAZARD')
 
     def compute_pass_selection(
@@ -300,8 +330,11 @@ class ComputationMixin:
                 '(ball_drive_prob is one of the model features).'
             )
 
+        grid = self._resolve_xt_grid(xT_grid)
         state = self.get_state(frame_id)
         ppcf = self.results['PPCF'][frame_id]
+        if ppcf.get('details_available') is False:
+            raise ValueError('Pass selection needs spatial fields; rerun compute_risk_frame with keep_details=True.')
         final_model = self._choice_model()
         frame = self.get_frame(frame_id).iloc[0]
         raw_context = self._raw_action_context(frame_id)
@@ -312,7 +345,7 @@ class ComputationMixin:
                 if previous_action_raw is None else previous_action_raw
             ),
         }
-        if self.results['BALL_DRIVE_RISK'][frame_id]['params']['t_press'] != 1.0:
+        if self.get_result_configuration(frame_id, 'BALL_DRIVE_RISK')['BALL_DRIVE_RISK']['t_press'] != 1.0:
             raise ValueError(
                 'Pass selection requires the one-second ball-drive loss feature; '
                 'recompute it with t_press=1.0.'
@@ -327,7 +360,15 @@ class ComputationMixin:
             if score_difference_prefix is None
             else score_difference_prefix
         )
+        from PRESS.utils.state import compute_dynamic_pressure_lines
+        opposite = 'right_to_left' if state['attacking_side'] == 'left_to_right' else 'left_to_right'
+        pressure_lines = (
+            compute_dynamic_pressure_lines(state['r_defs'], state['attacking_side']),
+            compute_dynamic_pressure_lines(state['r_atts'], opposite),
+        )
         matrix = final_model.build_features(
+            xt_grid=grid,
+            pressure_lines=pressure_lines,
             x_bc=state['x_bc'],
             v_bc=state['v_bc'],
             r_atts=state['r_atts'],
@@ -361,12 +402,18 @@ class ComputationMixin:
             )
         probabilities = final_model.predict_features(matrix, log_membership=membership)
         ppcf['Pass selection probabilities'] = probabilities
+        ppcf['Pressure lines'] = pressure_lines
         ppcf['pass_selection_model_id'] = final_model.model_id
+        ppcf['pass_selection_model_ref'] = self._register_result_model(final_model)
         ppcf['pass_selection_context'] = dict(
             context,
             match_clock_min=clock,
             score_difference_prefix=score,
         )
+        settings = self.get_result_configuration(frame_id, 'PPCF')['PPCF']
+        self._record_component_configuration('PPCF', frame_id, settings, models={
+            'PASS_SELECTION': ppcf['pass_selection_model_ref'],
+        }, xt_grid=grid)
         self._invalidate(frame_id, 'ACTION_SELECTION', 'HAZARD')
         return probabilities
 
@@ -386,6 +433,9 @@ class ComputationMixin:
         fitted = self.ball_drive_model if model is None else model
         if fitted is None:
             fitted = BallDriveModel.pretrained()
+            self.ball_drive_model = fitted
+        elif isinstance(fitted,dict):
+            fitted = BallDriveModel.from_parameters(fitted,base=self.ball_drive_model)
         elif not isinstance(fitted, BallDriveModel):
             fitted = BallDriveModel.from_json(fitted)
         state = self.get_state(frame_id)
@@ -401,18 +451,19 @@ class ComputationMixin:
             ) | dict(physics_kwargs or {}),
         )
         self.results['BALL_DRIVE_RISK'][frame_id] = {
+            'model_ref': self._register_result_model(fitted),
             'Individual tackle probabilities': result['cause_probabilities'],
             'Ball drive risk': result['loss_probability'],
             'Survival probability': result['survival_probability'],
             'Survival curve': result['survival_curve'],
             'Times': result['times'],
-            'params': {
-                't_press': t_press,
-                'physics_kwargs': result['physics'],
-                'model_id': fitted.model_id,
-            },
         }
+        self._record_component_configuration('BALL_DRIVE_RISK', frame_id, {
+            't_press': t_press, 'physics_kwargs': result['physics'],
+        })
         self.results['PPCF'].get(frame_id, {}).pop('Pass selection probabilities', None)
+        self.results['PPCF'].get(frame_id, {}).pop('Expected pass success', None)
+        self.results['PPCF'].get(frame_id, {}).pop('Expected pass failure', None)
         self._invalidate(frame_id, 'ACTION_SELECTION', 'HAZARD')
 
     def compute_action_selection_probability(
@@ -435,9 +486,9 @@ class ComputationMixin:
 
         Requires compute_ppcf(), compute_ball_drive_risk(), and
         compute_pass_selection() to have already been run for
-        this frame_id. ``bcos_value`` is supplied by the optional
-        ``PRESS.extras.BCOS`` component because BCOS remains a trained
-        action-selection feature but is not part of the core PRESS class.
+        this frame_id. Supply ``bcos_value`` explicitly or compute BCOS first
+        through ``compute_bcos``. The pretrained model retains its effective-
+        hazard BCOS feature until retraining with final transport.
 
         The revised model uses raw start/previous categories, e.g.
         "pass_reception" and "ball_drive", preserving unknown/missing.
@@ -469,17 +520,25 @@ class ComputationMixin:
         ):
             raise ValueError('Compute ball drive loss before computing action selection probability.')
 
+        import numpy as np
         state = self.get_state(frame_id)
         ppcf = self.results['PPCF'][frame_id]
+        # Reuse the map used by pass selection, including an explicit frame
+        # override. A different map here would mix two feature definitions.
+        pass_grid = self.get_xt_grid(frame_id)
+        grid = (pass_grid if xT_grid is None and pass_grid is not None
+                else self._resolve_xt_grid(xT_grid))
+        if pass_grid is not None and not np.array_equal(grid, pass_grid):
+            raise ValueError('xT_grid differs from pass selection; recompute pass selection with the same map.')
         ball_drive_loss = self.results['BALL_DRIVE_RISK'][frame_id]['Ball drive risk']
+        bcos_feature_source = 'explicit' if bcos_value is not None else 'effective_hazard'
         if bcos_value is None:
             cached_bcos = self.results['BCOS'].get(frame_id)
             if cached_bcos is None:
                 raise ValueError('Supply bcos_value or compute BCOS before action selection.')
-            bcos_value = float(cached_bcos['BCOS area'])
+            bcos_value = self._classifier_bcos(frame_id, state=state)
         final = self._action_model()
-        import numpy as np
-        if self.results['BALL_DRIVE_RISK'][frame_id]['params']['t_press'] != 1.0:
+        if self.get_result_configuration(frame_id, 'BALL_DRIVE_RISK')['BALL_DRIVE_RISK']['t_press'] != 1.0:
             raise ValueError('Action selection requires one-second carry loss.')
         frame = self.get_frame(frame_id).iloc[0]
         prefix = ppcf.get('pass_selection_context', {})
@@ -504,6 +563,8 @@ class ComputationMixin:
             else completed_canonical_drives
         )
         feature_record = final.build_feature_record(
+            xt_grid=grid,
+            pressure_lines=ppcf.get('Pressure lines'),
             x_bc=state['x_bc'],
             v_bc=state['v_bc'],
             r_defs=state['r_defs'],
@@ -526,11 +587,16 @@ class ComputationMixin:
         X = final.encode(pd.DataFrame([feature_record]))
         pass_probability = float(final.predict_features(X)[0])
         self.results['ACTION_SELECTION'][frame_id] = {
+            'model_ref': self._register_result_model(final),
             'Pass probability': pass_probability,
             'Ball drive probability': 1.0 - pass_probability,
             'Features': feature_record,
             'model_id': final.model_id,
+            'BCOS feature formulation': bcos_feature_source,
         }
+        self._record_component_configuration('ACTION_SELECTION', frame_id, {
+            'BCOS feature formulation': bcos_feature_source,
+        }, xt_grid=grid)
         self._invalidate(frame_id, 'HAZARD')
         return pass_probability
 
@@ -550,7 +616,8 @@ class ComputationMixin:
             raise ValueError('Compute ball drive loss before computing hazard.')
         if (
             frame_id not in self.results['PPCF']
-            or 'Pass selection probabilities' not in self.results['PPCF'][frame_id]
+            or not any(key in self.results['PPCF'][frame_id]
+                       for key in ['Pass selection probabilities', 'Expected pass success'])
         ):
             raise ValueError(
                 'Compute pass selection probabilities before computing hazard (rppcf '
@@ -562,47 +629,84 @@ class ComputationMixin:
                 '(P(pass) is the mixing weight).'
             )
         from PRESS.utils.hazard import compute_hazard_raw
+        from PRESS.utils.possession import hazard_to_band
 
         ppcf = self.results['PPCF'][frame_id]
         ball_drive_loss = self.results['BALL_DRIVE_RISK'][frame_id]['Ball drive risk']
         action_selection_pass_probability = self.results['ACTION_SELECTION'][frame_id]['Pass probability']
-        hazard_h, drive_risk, pass_failure_expected, rppcf = compute_hazard_raw(
-            ball_drive_loss=ball_drive_loss,
-            pass_selection_probabilities=ppcf['Pass selection probabilities'],
-            pass_success_probability=ppcf['Pass probability'],
-            action_selection_pass_probability=action_selection_pass_probability,
-        )
+        if 'Pass selection probabilities' in ppcf:
+            hazard_h, drive_risk, pass_failure_expected, rppcf = compute_hazard_raw(
+                ball_drive_loss=ball_drive_loss,
+                pass_selection_probabilities=ppcf['Pass selection probabilities'],
+                pass_success_probability=ppcf['Pass probability'],
+                action_selection_pass_probability=action_selection_pass_probability,
+            )
+        else:
+            # The weighted probability is already computed; no map is needed
+            # to compose the same risk again from compact component results.
+            drive_risk = float(ball_drive_loss)
+            rppcf = ppcf['Expected pass success']
+            pass_failure_expected = ppcf['Expected pass failure']
+            p_pass = action_selection_pass_probability
+            hazard_h = (1-p_pass)*drive_risk + p_pass*pass_failure_expected
+        previous = self.results['HAZARD'].get(frame_id, {})
         self.results['HAZARD'][frame_id] = {
             'Hazard': hazard_h,
+            'band': hazard_to_band(hazard_h),
             'Drive risk': drive_risk,
             'Pass failure expected': pass_failure_expected,
             'rppcf': rppcf,
+            **{key: previous[key] for key in ['configuration_id', 'details_available'] if key in previous},
         }
+        self.results['HAZARD'][frame_id]['configuration_id'] = self._store_result_configuration(
+            self._frame_configuration(frame_id))
         return hazard_h
 
     def _resolve_xt_grid(self, supplied):
-        """Resolve a finite xT grid; fitted feature builders retain their saved surface."""
-        import numpy as np
-
+        """Frame override -> object map -> fitted default, without fitting xT."""
+        from PRESS.utils.state import validate_xt_grid
+        if supplied is None:
+            supplied = self.xT_grid
         if supplied is None:
             supplied = self._action_model().xt_grid
-        grid = np.asarray(supplied, dtype=float)
-        if grid.ndim != 2 or 0 in grid.shape or (not np.isfinite(grid).all()) or (grid < 0).any():
-            raise ValueError('xT_grid must be a finite nonnegative (n_x, n_y) array.')
-        return grid
+        return validate_xt_grid(supplied)
 
-    def compute_bcos(self, frame_id, r_max=40.0, step=1.0, physics_args=None):
+    def _classifier_bcos(self, frame_id, *, state=None):
+        """Keep the pretrained feature definition separate from the displayed map."""
+        from PRESS.spatial_features import BCOS
+        result = self.results['BCOS'][frame_id]
+        settings = self.get_result_configuration(frame_id, 'BCOS')['BCOS']
+        if settings.get('formulation','effective_hazard') == 'effective_hazard':
+            return float(result['BCOS area'])
+        if 'Model feature BCOS area' not in result:
+            if result.get('details_available') is False:
+                raise ValueError('Recompute BCOS or run compute_risk_frame with keep_details=True.')
+            physical = {key:value for key,value in settings.items() if key in
+                {'s','v_bc_max','v_def_max','a_bc_max','a_def_max','a_turn_bc','a_turn_def'}}
+            feature = BCOS(self.tracking_data,ball_drive_model=self.ball_drive_model).compute_bcos(
+                frame_id,r_max=settings['r_max'],step=settings['step'],
+                physics_args=physical,formulation='effective_hazard',state=state)
+            result['Model feature BCOS area'] = float(feature['BCOS area'])
+            result['Model feature formulation'] = 'effective_hazard'
+        return result['Model feature BCOS area']
+
+    def compute_bcos(self, frame_id, r_max=40.0, step=1.0, physics_args=None, *, formulation="transport"):
         """Compute/store the optional BCOS map and area for this frame.
 
+        Default transport allows interception while waiting at the origin.
+        transport_reservoir retains protected waiting; effective_hazard
+        retains the preliminary fitted-classifier feature.
         Uses the installed ball-drive dispersion unless an explicit model or
         physical override was supplied. Default area is based on 1m cells.
         Recomputing invalidates action choice, h, residual risk and xLoss.
         """
-        from PRESS.extras import BCOS
+        from PRESS.spatial_features import BCOS
 
         bcos = BCOS(self.tracking_data, ball_drive_model=self.ball_drive_model)
-        result = bcos.compute_bcos(frame_id, r_max=r_max, step=step, physics_args=physics_args)
+        result = bcos.compute_bcos(frame_id, r_max=r_max, step=step, physics_args=physics_args, formulation=formulation, state=self.get_state(frame_id))
+        settings = result.pop('params')
         self.results['BCOS'][frame_id] = result
+        self._record_component_configuration('BCOS', frame_id, settings)
         self._invalidate(frame_id, 'ACTION_SELECTION', 'HAZARD')
         return self.get_bcos_result(frame_id)
 
@@ -624,7 +728,7 @@ class ComputationMixin:
         action = self.results['ACTION_SELECTION'][frame_id]
         record = action.get('Features')
         if record is None:
-            raise ValueError('Residual risk requires a current-model action feature record.')
+            raise ValueError('Residual risk needs action features; rerun compute_risk_frame with keep_details=True and include_residual=True.')
         elapsed = self.get_elapsed_time(frame_id) if time_since_start is None else time_since_start
         if not np.isscalar(elapsed) or not np.isfinite(elapsed) or elapsed < 0:
             raise ValueError('time_since_start must be finite and nonnegative seconds.')
@@ -634,6 +738,8 @@ class ComputationMixin:
             if fitted is None
             else self._load_model(fitted, ResidualRiskModel)
         )
+        if model is None and self.residual_risk_model is None:
+            self.residual_risk_model = fitted
         action_model = self._action_model()
         if action.get('model_id') != action_model.model_id:
             raise ValueError('Stored action features use a different action-selection model.')
@@ -641,16 +747,18 @@ class ComputationMixin:
             record,
             time_since_start=float(elapsed),
             action_model=action_model,
+            action_carry_probability=action['Ball drive probability'],
         )
         value = float(fitted.predict_features(features)[0])
         self.results['RESIDUAL_RISK'][frame_id] = {
+            'model_ref': self._register_result_model(fitted),
             'Residual loss probability': value,
-            'params': {
-                'time_since_start': float(elapsed),
-                'model_id': fitted.model_id,
-                'action_model_id': action_model.model_id,
-            },
+            'time_since_start': float(elapsed),
         }
+        self._record_component_configuration('RESIDUAL_RISK', frame_id, {}, models={
+            'ACTION_SELECTION': action['model_ref'] if 'model_ref' in action else
+                self.get_result_configuration(frame_id)['models']['ACTION_SELECTION'],
+        })
         self._invalidate(frame_id, 'XLOSS')
         return value
 
@@ -662,9 +770,10 @@ class ComputationMixin:
         time/model overrides recompute it. A completed pass terminates the
         individual possession without a loss. Returns xLoss as a float.
         """
-        from PRESS.extras.residual_risk import compose_individual_xloss
+        from PRESS.model.composition import compose_individual_xloss
 
-        hazard = self.compute_hazard(frame_id)
+        hazard = (self.results['HAZARD'][frame_id]['Hazard']
+                  if frame_id in self.results['HAZARD'] else self.compute_hazard(frame_id))
         if (
             frame_id not in self.results['RESIDUAL_RISK']
             or time_since_start is not None
@@ -684,11 +793,13 @@ class ComputationMixin:
             'xLoss': value,
             'Hazard': hazard,
             'Residual loss probability': residual['Residual loss probability'],
-            'params': dict(residual['params']),
+            'time_since_start': residual.get('time_since_start', residual.get('params', {}).get('time_since_start')),
+            'configuration_id': self._store_result_configuration(self._frame_configuration(frame_id)),
+            'details_available': local.get('details_available', True),
         }
         return value
 
-    def compute_player_possession(
+    def compute_risk_player_possession(
         self,
         player_possession_id,
         xT_grid=None,
@@ -706,22 +817,20 @@ class ComputationMixin:
         import numpy as np
         import pandas as pd
 
-        interval = self.get_player_possession(player_possession_id)
         valid = self.get_player_frames(player_possession_id, valid_only=True).frame
-        checkpoints = None
+        actions = None
         if self.actions_data is not None:
-            checkpoints = self.get_checkpoints(eligible_only=False, include_snapshots=True)
-            if 'possession_id' in checkpoints:
-                checkpoints = checkpoints.loc[checkpoints.possession_id.eq(player_possession_id)]
-            else:
-                checkpoints = checkpoints.loc[checkpoints.frame_id.between(interval.frame_start, interval.frame_end)]
+            actions = self.get_actions(
+                possession_id=player_possession_id,
+                include_snapshots=True)
         if frame_ids is None:
-            if checkpoints is None:
+            if actions is None:
                 raise ValueError('Supply actions_data or explicit frame_ids to sample this possession.')
-            selected = checkpoints[checkpoints.eligible]
-            if not include_snapshots:
-                selected = selected[selected.is_canonical]
-            frame_ids = selected.frame_id.to_numpy()
+            frame_ids = self.get_actions(
+                possession_id=player_possession_id,
+                include_snapshots=include_snapshots,
+                valid_only=True,
+            ).frame_start.to_numpy()
         frames = np.asarray(frame_ids)
         if (
             frames.ndim != 1
@@ -737,13 +846,13 @@ class ComputationMixin:
                 'frame_ids must be unique integer usable frames inside the '
                 'individual possession.'
             )
-        kinds = {} if checkpoints is None else dict(zip(
-            checkpoints.frame_id,
-            checkpoints.checkpoint_kind,
+        kinds = {} if actions is None else dict(zip(
+            actions.frame_start,
+            actions.is_canonical.map({True: 'canonical', False: 'snapshot'}),
         ))
         rows = []
         for frame in np.sort(frames):
-            result = self.compute_frame(int(frame), xT_grid, **frame_kwargs)
+            result = self.compute_risk_frame(int(frame), xT_grid, **frame_kwargs)
             row = {
                 'player_possession_id': player_possession_id,
                 'frame_id': int(frame),
