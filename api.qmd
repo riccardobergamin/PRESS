@@ -4,14 +4,14 @@ title: "Reference: initialization and classes"
 
 The reference has four parts: **[1 · Initialization and classes](api.qmd)** · [2 · Solvers](solvers.qmd) · [3 · Getters and saved results](reference/getters.qmd) · [4 · Plot functions](reference/plots.qmd).
 
-`PRESS` represents **one match**. Input conversion, navigation, numerical inference, result storage and plotting are separate operations. Initialization copies and validates the supplied tables; it does not run models. The five fitted models are shipped with the package and load lazily, without training.
+`PRESS` represents **one match**. Input conversion, navigation, numerical inference, result storage and plotting are separate operations. Initialization copies and validates the supplied tables; models run only when requested. The five fitted models are shipped with the package and load lazily, ready to use without training.
 
 ## Initialization
 
-```python
-from PRESS import PRESS
+The constructor signature is:
 
-press = PRESS(
+```text
+PRESS(
     tracking_data,
     events_data=None,
     *,
@@ -32,40 +32,42 @@ press = PRESS(
 )
 ```
 
-All arguments after `events_data` are keyword-only. Each model argument accepts a fitted model instance, its JSON-manifest path, or `None` for the installed pretrained model.
+All arguments after `events_data` are keyword-only. Each model argument accepts a fitted model instance, its JSON-manifest path, or `None` for the installed pretrained model. Physical models also accept named parameter dictionaries, described below.
 
 ### Canonical tracking contract
 
-Positions are **centred pitch metres**; x spans `[-length/2, length/2]` and y spans `[-width/2, width/2]`. Velocities are m/s in those same axes. Data from a provider with another origin, scale or orientation must be converted first. No smoothing, interpolation, resampling or velocity estimation occurs implicitly.
+Positions are **centred pitch metres**; x spans `[-length/2, length/2]` and y spans `[-width/2, width/2]`. Velocities are m/s in those same axes. Data from a provider with another origin, scale or orientation must be converted first. The direct constructor uses the supplied values as they are: velocities and sampling come from the caller. The original-file SkillCorner loader prepares velocities explicitly, as described below.
 
 | Input | Required information |
 |---|---|
 | `tracking_data` | Wide DataFrame, one row per unique integer `frame`; `ball_x`, `ball_y`, `player_possession`, `attacking_side`; player columns `<player_id>_x`, `_y`, `_vx`, `_vy`. |
-| Player IDs | Internal aliases `home_<integer>` / `away_<integer>`. The integer is an identifier and need not be a shirt number. The carrier must name a player with tracking columns. |
-| Optional speed | `<player_id>_v` is derived as `hypot(vx,vy)` only when absent. Supplied components are not re-estimated. |
+| Player IDs | Internal aliases `home_<integer>` / `away_<integer>`. The integer is an identifier that may differ from the shirt number. The carrier must name a player with tracking columns. |
+| Optional speed | `<player_id>_v` is derived as `hypot(vx,vy)` only when absent. Supplied components are used as given. |
 | Carrier and direction | Carrier can be missing in flight/no-control frames. Model evaluation needs an observed carrier and `left_to_right` or `right_to_left`. A plain frame plot also supports missing carriers. |
-| Missing players | Missing XY observations can remain missing; physical states pad absent players internally. An observed player requires finite velocity. More than eleven observed players on a team is rejected. |
+| Missing players | Missing XY observations can remain missing; physical states pad absent players internally. An observed player requires finite velocity. A team accepts at most eleven observed players. |
 | `fps` | Actual input frequency in Hz, default 10. Consecutive integer frame IDs are sampling ticks; missing observations retain their original IDs. This is independent of the numerical solver steps. |
 | Pitch dimensions | Explicit positive metre values, or constant `pitch_length` / `pitch_width` columns. If neither is supplied, defaults are 105 × 68 m. Conflicting explicit/input dimensions raise `ValueError`. |
-| `match_id` | Optional match identifier, inferred from a single-valued tracking column if present. Multiple matches are rejected. |
+| `match_id` | Optional match identifier, inferred from a single-valued tracking column if present. Each object holds a single match. |
 | `player_metadata` | Optional roster keyed by unique internal `player_id`; may retain source IDs and names. |
 
-Observed player velocities containing NaN or infinity are rejected. Missing players are not replaced with estimated positions. Large coordinates used for internal padding are excluded from pressure-line calculations and plots.
+Observed player velocities must be finite (NaN or infinity raise an error). Missing players keep their missing positions. Large coordinates used for internal padding are excluded from pressure-line calculations and plots.
 
 ### Possessions, actions and context
 
 | Table | Schema and purpose |
 |---|---|
-| `possessions_data` | Explicit **team** intervals: unique `possession_id`, `team_id` (`home`/`away`), inclusive integer `frame_start`, `frame_end`. Optional `lost` supports reporting. Team intervals cannot overlap. |
-| `player_possessions_data` | Alternative **individual** intervals, linked through verified successful passes. See the linking contract below. Do not supply both individual and team interval tables. |
+| `possessions_data` | Explicit **team** intervals: unique `possession_id`, `team_id` (`home`/`away`), inclusive integer `frame_start`, `frame_end`. Optional `lost` supports reporting. Team intervals are disjoint. |
+| `player_possessions_data` | Alternative **individual** intervals, linked through verified successful passes. See the linking contract below. Supply either the individual or the team interval table. |
 | `actions_data` | Inclusive intervals with `frame_start`, `frame_end`, `action`, `start_type`, `previous_action`. Optional `possession_id`, `is_canonical`, `time_since_start` and other annotations retain their meaning. When individual possessions are supplied and this table is omitted, PRESS constructs actions and checkpoints using its canonical convention. See [Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb). |
 | `events_data` | Optional canonical events with `frame`, `player_id`, `team_id`, `event_type`. Pass events additionally require boolean `is_successful` and an identified receiver for completions. Raw provider events must be adapted first. |
 
-Team possession and individual control are distinct. A completed pass can link two individual intervals inside one team possession. Neither table is inferred from carrier changes alone. Frame-level computation does not require either table when its necessary context is supplied explicitly.
+Team possession and individual control are distinct. A completed pass can link two individual intervals inside one team possession. Each table is built from annotated intervals. Frame-level computation uses either table only when its necessary context is not supplied explicitly.
 
-The individual linking helper is `PRESS.utils.match.link_team_possessions(player_possessions)`. It requires `player_id`, `frame_start`, `frame_end`, `end_type`, `pass_outcome`, `target_pass`, `frame_receipt` and boolean `loss`; `possession_id` enables individual-ID getters. Optional `period` and `game_interruption_after` prevent linking across periods/stoppages. It returns copied `(team_intervals, player_intervals_with_team_possession_id)`. Intervals cannot overlap. A successful link requires the same team, an identified matching recipient, reception at the next interval's start and no recorded interruption.
+The individual linking helper is `PRESS.utils.match.link_team_possessions(player_possessions)`. It takes the individual intervals and returns copied `(team_intervals, player_intervals_with_team_possession_id)`. A successful link requires the same team, an identified matching recipient, reception at the next interval's start and no recorded interruption.
 
-Current-state context may include `start_type_raw`, `previous_action_raw`, `match_clock_min` and `score_difference_prefix`. Future destinations, outcomes, remaining duration and final score are not context inputs. Individual elapsed time and completed one-second carries (`completed_canonical_drives`) are derived from annotated starts using `fps`. An unknown elapsed time is never imputed to zero.
+The input requires `player_id`, `frame_start`, `frame_end`, `end_type`, `pass_outcome`, `target_pass`, `frame_receipt` and boolean `loss`, with disjoint intervals. `possession_id` is required when the constructor builds canonical actions and enables individual-ID getters. `start_type` supplies the control origin and is set to `unknown` when omitted. Optional `period` and `game_interruption_after` prevent linking across periods and stoppages.
+
+Current-state context may include `start_type_raw`, `previous_action_raw`, `match_clock_min` and `score_difference_prefix`. Context inputs are limited to current-state information; future destinations, outcomes, remaining duration and final score are excluded. Individual elapsed time and completed one-second carries (`completed_canonical_drives`) are derived from annotated starts using `fps`. An unknown elapsed time stays unknown.
 
 ## Original SkillCorner files
 
@@ -73,7 +75,7 @@ Current-state context may include `start_type_raw`, `previous_action_raw`, `matc
 press = PRESS.from_skillcorner(match_dir, xT_grid=None)
 ```
 
-The folder contains `<match_id>_match.json`, `<match_id>_tracking_extrapolated.jsonl` and `<match_id>_dynamic_events.csv`. The folder name supplies the match ID; pass `match_id=` when it differs. The loader calculates velocities, reads annotated individual controls, constructs canonical actions and prepares observed context in memory. It requires no precomputed Parquet files or action table. Its default input frequency is 10 Hz; optional model arguments select fitted models.
+The folder contains `<match_id>_match.json`, `<match_id>_tracking_extrapolated.jsonl` and `<match_id>_dynamic_events.csv`. The folder name supplies the match ID; pass `match_id=` when it differs. The loader calculates velocities, reads annotated individual controls, constructs canonical actions and prepares observed context in memory. It works directly from the original files and builds the action table itself. Its default input frequency is 10 Hz; optional model arguments select fitted models.
 
 ## Data already prepared by the caller
 
@@ -92,9 +94,11 @@ press = PRESS(
 )
 ```
 
-The segmenter takes canonical, already aligned tracking/events, returns in-memory tables and never loads paths. Individual possessions may also be prepared externally. When `actions_data` is omitted, the constructor builds actions and checkpoints from these individual intervals using `PRESS.io.canonical_actions`. An explicitly supplied action table remains supported.
+The segmenter takes canonical, already aligned tracking/events, returns in-memory tables; loading from paths happens elsewhere. Individual possessions may also be prepared externally. When `actions_data` is omitted, the constructor builds actions and checkpoints from these individual intervals using `PRESS.io.canonical_actions`. An explicitly supplied action table remains supported.
 
 For long player/ball/context tables, the optional `PRESS.io.convert_long_tracking(...)` helper returns `(wide_tracking, roster)`. Rename columns, convert units and supply source team IDs explicitly; the returned roster retains source-to-internal aliases. Map any additional annotation identifiers with that roster before initialization. This conversion is independent of possession segmentation. [Complete external data contract](external-data.qmd).
+
+`PRESS(...)` accepts prepared canonical tables. The separate `PRESS.io.segment_possessions(...)` function reconstructs controls and actions when missing. Original SkillCorner files use `PRESS.from_skillcorner(...)`; other provider loading and synchronization remain external. See the [external data guide](external-data.qmd).
 
 ## xT map input
 
@@ -111,11 +115,11 @@ press = PRESS(tracking_data, xT_grid=my_xt_map)
 
 Omitting the map uses the fitted production surface. The supplied map is copied
 and used consistently by pass selection and action selection; residual risk
-reuses the resulting action feature record. Initialization does not estimate
-xT from the input match. A frame-level `xT_grid=` overrides the object map for
+reuses the resulting action feature record. xT is estimated
+separately, outside initialization. A frame-level `xT_grid=` overrides the object map for
 that calculation. `get_xt_grid()` returns a copy of the object/default map;
 `get_xt_grid(frame_id)` returns the map used by that frame's pass selection.
-The fitted artifacts are not modified.
+The fitted artifacts stay unchanged.
 
 ## Model, configuration and result {#model-configuration-result}
 
@@ -127,9 +131,15 @@ PRESS separates the fitted model, the settings used to evaluate it, and the pred
 | **Configuration** | Physical and numerical settings actually used after overrides, and the xT input used for feature construction. | Defender maximum speed, accelerations, integration steps, forecast horizon, BCOS carrier maximum speed, grid and radius. | `get_result_configuration(frame_id, component=None)` returns copied settings after standalone or complete calls. Configurations are shared in `press.result_configurations`. |
 | **Result** | Predictions and essential context at one frame, with a reference to the configuration. | Ball-drive loss, expected pass failure, P(pass), BCOS area, h, its band and xLoss; optionally spatial fields and diagnostics. | `press.results[component][frame_id]`, preferably accessed through the [result getters](reference/getters.qmd#computed-results). |
 
-For example, setting `physics_kwargs={"v_max": 6.5}` in a ball-drive calculation changes the **configuration**, while keeping the fitted coefficients and spline bases. Setting `model={"s": 0.35, "gamma_v": [0, 0, 0]}` changes the **model specification**, inheriting the omitted coefficients and bases. The predicted loss for the chosen frame is the **result**. Neither override changes the object's default fitted model.
+For example, setting `physics_kwargs={"v_max": 6.5}` in a ball-drive calculation changes the **configuration**, while keeping the fitted coefficients and spline bases. Setting `model={"s": 0.35, "gamma_v": [0, 0, 0]}` changes the **model specification**, inheriting the omitted coefficients and bases. The predicted loss for the chosen frame is the **result**. Both overrides apply to that call and leave the object's default fitted model as it is.
 
-A model artifact also records its default physical settings. The configuration records the settings actually used in a particular calculation. BCOS has no separately fitted predictor: it takes its default dispersion from the associated ball-drive model. Thus ball-drive `s` is a fitted model parameter, while the value supplied to BCOS is part of its physical configuration.
+A model artifact also records its default physical settings. The configuration records the settings actually used in a particular calculation. BCOS is a spatial descriptor and takes its default dispersion from the associated ball-drive model. Thus ball-drive `s` is a fitted model parameter, while the value supplied to BCOS is part of its physical configuration.
+
+For the physical models, `ball_drive_model` and `pass_risk_model` also accept named parameter dictionaries. Missing entries inherit production values. Per-frame `model={...}` inputs inherit the constructor's model when one was supplied, otherwise production. `BallDriveModel.parameters` and `PassRiskModel.parameters` expose copies with named values; `from_parameters(dictionary, base=None)` constructs a model explicitly. The full `to_dict()` / `from_json()` export format remains available for coefficients, bases and calibration together. [Parameter keys and examples](solvers.qmd#named-model-parameters).
+
+Complete risk calls calculate only the preliminary effective-hazard BCOS used in training the fitted trees, while the standalone `compute_bcos()` defaults to final transport.
+
+Complete risk calls keep compact results by default, and `keep_details=True` also retains maps, defender contributions, feature records and integration diagnostics. This option affects storage only, and predictions are identical. Individual component calls retain details for step-by-step use, with physical/numerical settings in shared configurations too. Tree feature names, order and categories belong to the model, whereas feature values belong to the frame calculation: the named action feature record is retained for residual risk and detailed inspection, then discarded by compact complete calls. [Calculation and storage options](solvers.qmd#complete-frame-and-possession-calculations).
 
 ### Component-specific movement settings
 
@@ -140,9 +150,7 @@ A model artifact also records its default physical settings. The configuration r
 | BCOS | `v_bc_max` | 6.6 m/s | Carrier transport, starting from its observed velocity and orientation. |
 | BCOS | `v_def_max` | 7 m/s | Intercepting defenders. |
 
-These are separate settings, not a global speed limit. The movement routines preserve observed initial speeds above the nominal maximum. BCOS inherits dispersion and defender movement defaults from the ball-drive model associated with the object, with separate carrier defaults; explicit `physics_args` override them. A temporary override in `compute_ball_drive_risk()` does not automatically propagate to BCOS. Likewise, changing pitch-control physics does not change the other components. [Call signatures and parameter inputs](solvers.qmd#named-model-parameters).
-
-Complete risk calls calculate only the preliminary effective-hazard BCOS used in training the fitted trees; the standalone `compute_bcos()` default remains final transport. Complete risk calls keep compact results by default. `keep_details=True` also retains maps, defender contributions, feature records and integration diagnostics. This changes storage, not predictions. Individual component calls retain details for step-by-step use, with physical/numerical settings in shared configurations too. Tree feature names/order/categories belong to the model; feature values belong to the frame calculation. The named action feature record is retained for residual risk and detailed inspection, then discarded by compact complete calls. [Calculation and storage options](solvers.qmd#complete-frame-and-possession-calculations).
+These are separate per-component settings. The movement routines preserve observed initial speeds above the nominal maximum. BCOS inherits dispersion and defender movement defaults from the ball-drive model associated with the object, with separate carrier defaults; explicit `physics_args` override them. A temporary override in `compute_ball_drive_risk()` applies to that component only, and BCOS keeps its own settings. Likewise, pitch-control physics applies to pitch control alone. [Call signatures and parameter inputs](solvers.qmd#named-model-parameters).
 
 ## Main classes
 
@@ -157,7 +165,9 @@ Complete risk calls calculate only the preliminary effective-hazard BCOS used in
 | `ResidualRiskModel` | Conditional terminal individual loss after a successful carry. Same artifact readers, `features_from_action_record(...)`, `build_features(...)`, `encode(...)`, `predict_features(...)`. |
 | `BCOS` | Optional standalone spatial descriptor, imported from `PRESS.spatial_features`. `compute_bcos(...)` and `get_result(...)`; alternatively use `press.compute_bcos(...)` to keep its output in the match cache. |
 
-Import fitted classes from `PRESS.model`. Tree readers validate their adjacent UBJ checksum, vocabulary and feature order. JSON and UBJ files are the pretrained models, not benchmark fit-output directories. Physical scales, calibration maps and xT surfaces come from the supplied artifact; initialization does not re-estimate them.
+Import fitted classes from `PRESS.model`. Tree readers validate their adjacent UBJ checksum, vocabulary and feature order. JSON and UBJ files are the pretrained models. Physical scales, calibration maps and xT surfaces come from the supplied artifact and are used as saved.
+
+`BCOSModel` and `BCOSConfig` are exported by `PRESS.model`. `BCOSModel.from_ball_drive()` takes dispersion and defensive movement settings from the installed physical fit. Interception acts during waiting at the origin and movement along the route. `predict` accepts carrier `(2,)`, defenders `(D,2)` and targets `(M,2)`; `predict_field` constructs the clipped destination grid. `ReservoirBCOSModel`, exported from the same namespace, retains the alternative with protected waiting and the same input interface. The classes only evaluate saved parameters. Existing numerical helpers and frozen fitted artifacts remain in their current modules.
 
 ### Standalone model array contracts
 
@@ -185,12 +195,3 @@ PRESS/
 ```
 
 The fitted model classes require their current feature contracts; missing or unsupported artifacts raise an error. [Research pipeline](pipeline.qmd) · [Project plan](roadmap.qmd).
-
-
-## External events and final spatial model
-
-`PRESS(...)` accepts prepared canonical tables. The separate `PRESS.io.segment_possessions(...)` function reconstructs controls and actions when missing. Original SkillCorner files use `PRESS.from_skillcorner(...)`; other provider loading and synchronization remain external. See the [external data guide](external-data.qmd).
-
-For the physical models, `ball_drive_model` and `pass_risk_model` also accept named parameter dictionaries. Missing entries inherit production values. Per-frame `model={...}` inputs inherit the constructor's model when one was supplied, otherwise production. `BallDriveModel.parameters` and `PassRiskModel.parameters` expose copies with named values; `from_parameters(dictionary, base=None)` constructs a model explicitly. The full `to_dict()` / `from_json()` export format remains available for coefficients, bases and calibration together. [Parameter keys and examples](solvers.qmd#named-model-parameters).
-
-`BCOSModel` and `BCOSConfig` are exported by `PRESS.model`. `BCOSModel.from_ball_drive()` takes dispersion and defensive movement settings from the installed physical fit. Interception acts during waiting at the origin and movement along the route. `predict` accepts carrier `(2,)`, defenders `(D,2)` and targets `(M,2)`; `predict_field` constructs the clipped destination grid. `ReservoirBCOSModel`, exported from the same namespace, retains the alternative with protected waiting and the same input interface. No fitting is performed. Existing numerical helpers and frozen fitted artifacts remain in their current modules.

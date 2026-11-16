@@ -1,187 +1,80 @@
-# Pass selection: revisione procedurale
+# Pass selection
 
-Tre file: `features.py` costruisce le covariate; `training.py` contiene formule
-e apprendimento; `pipeline.py` esegue le fasi.
-
-Parti da `pipeline.py`, funzione **`run_pipeline`**: contiene in ordine le
-cinque fasi complete. In `training.py`, **`train_validate_test`** mostra un
-singolo fold e **`train_model`** il ciclo che costruisce gli alberi.
-
-Il percorso di lettura è:
+`features.py` constructs covariates; `training.py` defines likelihoods and learning; `pipeline.py` coordinates the stages. Start with `run_pipeline`, then `train_validate_test` for one fold and `train_model` for the tree-building loop.
 
 ```text
-run_pipeline
-    1. prepare_features             covariate e membership per fold
-    2. compare_configurations       cinque configurazioni sul fold 0
-       select_best_configuration    scelta sulla CE di validation nativa
-    3. train_validate_test          6 fit -> 2 validation -> 2 test
-           train_model             ciclo esplicito degli alberi, mostrato sotto
-           fit_temperature         alberi e rho fermi; temperatura su validation
-           compute_pass_losses     valutazione sui due test
-    4. compute_pooled_metrics       unione dei cinque test
-    5. train_production_model       fit nuovo sulle dieci partite
+prepare_features → compare_configurations → select_best_configuration
+→ train_validate_test → compute_pooled_metrics → train_production_model
 ```
 
-Dentro `train_model`, a ogni iterazione:
+## Model inputs and learning
 
-```text
-u_fit -> xgboost_gradients -> g,h -> model.boost -> nuovi u_fit
-    -> aggiornamento rho ogni 20 alberi, solo per CNL
-    -> u_val -> CE di validation -> early stopping
-```
+`load_pass_tables` returns three DataFrames:
 
-`model` è l'ensemble XGBoost; `D_fit` e `D_val` sono i suoi input (`DMatrix`);
-`u_fit` e `u_val` sono le utilità sulle rispettive destinazioni candidate.
-`best_tree_count` conserva il numero di alberi del minimo di validation;
-`rounds_without_improvement` conta quante iterazioni sono trascorse senza
-migliorarlo. Si restituiscono quegli alberi con il loro `best_rho`.
-
-Le formule usano `u`, `p`, `y`, `ell`, `g`, `h`, `C`, come nella vignetta.
-`y` è l'indice della destinazione osservata. Per CNL: `alpha`, `rho=1/mu`,
-`S`, `w=P(nido)`, `b=P(cella|nido)`, `q=P(nido|cella osservata)`.
-La legenda riporta le dimensioni; le formule sono commentate vicino al calcolo.
-Dimensioni: `P` passaggi, `C` celle per passaggio, `F` feature e `N` compagni/nidi.
-`T` rimane la temperatura. Negli array appiattiti `C_tot = sum_i C_i`;
-se tutte le griglie hanno la stessa dimensione, `C_tot = P*C`.
-
-`L(..., condition=True)` restituisce le loss delle destinazioni osservate;
-`L(..., condition=False)` restituisce -log p per tutte le destinazioni.
-La calibrazione usa quindi `-L(..., condition=False)` per rinormalizzare p^(1/T).
-`loss_gradient` restituisce g,h per l'albero successivo.
-
-Gli input sono ora **tre DataFrame**, caricati da `load_pass_tables`:
-
-| Oggetto | Indice | Colonne | Righe |
+| Object | Index | Columns | Rows |
 |---|---|---|---:|
-| `candidate_features` | `(pass_index, destination)` | Le F feature | C_tot |
+| `candidate_features` | `(pass_index, destination)` | F features | C_tot |
 | `observed_choices` | `pass_index` | `match_id`, `pass_id`, `frame_end`, `outcome`, `chosen_cell`, `n_candidates` | P |
-| `log_memberships` | Come `candidate_features` | `log_alpha_0`, ..., `log_alpha_9` | C_tot |
+| `log_memberships` | Same as candidate features | `log_alpha_0` through `log_alpha_9` | C_tot |
 
-`pass_index` identifica un passaggio nel set appena caricato; `destination`
-è l'indice della cella candidata. I veri ID partita/passaggio sono nella
-seconda tabella. `chosen_cell` contiene la destinazione osservata y_i.
-La terza tabella è presente solo per CNL e conserva i log(alpha) già usati
-nel fit; i compagni sono gli slot del roster al frame, non identità fisse
-fra passaggi. Le membership non sono feature dell'ensemble.
+P is the number of passes, C the cells per pass, F the features and N the teammates/nests; T denotes temperature. `C_tot = sum_i C_i`, or P×C for equal grids. `pass_index` is a table index; original identifiers remain in `observed_choices`. Memberships are present only for CNL and refer to roster slots, not fixed player identities across passes. They are not utility features.
 
 ```python
-candidate_features.loc[i]   # C righe x F feature del passaggio i
-observed_choices.loc[i]     # destinazione osservata e ID reali del passaggio i
-log_memberships.loc[i]      # C righe x N appartenenze logaritmiche ai nidi
+candidate_features.loc[i]   # C × F candidate features
+observed_choices.loc[i]     # observed destination and original identifiers
+log_memberships.loc[i]      # C × N log memberships
 ```
 
-`L(u, y, rho, log_alpha, condition=True)` e
-`loss_gradient(u, y, rho, log_alpha)` ricevono direttamente gli array
-matematici: u `(P,C)`, y `(P,)`, log_alpha `(P,C,N)` oppure None per flat.
-Le conversioni per XGBoost sono nella sezione 2: `build_xgboost_input`,
-`xgboost_losses` e `xgboost_gradients`. I gruppi da 32 servono solo a
-contenere la memoria; la likelihood e il training usano tutti i passaggi.
-Le utilities sono u_ij=f_theta(z_ij), con f_theta somma degli alberi: ogni
-`model.boost(..., grad=g, hess=h)` aggiunge un albero usando le derivate
-calcolate esplicitamente alla riga precedente. È la stessa operazione nativa
-che `Booster.update` esegue dopo il callback della loss custom; il confronto
-numerico è stato verificato con XGBoost 3.2.0.
+`L(u, y, rho, log_alpha, condition=True)` returns observed-choice losses. With `condition=False`, it returns negative log probabilities for all destinations. `loss_gradient` returns the gradient and scalar curvature for the next tree. Inputs have shapes u=(P,C), y=(P,), log_alpha=(P,C,N), with no memberships for flat softmax.
 
-I salvataggi comuni e il formato di esportazione sono in fondo allo script.
+`build_xgboost_input`, `xgboost_losses` and `xgboost_gradients` convert these arrays for XGBoost. Groups of 32 limit working memory; every pass contributes to learning. Utilities are the sum of tree outputs. Each `model.boost(..., grad=g, hess=h)` adds one tree, then validation CE is recomputed. `best_tree_count` and `best_rho` retain the jointly selected checkpoint; `rounds_without_improvement` controls early stopping.
 
-La sezione 5 distingue `compute_pass_losses` (punteggi NLL per passaggio),
-`compute_metrics` (CE e gain su una tabella di punteggi) ed `compute_pooled_metrics`
-(unione dei cinque test e benchmark pooled, con dettaglio per fold/partita).
+For CNL, rho=1/mu is updated every 20 trees with bounded SLSQP and damping 0.1. Screening starts from the current rho; evaluation/production fits additionally scan [1,1.5,2,3,5,10]. Flat curvature uses the Friedman factor C/(C−1); CNL uses the RUMBoost scalar-curvature convention. Formula annotations are adjacent to the implementation.
 
-## Feature e dati
+`compute_pass_losses` returns per-pass NLL; `compute_metrics` summarizes a score table; `compute_pooled_metrics` combines the five outer test sets. Temperature scaling uses fixed selected trees and nesting parameters.
 
-Restano i 6.810 passaggi selezionati. Gli stati al rilascio usano
-`pipeline/frame_states.py` e `get_pv_players` di PRESS. Ogni fold usa i pesi
-fisici e xT delle proprie sei partite di fit; produzione usa le dieci partite.
-Le dispersioni `pass_s` e `ball_drive_s` restano distinte. Il vocabolario delle
-categorie è costruito sul fit. I pesi sono quelli del benchmark accettato,
-indipendenti dalla prova sulle traiettorie in `pipeline/pass_probability`.
+## Features
 
-Le covariate descrivono distanza/angolo del passaggio, velocità del portatore,
-pitch control grezzo alla destinazione, xT e indici di linea al portatore e
-alla destinazione, rischio di perdita in conduzione a un secondo, minuto e
-punteggio, start type/previous action e conteggi oltre le due linee trasversali.
-Per entrambi i roster si usa la direzione d'attacco del portatore; non si
-contano soltanto i giocatori nel segmento fra origine e destinazione.
+The cohort contains 6,810 passes. Release states use `frame_states.py` and `get_pv_players`. Fold inputs contain physical and xT models associated with six fitting matches; production inputs use ten-match models. Pass and carry arrival dispersions remain distinct. Categorical vocabularies are learned on fitting rows.
 
-Le due famiglie condividono le feature. Le appartenenze CNL sono i contributi
-individuali di pitch control grezzo dei dieci compagni escluso il portatore,
-normalizzati e fissi. Non sono covariate aggiuntive delle utilities.
+Features cover pass geometry, carrier speed, raw target pitch control, carrier/target xT and pressure-line indices, one-second carry loss, match clock and score, start type, previous action and player counts beyond transverse lines. Counts use the carrier team's attacking direction for both rosters. CNL memberships are normalized individual raw pitch-control contributions of the ten non-carrier teammates.
 
-## Screening e training finale
+## Screening and evaluation
 
-Sul fold 0 si confrontano queste cinque configurazioni per famiglia, usando
-sei partite di fit e due di validation. Selezione sulla CE **nativa**, senza
-temperature scaling né valutazione del test. Ogni fit riparte da u=0 e rho=1.
+Five configurations per family are screened on fold 0's six fitting and two validation matches. Native validation CE selects the configuration; screening uses no test scores or temperature scaling. Utilities start at zero and rho at one.
 
-| Nome | Depth | Child weight | L2 | Eta | Limite alberi |
+| Configuration | Depth | Child weight | L2 | Eta | Tree ceiling |
 |---|---:|---:|---:|---:|---:|
-| `01_depth6_child5` | 6 | 5 | 3 | 0,05 | 2.000 |
-| `02_depth3_child5` | 3 | 5 | 1 | 0,05 | 3.000 |
-| `03_depth4_child20` | 4 | 20 | 1 | 0,05 | 2.000 |
-| `04_depth4_child1` | 4 | 1 | 1 | 0,05 | 2.000 |
-| `05_depth4_child5_baseline` | 4 | 5 | 1 | 0,05 | 2.000 |
+| `01_depth6_child5` | 6 | 5 | 3 | 0.05 | 2,000 |
+| `02_depth3_child5` | 3 | 5 | 1 | 0.05 | 3,000 |
+| `03_depth4_child20` | 4 | 20 | 1 | 0.05 | 2,000 |
+| `04_depth4_child1` | 4 | 1 | 1 | 0.05 | 2,000 |
+| `05_depth4_child5_baseline` | 4 | 5 | 1 | 0.05 | 2,000 |
 
-Vincitori accettati: flat depth 4 / child 20 / L2 1; CNL depth 6 / child 5 /
-L2 3. La tabella originale è in `inputs/pass_selection/reference/screening.csv`.
-Impostazioni comuni: CPU hist, subsample/colsample 0,8, max_bin 256, patience
-100, seed 20261019 + fold. CNL aggiorna rho con SLSQP sul fit ogni 20 alberi,
-con rilassamento 0,1. Nello screening SLSQP parte dal rho corrente; nei fit
-finali/refit si aggiunge la scansione [1,1.5,2,3,5,10]. Flat usa il fattore
-Friedman C/(C-1); CNL usa la curvatura CPU di RUMBoost.
+Selected settings are depth 4/child 20/L2 1 for flat and depth 6/child 5/L2 3 for CNL. Both use CPU histogram boosting, row/column subsampling 0.8, max_bin=256, patience 100 and seed 20261019+fold.
 
-Seguono cinque fold **6+2+2**. Le due validation scelgono prefisso/rho e poi T;
-non si rifitta il modello di scelta sulle otto partite prima del test.
-Si concatenano i test prima di calcolare CE e gain. Lo screening esplorativo
-non è tuning annidato indipendente per ogni fold.
+Five 6+2+2 fits follow. The fixed validation pair selects the joint ensemble/rho checkpoint and then temperature; there is no eight-match choice-model refit before testing. Screening is shared across folds, not an independently nested search. Pooled metrics concatenate the test predictions.
 
-Il refit di produzione riparte sulle dieci partite con la mediana dei numeri
-di alberi selezionati (run accettata: 1.444 flat, 359 CNL). La sua T è stimata
-sulle distribuzioni native outer-OOF, non sulle predizioni in-sample del refit.
+Production uses ten matches and the median selected tree count: 1,444 flat or 359 CNL. Production temperature is fitted to native outer out-of-fold distributions, not in-sample refit predictions.
 
-## Esecuzione
+## Commands
 
 ```bash
 python pipeline/pass_selection/pipeline.py --stage features --fold 0
 python pipeline/pass_selection/pipeline.py --stage screen --threads 4
-```
-
-Per job separati, scegliere `--family cnl --configuration 01_depth6_child5`,
-per esempio; dopo tutti e cinque usare `--stage screen-report --family cnl`.
-Generare gli altri fold con `--stage features --fold 1`, ecc., quindi:
-
-```bash
+# Prepare the other folds, then:
 python pipeline/pass_selection/pipeline.py --stage train --threads 4
 python pipeline/pass_selection/pipeline.py --stage scores
 python pipeline/pass_selection/pipeline.py --stage features --production-features
 python pipeline/pass_selection/pipeline.py --stage refit --threads 4
 ```
 
-`--stage all` parte da una cartella output nuova ed esegue tutto. Saltando lo
-screening usa le configurazioni accettate; uno screening parziale va concluso.
-Le cartelle già esistenti non vengono sovrascritte.
+Select one screening job with `--family cnl --configuration 01_depth6_child5`; aggregate completed configurations with `--stage screen-report --family cnl`. `--stage all` executes the full sequence in a fresh output directory. Skipping screening uses the declared configurations; partial screening must be completed. Outputs are protected against overwriting.
 
-## Risultati e controlli
+## Outputs and checks
 
-- `features/`: cache condivisa, per fold e produzione.
-- `screening/<famiglia>/<configurazione>/`: riepilogo, history e aggiornamenti
-  rho. Non si conservano booster intermedi o tabelle duplicate di predizioni.
-- `<famiglia>/training/fold_N/`: modello, parametri/T, tracce, predizioni di test
-  e log-probabilità native necessarie alla calibrazione di produzione.
-- `<famiglia>/scores/`: metriche pooled/per fold/per partita e importance.
-- `<famiglia>/production/`: modello esportabile e metadati.
+Shared feature caches are under `features/`; screening results under `screening/<family>/<configuration>/`; each family has `training/fold_<f>/`, `scores/` and `production/`. Training outputs include native test log probabilities for production calibration.
 
-Importance: total split gain normalizzato, sommando prima le categorie one-hot.
-Media/minimo/massimo dei fold restano separati dal valore di produzione;
-non sono intervalli di confidenza o effetti causali.
+Feature importance is normalized total split gain, summing one-hot levels first. Production values and fold mean/minimum/maximum remain separate; fold ranges are not confidence intervals or causal effects.
 
-I controlli della nuova interfaccia sono in `checks/verify_pipeline.py`, fuori dal
-ciclo di apprendimento: dieci release reali, allineamento delle tre tabelle,
-loss/derivate, fit brevi di 22 alberi, early stopping, calibrazione e salvataggi.
-`checks/tables_equivalence.json` riporta il confronto con la versione precedente;
-i precedenti controlli fisici sono conservati in `checks/equivalence.json`.
-Restano nel flusso
-i controlli su problemi numerici, convergenza, copertura held-out e sovrascrittura.
-I fit brevi di verifica non possono selezionare iperparametri finali.
-
-Riferimento: [RUMBoost](https://doi.org/10.1016/j.trc.2024.104897).
+`checks/verify_pipeline.py` exercises ten real releases, table alignment, loss derivatives, 22-tree fits, stopping, calibration and serialization. Short fits do not select final hyperparameters. See the [benchmark](../../benchmarks/03_pass_selection.qmd) for the RUMBoost article, cross-nested method and source-code attribution.

@@ -1,8 +1,0 @@
-{
-  "reference_tti_max_difference": 0.0,
-  "reference_probability_max_difference": {
-    "euler": 0.0,
-    "exponential": 0.0
-  },
-  "scope": "Deterministic random states, both integrators, unchanged default arguments; no refit."
-}

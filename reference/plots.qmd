@@ -4,7 +4,7 @@ title: "Reference: plot functions"
 
 [1 · Initialization and classes](../api.qmd) · [2 · Solvers](../solvers.qmd) · [3 · Getters and saved results](getters.qmd) · **4 · Plot functions**.
 
-Import functions from `PRESS.visualization`. Every plot returns **`(figure, axes)`**, draws observed tracking and consumes previously computed outputs. Plotting never runs a model, selects a new outcome or changes stored probabilities.
+Import functions from `PRESS.visualization`. Every plot returns **`(figure, axes)`**, draws observed tracking and consumes previously computed outputs. Plotting draws stored results and leaves models and stored probabilities untouched.
 
 ```python
 from PRESS.visualization import plot_frame, plot_pass_map
@@ -23,13 +23,13 @@ fig.savefig("pass_probability.png", dpi=160)
 
 The pitch functions accept `pitch_length=None`, `pitch_width=None`, `figsize=(12,8)`, `title_fontsize=9`, `legend_fontsize=8`, plus keyword-only `title=None`, `ax=None`, `show=True`, `legend=True`, `velocity_scale=1.5`. Choice convenience functions retain their original title-size defaults. An explicit axis supports multi-panel figures; its figure is returned. `show=False` supports scripts and batch saving. Plot dimensions use native tracking metadata unless overridden for display.
 
-Velocity arrows are drawing aids of length `velocity_scale × velocity`, not future trajectories. They can be hidden with `velocity_scale=0`. No player-number labels or extra carrier markers are added. Missing players are omitted; a frame without a carrier can still be drawn with `plot_frame`.
+Velocity arrows are drawing aids of length `velocity_scale × velocity`, indicating the current direction of movement. They can be hidden with `velocity_scale=0`. Missing players are omitted; a frame without a carrier can still be drawn with `plot_frame`.
 
 ## Frames and scalar risks
 
 | Function | Contents |
 |---|---|
-| `plot_frame(press, frame_id, ..., title=None)` | Players, observed ball and velocity arrows. No prediction is required. |
+| `plot_frame(press, frame_id, ..., title=None)` | Players, observed ball and velocity arrows. Works on observed tracking alone. |
 | `plot_action_selection(press, frame_id, ...)` | Same observed frame with stored native `P(pass)` in the title. |
 | `plot_risk(press, frame_id, *, field="hazard", ...)` | Same frame with stored `h`, `residual_risk` or `xloss` in the title. Requires that output to have been computed. |
 | `plot_ball_drive_risk(press, frame_id, ...)` | Defender colors show their cause-specific loss probability divided by total drive loss, on a fixed 0–100% scale. Absolute loss appears in the title; zero loss gives zero shares. Defender IDs preserve the correct association when players are missing. |
@@ -48,9 +48,9 @@ plot_pass_map(press, frame_id, ..., field="pass_success", pass_target=None)
 | `pass_success` | Isotonic-calibrated pass completion, absolute probabilities 0–1. |
 | `pass_selection` | Conditional destination-choice distribution. Colors are `100 × cell probability / largest cell probability`, labelled **Relative pass preference (% of maximum)**. |
 
-The relative scale changes only the display: stored destination probabilities still sum to one. Interpolation is solely for rendering. Very small/collinear grids are displayed as colored target points rather than an undefined interpolated surface.
+The relative scale affects the display: stored destination probabilities still sum to one. Interpolation serves rendering only. Very small or collinear grids are displayed as colored target points because they do not define an interpolated surface.
 
-`pass_target=(x,y)` overlays a dashed line from the observed ball to the supplied destination in native centred metres. The destination is supplied by the caller, not inferred by the plot.
+`pass_target=(x,y)` overlays a dashed line from the observed ball to the supplied destination in native centred metres. The destination is supplied by the caller.
 
 `plot_ppcf(...)` remains a compatibility name with `field="pitch_control"` by default. `plot_pass_selection(...)` selects `field="pass_selection"`. Both return figure and axes and accept the common plotting options.
 
@@ -58,4 +58,4 @@ The relative scale changes only the display: stored destination probabilities st
 
 ## BCOS
 
-`plot_bcos(press_or_bcos, frame_id, ...)` draws the stored probability field and real tracking on an absolute 0–1 scale. It accepts either the match object after `press.compute_bcos(...)` or the standalone `BCOS` object after its own calculation. It does not aggregate an entire match or infer a goal-related interpretation. [BCOS example](../vignettes/spatial_features/bcos/10_bcos.ipynb).
+`plot_bcos(press_or_bcos, frame_id, ...)` draws the stored probability field and real tracking on an absolute 0–1 scale. It accepts either the match object after `press.compute_bcos(...)` or the standalone `BCOS` object after its own calculation. It shows the field of a single frame. [BCOS example](../vignettes/spatial_features/bcos/10_bcos.ipynb).

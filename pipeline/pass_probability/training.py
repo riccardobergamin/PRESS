@@ -542,7 +542,7 @@ def collect_results(pass_table, output):
     """Pool the five outer test folds and evaluate each prediction version.
 
     Each pass must appear exactly once, predicted while its match was held out.
-    Metrics are computed on the combined pass-level predictions, rather than
+    Metrics are computed on the combined pass-level predictions, instead of
     by averaging five fold metrics. Calibration bins are also built anew on
     this pooled sample. No physical parameter or calibrator is fitted here.
     """

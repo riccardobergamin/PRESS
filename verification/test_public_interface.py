@@ -156,8 +156,9 @@ def test_export_rejects_modified_array_file_before_loading(tmp_path):
 
 def test_native_xloss_reuses_current_action_features_and_observed_age():
     press = individual_match(fps=10)
-    outputs = press.compute_risk_frame(5, bcos_value=.5, include_residual=True,
-                                  ppcf_kwargs={"r_max": 12, "step": 6})
+    outputs = press.compute_risk_frame(5, include_residual=True,
+                                  ppcf_kwargs={"r_max": 12, "step": 6},
+                                  bcos_kwargs={"r_max": 8, "step": 4})
     assert outputs["RESIDUAL_RISK"]["time_since_start"] == .5
     h = outputs["HAZARD"]
     policy = outputs["ACTION_SELECTION"]
@@ -178,7 +179,7 @@ def test_elapsed_time_is_not_silently_imputed():
     with pytest.raises(ValueError, match="elapsed"):
         press.get_elapsed_time(5)
     with pytest.raises(ValueError, match="elapsed"):
-        press.compute_risk_frame(5, bcos_value=.5, include_residual=True)
+        press.compute_risk_frame(5, include_residual=True)
     assert not any(press.results.values())
 
 

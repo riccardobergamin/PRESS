@@ -154,13 +154,13 @@ def test_version_two_exports_without_shared_registries_still_load(tmp_path):
     assert restored.get_hazard_result(5) == {'Hazard': .2}
 
 
-def test_explicit_bcos_replaces_earlier_map_and_has_its_own_configuration():
+def test_complete_risk_replaces_earlier_transport_map():
     press = match()
-    calculate(press, keep_details=True)
-    result = calculate(press, bcos_value=12.5)
-    assert press.get_bcos_result(5)['BCOS area'] == 12.5
+    press.compute_bcos(5, r_max=8, step=4)
+    assert press.get_result_configuration(5)['BCOS']['formulation'] == 'transport'
+    result = calculate(press)
+    assert press.get_result_configuration(5)['BCOS']['formulation'] == 'effective_hazard'
     assert 'grid' not in press.get_bcos_result(5)
-    assert press.get_result_configuration(5)['BCOS']['formulation'] == 'explicit'
     assert np.isfinite(result['HAZARD']['Hazard'])
 
 
@@ -192,11 +192,12 @@ def test_standalone_tree_feature_records_are_frame_data_not_model_design():
     press.compute_ppcf(5, r_max=12, step=6)
     press.compute_ball_drive_risk(5)
     press.compute_pass_selection(5)
-    press.compute_action_selection_probability(5, bcos_value=1.)
+    press.compute_bcos(5, r_max=8, step=4, formulation='effective_hazard')
+    press.compute_action_selection_probability(5)
     model = press.get_result_model('ACTION_SELECTION', 5)
     fixed_names = list(model.feature_names)
     record = press.get_action_selection_result(5)['Features']
-    assert record['bcos'] == 1.
+    assert record['bcos'] == press.get_bcos_result(5)['BCOS area']
     assert 'start_type_raw' in record and 'carrier_speed' in record
     press.compute_residual_risk(5)
     press.compute_xloss(5)
@@ -229,13 +230,11 @@ def test_standalone_configuration_export_roundtrip(tmp_path):
 def test_complete_risk_computes_only_the_bcos_feature_not_final_transport(monkeypatch):
     from PRESS.spatial_features import BCOS
     press = match()
-    # Reproduce the previous execution: explicitly request final transport;
-    # action selection then derives its original effective-hazard feature.
+    # Compare separate component calls with complete risk at the same BCOS grid.
     press.compute_ppcf(5, r_max=12, step=6)
     press.compute_ball_drive_risk(5)
     press.compute_pass_selection(5)
-    press.compute_bcos(5, r_max=8, step=4)
-    assert press.get_result_configuration(5, 'BCOS')['BCOS']['formulation'] == 'transport'
+    press.compute_bcos(5, r_max=8, step=4, formulation='effective_hazard')
     press.compute_action_selection_probability(5)
     expected_features = press.get_action_selection_result(5)['Features']
     press.compute_residual_risk(5)

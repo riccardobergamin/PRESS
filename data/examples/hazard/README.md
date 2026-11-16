@@ -1,3 +1,0 @@
-# Context-verified h examples
-
-Fifteen canonical OOF states from three selected individual controls: Atkinson after a recovery in Melbourne City–Macarthur, Van Der Saag drawing engagement in Brisbane–Perth, and Ostler carrying in a sustained close engagement in Brisbane–Perth. cases.csv recomposes frozen branch probabilities; case_summary.csv identifies actual origins, passes, geometry and provider annotations. context_signals.csv checks each plotted frame; full_interval_geometry.csv additionally checks every 10 Hz frame of each control. Selection is illustrative, not random or a new benchmark. Tracking supports geometry and motion; no video or intention verification is claimed. No raw roster tracking is redistributed.

@@ -36,7 +36,7 @@ project:
   - vignettes/03_pass_selection/03_pass_selection.ipynb
   - vignettes/04_action_selection/04_action_selection.ipynb
   - vignettes/05_residual_risk/05_residual_risk.ipynb
-  - vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb
+  - vignettes/06_composed_risk/06_composed_risk.ipynb
   - benchmarks/06_composed_risk.qmd
   - vignettes/setup/possession_and_checkpoint_setup.ipynb
   - vignettes/07_case_studies/07_case_studies.ipynb
@@ -58,14 +58,16 @@ website:
       text: Overview
     - text: User guide
       menu:
-      - text: 1 · Dataset and preprocessing
+      - text: 1 · Datasets, installation and preprocessing
         href: data.qmd
-      - text: External event and tracking data
-        href: external-data.qmd
       - text: 2 · Possession segmentation and context
         href: vignettes/setup/possession_and_checkpoint_setup.ipynb
-      - text: 3 · Installation and use
+      - text: 3 · Use on a match
         href: vignettes/00_match_workflow/00_match_workflow.ipynb
+      - text: "4.1 · Other providers: data and preparation"
+        href: external-data.qmd
+      - text: 4.2 · Bundesliga example
+        href: vignettes/00_external_data/idsse.ipynb
     - text: Models
       menu:
       - text: 1 · Ball-drive risk
@@ -81,7 +83,7 @@ website:
     - text: Risk profiles and reports
       menu:
       - text: h and risk bands
-        href: vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb
+        href: vignettes/06_composed_risk/06_composed_risk.ipynb
       - text: Case studies and reports
         href: vignettes/07_case_studies/07_case_studies.ipynb
     - text: Benchmarks
@@ -125,14 +127,19 @@ website:
     - section: User guide
       collapsed: false
       contents:
-      - text: 1 · Dataset and preprocessing
+      - text: 1 · Datasets, installation and preprocessing
         href: data.qmd
-      - text: External event and tracking data
-        href: external-data.qmd
       - text: 2 · Possession segmentation and context
         href: vignettes/setup/possession_and_checkpoint_setup.ipynb
-      - text: 3 · Installation and use
+      - text: 3 · Use on a match
         href: vignettes/00_match_workflow/00_match_workflow.ipynb
+      - section: "4 · Use with other providers"
+        collapsed: false
+        contents:
+        - text: "4.1 · Data requirements and preparation"
+          href: external-data.qmd
+        - text: "4.2 · Bundesliga example"
+          href: vignettes/00_external_data/idsse.ipynb
       href: usage.qmd
     - section: Models
       contents:
@@ -149,7 +156,7 @@ website:
     - section: Risk profiles and reports
       contents:
       - text: h and risk bands
-        href: vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb
+        href: vignettes/06_composed_risk/06_composed_risk.ipynb
       - text: Case studies and reports
         href: vignettes/07_case_studies/07_case_studies.ipynb
     - section: Benchmarks

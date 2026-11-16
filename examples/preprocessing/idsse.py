@@ -203,7 +203,7 @@ def prepare_idsse(data_dir, match_id, output_dir, *, sync_python=None,
     tracking = tracking.drop(columns=list(derivatives), errors='ignore')
     tracking = pd.concat([tracking, pd.DataFrame(derivatives)], axis=1)
     # Finite positions in isolated <3-frame runs have no inferable velocity;
-    # mark those player observations missing rather than replace by zero.
+    # mark those player observations as missing; do not replace them with zero.
     for player in roster.player_id:
         valid = np.isfinite(tracking[[f'{player}_vx', f'{player}_vy']]).all(axis=1)
         tracking.loc[~valid, [f'{player}_x', f'{player}_y']] = np.nan

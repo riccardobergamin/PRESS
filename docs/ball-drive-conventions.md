@@ -1,21 +1,18 @@
-# Convenzioni cinematiche configurabili della ball drive
+# Ball-drive movement and boundary conventions
 
-La routine resta ritardo di rotazione a posizione fissa, poi traslazione
-rettilinea accelerata. Le nuove opzioni preservano i risultati precedenti
-quando omesse. I sorgenti precedenti sono archiviati, con hash, in
-`old/ball_drive_physics_pre_closure_20261016/`.
+The ball-drive model predicts defender arrival after a fixed-position turning delay followed by accelerated straight-line motion. The carrier continues at its observed velocity over the forecast horizon. These assumptions are shared by training and inference.
 
-|Parametro|Significato|Default compatibile con i pesi precedenti|
+| Configuration | Meaning | Distributed model setting |
 |---|---|---|
-|`a_max`|Accelerazione futura della traslazione|Invariato|
-|`a_turn`|Scala del ritardo `speed * theta / a_turn`|`None`: usa `a_max`|
-|`preserve_initial_overspeed`|Mantiene `v0 > v_max` senza accelerare ulteriormente|`False`: convenzione storica|
-|`boundary_mode`|`absolute`, `signed` o `clipped`|`absolute`|
+| `v_max` | Defender maximum speed during acceleration | 7 m/s |
+| `a_linear` | Defender translational acceleration | 7 m/s² |
+| `a_turn` | Turning-delay scale | 7 m/s² |
+| `preserve_initial_overspeed` | Preserve an observed speed above the nominal maximum without further acceleration | `True` |
+| `boundary_mode` | Boundary covariate convention | `signed` |
 
-Le opzioni cinematiche sono disponibili in `time_to_intercept` e `F`;
-tutte sono inoltrate dal solver ball drive. L'API per frame le accetta
-in `physics_kwargs`, insieme ai parametri del modello. Non modificano
-automaticamente pitch control o pass probability.
+Pass physical settings through `physics_kwargs` in the ball-drive model interface. Learned coefficients, arrival dispersion and spline bases belong to the model, supplied through `model`. Changing physical settings leaves the fitted model and the other components unchanged. See [solver parameters](../solvers.qmd#named-model-parameters).
+
+The low-level `time_to_intercept` routine calls translational acceleration `a_max`. Its inputs are position, velocity and target, and its turning delay is `speed * theta / a_turn`; the default `a_turn=None` uses `a_max`. The delay is a time cost applied before straight-line motion.
 
 ```python
 import jax.numpy as jnp
@@ -27,30 +24,10 @@ tau = time_to_intercept(
     v_max=7., a_max=7., a_turn=7.,
     preserve_initial_overspeed=True,
 )
-# Circa 2 s, mantenendo gli 8 m/s osservati.
+# Approximately 2 s when the observed 8 m/s speed is preserved.
 ```
 
-Il prossimo benchmark mantiene `a_turn=a_max=7`; l'opzione indipendente
-serve all'utente. Il ritardo non descrive un arco esplicito. L'accelerazione
-osservata non è input del TTI: non esiste un ramo `a0 > a_max` da tagliare.
-Usare a0 richiederebbe un modello di moto diverso.
+For a centred rectangle of length L and width W, the signed boundary margin is
+`min(x+L/2, L/2-x, y+W/2, W/2-y)`: positive inside and negative outside. The model also accepts `absolute`, which takes the minimum absolute distance to the boundary lines. The fitted spline uses the signed convention, which is the one validated by the published benchmark.
 
-Per un rettangolo centrato L×W, il margine signed è
-`min(x+L/2, L/2-x, y+W/2, W/2-y)`: positivo dentro, negativo fuori.
-Fuori da un corner non è la distanza euclidea dal vertice. `clipped`
-satura a zero; `absolute` conserva il minimo delle distanze assolute.
-Nessuna variante ferma il portatore o rende certa la loss all'uscita.
-
-Queste opzioni **non costituiscono nuovi pesi allenati**. Cambiare dinamica
-o bordo richiede un fit coerente; non applicare la spline storica a valori
-negativi interpretandola come validata. L'angolo in lambda è un'estensione
-distinta, ancora da allenare.
-
-Parità dei default verificata contro i sorgenti archiviati: scarto zero
-nei casi verificati per TTI e probabilità, Euler ed exponential, float64.
-Risultati in `ball-drive-conventions-parity.json`. Le correzioni epsilon
-dell'angolo storico sono conservate: in float64 possono lasciare circa
-0,00005–0,00007s di ritardo per vettori esattamente allineati. Due vecchi
-test analitici troppo stretti falliscono anche sullo storico in float64;
-il confronto di parità è separato.45 test pertinenti passano nella
-precisione standard float32; i nuovi casi sono verificati anche in float64.
+The fitted tackle intensity includes carrier speed, boundary distance and defender approach angle. Its coefficients and spline transformations are described in the [model vignette](../vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb). The [kinematic parameter notes](kinematic-parameter-conventions.md) explain the literature and descriptive tracking checks supporting the movement settings.

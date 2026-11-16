@@ -2,7 +2,7 @@
 title: "Research pipeline"
 ---
 
-The procedural research code is organized in **`pipeline/`**, separately from the inference package `PRESS/`. It prepares the observations, fits the five components, composes held-out h and xLoss, and produces the descriptive reports. The implementation is being reviewed before the final package release; this page provides its reading order and input/output layout.
+The procedural research code is organized in **`pipeline/`**, separately from the inference package `PRESS/`. It prepares the observations, fits the five components, composes held-out h and xLoss, and produces the descriptive reports. This page gives the reading order, dependencies and input/output layout.
 
 [Download the research pipeline](pipeline/press-training-pipeline.zip) · [Source and reading guide](pipeline/README.md) · [Distributed objects](data/README.md) · [Roadmap](roadmap.qmd)
 
@@ -18,7 +18,7 @@ The [execution plan](pipeline/00_pipeline.py) prints the commands in dependency 
 | 02 | Expected threat | [Model](pipeline/expected_threat/model.py) → [training](pipeline/expected_threat/training.py) → [pipeline](pipeline/expected_threat/pipeline.py). |
 | 03 | Physical ball-drive risk | [Model and priors](pipeline/ball_drive/physical/model.py) → [training](pipeline/ball_drive/physical/training.py) → [pipeline](pipeline/ball_drive/physical/pipeline.py). |
 | 04 | CatBoost ball-drive comparison | [Features](pipeline/ball_drive/catboost/features.py) → [training](pipeline/ball_drive/catboost/training.py) → [pipeline](pipeline/ball_drive/catboost/pipeline.py). |
-| 05 | Pass probability | [Physical model](pipeline/pass_probability/model.py) → [training](pipeline/pass_probability/training.py) → [pipeline](pipeline/pass_probability/pipeline.py). |
+| 05 | Pass probability | [Physical model](pipeline/released/pass_probability/model.py) → [training](pipeline/released/pass_probability/training.py) → [pipeline](pipeline/released/pass_probability/pipeline.py). |
 | 06 | Pass selection, flat and cross-nested | [Features](pipeline/pass_selection/features.py) → [training](pipeline/pass_selection/training.py) → [pipeline](pipeline/pass_selection/pipeline.py). |
 | 07 | Action selection, then residual risk | [Features](pipeline/binary_classification/features.py) → [training](pipeline/binary_classification/training.py) → [pipeline](pipeline/binary_classification/pipeline.py). |
 | 08 | h, xLoss and band evaluation | [Composition](pipeline/composed_risk/features.py) → [scores and bootstrap](pipeline/composed_risk/scores.py) → [pipeline](pipeline/composed_risk/pipeline.py). |
@@ -59,21 +59,23 @@ pipeline/
     statistics/
 ```
 
-Each model stores feature tables or physical arrays separately from fold fits, scores and production refits. Saved trees, spline bases, posterior quantities and calibration objects have explicit task folders. The pipelines refuse to replace completed outputs silently. A fresh pipeline execution should use a new output root. The [input/output guide](pipeline/README.md) describes the individual files.
+Each model stores feature tables or physical arrays separately from fold fits, scores and production refits. Saved trees, spline bases, posterior quantities and calibration objects have explicit task folders. The pipelines preserve completed outputs; a fresh pipeline execution should use a new output root. The [input/output guide](pipeline/README.md) describes the individual files.
 
 The raw-data adapter reads the public SkillCorner match files. Shared preprocessing retains the broad observations and quality flags; task-specific outcome filters remain beside the task. Reconstructed task cohorts are saved under `outputs/preprocessing/task_inputs/` and compared by observation keys and labels before replacing accepted inputs. Segmentation and context-label meanings are explained in the [User guide](vignettes/setup/possession_and_checkpoint_setup.ipynb).
 
 ## Dependencies between models
 
-Fold-specific feature builders receive explicit upstream model artifacts from the matching split. They do not search previous experiments or substitute production models for held-out evaluation. Accepted upstream inputs are stored under `inputs/<task>/upstream/fold_<f>/`; production counterparts are under `upstream/production/`. The numbered plan runs the reviewed task procedures from these declared inputs; it does not automatically promote newly generated experimental fits into downstream inputs.
+Fold-specific feature builders receive explicit upstream model artifacts from the matching split. Held-out evaluation uses the models of the matching split. Accepted upstream inputs are stored under `inputs/<task>/upstream/fold_<f>/`; production counterparts are under `upstream/production/`. The numbered plan runs the reviewed task procedures from these declared inputs; newly generated fits stay separate until they are promoted.
 
 For the six-fitting/two-validation/two-test tree-model splits, physical and xT features use the matching fitting data; pass-completion and pass-selection calibration retain their declared validation roles. Residual-risk training uses cross-fitted P(carry); validation and test use the corresponding main action-selection model. Production residual training uses the five eight-fit/two-held action fits. The [general benchmark](benchmark.qmd) and individual benchmark pages describe these procedures.
 
-BCOS quantities used in the accepted benchmarks and pretrained classifiers come from the **preliminary formulation with effective hazards**. The [updated transport-with-killing formulation](vignettes/spatial_features/bcos/10_bcos.ipynb) is presented mathematically; its implementation, numerical comparison and downstream retraining belong to the planned package revision. The current pipeline preserves the benchmark feature definition.
+BCOS quantities used in the accepted benchmarks and pretrained classifiers come from the **preliminary formulation with effective hazards**. The [transport-with-killing formulation](vignettes/spatial_features/bcos/10_bcos.ipynb) is implemented and is the default for standalone BCOS calculations. Downstream retraining with this formulation remains planned. The training pipeline and pretrained classifiers preserve the preliminary benchmark feature definition.
+
+For pass probability, the released source preserves the benchmark's selection of one trajectory estimator per fitting split. It prepares both candidate paths, compares their reconstruction errors on the fitting matches, and uses the selected method for that fit. The [pass-probability guide](pipeline/released/pass_probability/README.md) explains the procedure.
 
 ## Composed risks, bands and reports
 
-The composition stage produces one held-out h and xLoss per verified canonical checkpoint, using the models of the fold in which the match was held out. It fits no additional predictor or calibrator.
+The composition stage produces one held-out h and xLoss per verified canonical checkpoint, using the models of the fold in which the match was held out. It combines the held-out predictions of the components.
 
 - Overall h/xLoss metrics and calibration use **15,085 verified-outcome states**.
 - Bands, possession patterns and player/team reports use **14,919 states from 7,265 possessions** with terminal canonical-action coverage.
@@ -85,9 +87,9 @@ Details and results are in the [composed-risk benchmark](benchmarks/06_composed_
 
 ## Local checks
 
-The [verification plan](pipeline/checks/run.py) covers syntax and command-line entry points, reconstruction of a real match, physical calculations, short model fits, serialization, composition, metrics and report counts. The [check guide](pipeline/checks/README.md) distinguishes these tests from a new scientific benchmark.
+The [verification plan](pipeline/checks/run.py) covers syntax and command-line entry points, reconstruction of a real match, physical calculations, short model fits, serialization, composition, metrics and report counts. The [check guide](pipeline/checks/README.md) explains their scope.
 
-For pass selection, the [short real-data check](pipeline/checks/pass_selection_steps.py) retains the complete destination grids for ten observed passes. It exercises flat/CNL likelihoods and gradients, the declared curvatures, reduced screening, tree and nesting updates, early stopping, temperature scaling, held-out scoring, feature importance and model export. These checks do not repeat the full hyperparameter searches.
+For pass selection, the [short real-data check](pipeline/checks/pass_selection_steps.py) retains the complete destination grids for ten observed passes. It exercises flat/CNL likelihoods and gradients, the declared curvatures, reduced screening, tree and nesting updates, early stopping, temperature scaling, held-out scoring, feature importance and model export.
 
 ```bash
 # Print the ordered research commands without executing fits.
@@ -99,4 +101,4 @@ python pipeline/checks/run.py --output /path/to/new_checks
 
 ## Release contents
 
-The [release script](pipeline/release.py) uses an explicit file allowlist. Alongside the source code, the site exposes statistical summaries of physical parameters, performance/calibration, bands and selected case-study/report tables. Full input tables, feature matrices, fold boosters, posterior objects and bootstrap replicates are not included in the release. Pretrained inference models remain distributed with the PRESS package. Complete training objects are not included in the website source download.
+The [release script](pipeline/release.py) uses an explicit file allowlist. Alongside the source code, the site exposes statistical summaries of physical parameters, performance/calibration, bands and selected case-study/report tables. Full input tables, feature matrices, fold boosters, posterior objects and bootstrap replicates stay outside the release, and pretrained inference models are distributed with the PRESS package.

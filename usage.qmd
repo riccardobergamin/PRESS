@@ -4,11 +4,14 @@ title: "User guide"
 
 The guide follows the path from raw observations to a possession-level risk profile. All examples use observed match data and the models distributed with PRESS.
 
-1. **[Dataset and preprocessing](data.qmd).** Understand the ten-match source dataset, preprocess one match and inspect the input-table contract.
-2. **[Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb).** Define individual possessions, canonical actions and checkpoints, additional snapshots, start type and previous action, and the labels used by the learned models.
-3. **[Installation and use](vignettes/00_match_workflow/00_match_workflow.ipynb).** Install PRESS, load a real match, select Vujica’s possession, inspect its frames and checkpoints, calculate the possession-loss hazard h and the expected loss xLoss, and save and reload the results.
+1. **[Datasets, installation and preprocessing](data.qmd).** Obtain the SkillCorner files, install PRESS, load a match and inspect the prepared input tables.
+2. **[Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb).** Understand individual and team possessions, canonical actions, checkpoints and context labels.
+3. **[Use on a match](vignettes/00_match_workflow/00_match_workflow.ipynb).** Navigate a real match, calculate h and xLoss, plot frames and checkpoints, and save and reload results.
+4. **Use with other providers.**
+   - [4.1 · Data requirements and preparation](external-data.qmd) defines the input contract and synchronization/segmentation workflow.
+   - [4.2 · Bundesliga example](vignettes/00_external_data/idsse.ipynb) applies it to Köln–Bayern.
 
-To run the example, first install PRESS with the commands in part 3. Download the original SkillCorner match files and follow part 3: `PRESS.from_skillcorner(...)` prepares the required inputs in memory. For already prepared tables from another source, use `PRESS(...)` directly and call the separate segmentation function when needed.
+The SkillCorner loader in part 1 prepares the original match files in memory. For another provider, follow part 4 to map and align the data before initializing PRESS. Individual possessions can be reconstructed through the segmentation interface; PRESS then constructs canonical actions and checkpoints.
 
 The four-part [reference](api.qmd) documents individual classes and functions: [initialization](api.qmd), [solvers](solvers.qmd), [getters](reference/getters.qmd) and [plots](reference/plots.qmd). The [model pages](index.qmd#models) explain the mathematical components; the [benchmarks](benchmark.qmd) describe their training and held-out evaluation.
 

@@ -1,27 +1,15 @@
-# Input finali action selection / residual risk
+# Action-selection and residual-risk inputs
 
-- `action_rows.parquet`: 16.918 checkpoint accettati, 7.770 passaggi. Include
-  gli identificativi reali e il portatore matched, i label e il contesto al frame.
-- `residual_labels.parquet`: 7.820 carry riusciti con esito finale verificato;
-  1.423 perdite terminali, età osservata del possesso e identificativi del parent.
-- `protocol.json`: partizioni, grid di 144 configurazioni, seed e impostazioni
-  finali BCOS. Entrambi i modelli mantengono probabilità native.
-- `upstream/fold_0..4/`: pesi fisici e modello flat di scelta con xT dei sei
-  match corrispondenti. `upstream/production/`: pesi su tutti i dieci match.
-- `reference/`: tabelle numeriche, griglie e selezioni archiviate per i controlli.
-  Le tabelle `action_features_subset` contengono solo un sottoinsieme held-out,
-  non una cache completa da usare per nuovi training. Le nuove pipeline non
-  leggono automaticamente feature o modelli binari da `reference/`.
-- `manifest.json`: SHA-256 delle copie e conteggi delle coorti.
+| Input | Content |
+|---|---|
+| `action_rows.parquet` | 16,918 canonical decisions, including 7,770 passes, with match/action/frame keys, matched carriers, labels and observed context |
+| `residual_labels.parquet` | 7,820 successful carries with verified terminal outcomes, including 1,423 terminal losses, observed possession age and parent identifiers |
+| `protocol.json` | Match partitions, the 144-configuration grid, seeds and preliminary effective-hazard BCOS settings |
+| `upstream/fold_0..4/` | Physical models, flat pass selection and xT associated with the fold's six fitting matches |
+| `upstream/production/` | Full-ten-match upstream models |
+| `reference/` | Numerical tables, grids and selections for verification; `action_features_subset` is only a held-out subset, not a complete training cache |
+| `manifest.json` | File hashes and cohort counts |
 
-I tracking sono condivisi in `../shared/tracking/`. Le righe di action selection
-sono state collegate alla tabella completa delle azioni tramite match/action/frame
-per recuperare i portatori, senza eliminare i contesti unknown. Il label e tutte
-le covariate decisionali restano quelli finali. Non sono stati aggiunti filtri.
+Tracking is shared under `../shared/tracking/`. Carrier identities are joined by match/action/frame keys; unknown context categories are retained. Both classifiers use native probabilities. Residual training receives cross-fitted P(carry); validation and test receive the corresponding main action-selection model's predictions.
 
-Ogni nuova esecuzione scrive in `pipeline/outputs/binary_classification/`, con
-cartelle separate per task e per features/training/scores/production. Il
-pacchetto e i suoi modelli restano invariati durante la revisione.
-
-La procedura mantiene P(carry) cross-fitted sul training residual,
-con il modello action principale per validation/test.
+Outputs are written to separate task and feature/training/score/production directories under `pipeline/outputs/binary_classification/`. Reference tables are not automatically used as new training features or fitted models.

@@ -115,7 +115,7 @@ class ResultsMixin:
             'ACTION_SELECTION': ['Pass probability', 'Ball drive probability',
                                  'BCOS feature formulation', 'context'],
             'HAZARD': ['Hazard', 'band', 'Drive risk', 'Pass failure expected', 'rppcf'],
-            'BCOS': ['BCOS area', 'Model feature BCOS area'],
+            'BCOS': ['BCOS area'],
             'RESIDUAL_RISK': ['Residual loss probability', 'time_since_start'],
             'XLOSS': ['xLoss', 'Hazard', 'Residual loss probability', 'time_since_start'],
         }

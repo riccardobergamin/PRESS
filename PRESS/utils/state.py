@@ -14,7 +14,7 @@ def get_pv_players(frame, tracking_df):
     number. Missing players are padded at (1000,1000) with zero velocity,
     preserving the fitted ten-teammate/eleven-opponent contracts. Active
     player order follows the tracking columns and is retained in the ID lists.
-    More than eleven observed players on a side raises an error rather than
+    More than eleven observed players on a side raises an error instead of
     silently discarding observations. No future positions are consulted.
     """
     rows = tracking_df.loc[tracking_df.frame == frame]

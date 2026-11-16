@@ -1,8 +1,8 @@
 ---
-title: "1 · Dataset and preprocessing"
+title: "1 · Datasets, installation and preprocessing"
 ---
 
-This is the first part of the [User guide](usage.qmd). Continue with [possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb) and [installation and use](vignettes/00_match_workflow/00_match_workflow.ipynb).
+This is the first part of the [User guide](usage.qmd). Continue with [possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb) and [use on a match](vignettes/00_match_workflow/00_match_workflow.ipynb).
 
 ## The source data
 
@@ -23,9 +23,22 @@ opendata/data/matches/2006229/
 | `*_match.json` | Pitch dimensions, team identities, player identities and shirt numbers. |
 | `*_tracking_extrapolated.jsonl` | Frame, match clock, period, player and ball positions, provider possession and detection flags. |
 | `*_dynamic_events.csv` | Individual-possession boundaries, boundary-matching flags, reception/recovery context, pass links and outcomes. |
-| `*_phases_of_play.csv` | Available in the source release; not required by this preprocessing command or the fitted PRESS predictors. |
+| `*_phases_of_play.csv` | Available in the source release; unused by this preprocessing command and the fitted PRESS predictors. |
 
-Event IDs and possession IDs are local to a match. Identify an individual possession by `(match_id, possession_id)`: possession ID alone is not unique. The original provider files remain separate from derived tables.
+Event IDs and possession IDs are local to a match. Identify an individual possession by `(match_id, possession_id)`. The original provider files remain separate from derived tables.
+
+## Install PRESS {#installation}
+
+From a local PRESS checkout, create a Python 3.11 environment and install the package with the data readers and notebook dependencies:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[io,vignettes]'
+export SKILLCORNER_OPENDATA="/path/to/opendata"
+```
+
+The environment variable points to the downloaded SkillCorner open-data root containing `data/matches/`. The fitted models are included and can be used without training.
 
 ## Preprocess one observed match {#preprocess-one-match}
 
@@ -33,27 +46,31 @@ The example uses **Melbourne City FC–Macarthur FC, 7 March 2025**, match `2006
 
 ### Load the original files
 
-After [installation](vignettes/00_match_workflow/00_match_workflow.ipynb#installation), call:
+With the environment variable above set, load the original files directly:
 
 ```python
+import os
+from pathlib import Path
 from PRESS import PRESS
+
+match_dir = Path(os.environ["SKILLCORNER_OPENDATA"]) / "data/matches/2006229"
 press = PRESS.from_skillcorner(match_dir)
 ```
 
-`match_dir` is the original match folder shown above. PRESS reads the metadata, tracking and dynamic events, calculates kinematics, prepares annotated possessions and builds canonical actions in memory. No intermediate Parquet files or separate preprocessing command are required. The following steps describe what this loader does.
+`match_dir` is the original match folder shown above. PRESS reads the metadata, tracking and dynamic events, calculates kinematics, prepares annotated possessions and builds canonical actions in memory. A single call replaces intermediate Parquet files and a separate preprocessing command. The following steps describe what this loader does.
 
 ### What preprocessing does
 
 1. **Load observations and identities.** Preserve frame IDs, period, timestamps, pitch dimensions and detection flags. Map provider player IDs to canonical labels such as `away_13`, retaining the original mapping.
-2. **Estimate kinematics.** Apply a centred Savitzky–Golay derivative with polynomial order two: seven frames for players and five for the ball. Estimate acceleration by differentiating velocity again. Runs are split at missing frames, period changes and nonfinite coordinates; runs shorter than three observations have unavailable derivatives. Positions are not spatially rescaled or filled by this step.
+2. **Estimate kinematics.** Apply a centred Savitzky–Golay derivative with polynomial order two: seven frames for players and five for the ball. Estimate acceleration by differentiating velocity again. Runs are split at missing frames, period changes and nonfinite coordinates; runs shorter than three observations have unavailable derivatives. This step keeps positions at their original scale and leaves gaps unfilled.
+
+The centred velocity estimate uses observations after the selected frame: three future frames in an interior player window. These inputs reconstruct a recorded match; a causal live-data smoother would be a separate preprocessing choice. Detection flags are retained, and finite extrapolated players are allowed. Missing players remain distinguishable from observed players.
 
 The loader also constructs the possession/action structure described in [part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb):
 
 3. **Match individual control intervals.** Retain recognized individual possessions with explicitly matched start and end. Preserve the full event audit separately, including excluded intervals and reasons.
 4. **Link passes and team possessions.** Verify release and the immediate subsequent control. A completed pass can link two individual possessions into one team possession. A break in verified continuity starts a new reconstructed team interval.
 5. **Build actions.** Export canonical carries and pass releases separately from additional snapshots. [Part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb) defines their timing and context labels.
-
-The centred velocity estimate uses observations after the selected frame: three future frames in an interior player window. These inputs reconstruct a recorded match; a causal live-data smoother would be a separate preprocessing choice. Detection flags are retained, and finite extrapolated players are allowed. Missing players remain distinguishable from observed players.
 
 ## The annotated input tables {#input-tables}
 
@@ -67,12 +84,12 @@ The loader retains these tables in the PRESS object. They can also be supplied e
 | Team possessions | Linked team intervals with a team ID and the number of constituent individual possessions. PRESS can derive these from the individual table at initialization. |
 | Player map / audit | Correspondence to provider identities and the complete audit of individual-boundary selection. |
 
-Positions use metres, velocity m/s and acceleration m/s². A frame ID is an observation index, not a time in seconds: use the input frequency to convert frame differences to elapsed time.
+Positions use metres, velocity m/s and acceleration m/s². A frame ID is an observation index; the input frequency converts frame differences to elapsed time.
 
-The [installation and use example](vignettes/00_match_workflow/00_match_workflow.ipynb) loads the original files, initializes the object, evaluates a generic frame and all canonical checkpoints, and saves and reloads the calculated results. The five fitted models distributed with PRESS include their parameters, category vocabularies and fitted xT surfaces; no training step is needed to use them.
+The [match-use example](vignettes/00_match_workflow/00_match_workflow.ipynb) loads the original files, initializes the object, evaluates a generic frame and all canonical checkpoints, and saves and reloads the calculated results. The five fitted models distributed with PRESS include their parameters, category vocabularies and fitted xT surfaces; the models can be used as distributed.
 
 ## Other tracking sources
 
-The physical solvers consume positions and velocities, not provider-specific raw files. Supply canonical tables to `PRESS(...)`. The optional `PRESS.io.convert_long_tracking(...)` helper converts long tracking tables before initialization. If individual controls/actions are missing, call `PRESS.io.segment_possessions(...)` on the aligned canonical tracking and events. Convert coordinates and units, provide the actual frame frequency and map event labels to the concepts in [part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb#context-labels). The [initialization reference](api.qmd) specifies both input schemas. A format adapter does not establish calibration on another dataset.
+The physical solvers consume canonical positions and velocities. Supply canonical tables to `PRESS(...)`. The optional `PRESS.io.convert_long_tracking(...)` helper converts long tracking tables before initialization. If individual controls/actions are missing, call `PRESS.io.segment_possessions(...)` on the aligned canonical tracking and events. Convert coordinates and units, provide the actual frame frequency and map event labels to the concepts in [part 2](vignettes/setup/possession_and_checkpoint_setup.ipynb#context-labels). The [external-data guide](external-data.qmd) explains the input contract and the [Bundesliga example](vignettes/00_external_data/idsse.ipynb) shows a complete workflow. The [initialization reference](api.qmd) specifies both input schemas. Calibration on another dataset remains to be assessed.
 
 The [pipeline page](pipeline.qmd) describes the research stages beyond this one-match example; task-specific outcome filters and validation protocols are documented in the [benchmarks](benchmark.qmd).

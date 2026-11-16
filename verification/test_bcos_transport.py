@@ -21,15 +21,34 @@ def test_no_defenders_and_zero_distance():
     np.testing.assert_allclose(result['Ball carrier open space'],1,atol=1e-14)
 
 
-def test_core_surface_and_explicit_frozen_feature_are_distinct():
+def test_action_feature_replaces_standalone_transport_result(monkeypatch):
     tracking,*_=load_test_match();press=PRESS(tracking)
     result=press.compute_bcos(5,r_max=4,step=4,physics_args={'arrival_order':24,'path_order':32})
     assert press.get_result_configuration(5,'BCOS')['BCOS']['formulation']=='transport'
+    original=press.compute_bcos
+    def small_field(frame_id, **kwargs):
+        return original(frame_id,r_max=4,step=4,**kwargs)
+    monkeypatch.setattr(press,'compute_bcos',small_field)
     value=press._classifier_bcos(5)
     old=BCOS(tracking).compute_bcos(5,r_max=4,step=4,formulation='effective_hazard')
     assert value==old['BCOS area']
-    assert press.get_result_configuration(5,'BCOS')['BCOS']['formulation']=='transport'
-    assert press.get_bcos_result(5)['Model feature formulation']=='effective_hazard'
+    assert press.get_result_configuration(5,'BCOS')['BCOS']['formulation']=='effective_hazard'
+    assert press.get_bcos_result(5)['BCOS area']==value
+
+
+def test_standalone_action_selection_replaces_transport_result(monkeypatch):
+    tracking,*_=load_test_match();press=PRESS(tracking)
+    press.compute_ppcf(5,r_max=12,step=6)
+    press.compute_ball_drive_risk(5)
+    press.compute_pass_selection(5)
+    press.compute_bcos(5,r_max=4,step=4)
+    original=press.compute_bcos
+    def small_field(frame_id, **kwargs):
+        return original(frame_id,r_max=4,step=4,**kwargs)
+    monkeypatch.setattr(press,'compute_bcos',small_field)
+    press.compute_action_selection_probability(5)
+    assert press.get_result_configuration(5,'BCOS')['BCOS']['formulation']=='effective_hazard'
+    assert press.get_action_selection_result(5)['Features']['bcos']==press.get_bcos_result(5)['BCOS area']
 
 
 def test_ray_movement_matches_shared_tti_away_from_origin_cutoff():

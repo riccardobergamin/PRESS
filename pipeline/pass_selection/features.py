@@ -598,7 +598,7 @@ def load_pass_tables(features_folder, matches, family):
     )
 
     # Table 1: one row per pass/destination pair; exactly F feature columns.
-    # copy=False preserves the numeric buffer rather than creating another copy.
+    # copy=False preserves the numeric buffer without creating another copy.
     candidate_features = pd.DataFrame(
         np.concatenate(feature_arrays),index=candidate_index,
         columns=specification["names"],copy=False,

@@ -164,7 +164,7 @@ def test_context_and_xt_errors_happen_before_calculation(match):
         model.compute_risk_frame(0, np.array([1, 2]))
     assert not any(model.results.values())
     result = model.compute_risk_frame(0, xt, start_type="unknown", previous_action="ball_drive",
-        bcos_value=0.5, ppcf_kwargs={"r_max":12,"step":6})
+        bcos_kwargs={"r_max":8,"step":4}, ppcf_kwargs={"r_max":12,"step":6})
     assert 0 <= result['ACTION_SELECTION']['Pass probability'] <= 1
 
 

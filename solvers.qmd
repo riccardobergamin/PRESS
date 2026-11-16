@@ -89,7 +89,7 @@ The first two calls replace the stored ball-drive result and invalidate its depe
 
 ### Fitted-model settings
 
-The default pass-risk artifact uses `v_max=5.5`, `a_max=a_turn=7`, overspeed-preserving TTI, `dt_ball=0.04`, `t_max_flight=10`, `dt_pc=0.01`, `t_max_pc=15`, exact target distances and exponential integration. Launch candidates span 5–25 m/s and 0–45 degrees, 30 values on each axis; drag settings are `rho=1.22`, `Cd=0.25`, `A=0.038`, `m=0.42`, `g=9.81`, controllable height `z_max=2`. The full-data parameters are `lambda_control=5.437830`, `s=0.294560`; isotonic knots are separate from those physical estimates. [Export provenance](docs/pass-risk-refit-provenance.json).
+The default pass-risk artifact uses `v_max=5.5`, `a_max=a_turn=7`, overspeed-preserving TTI, `dt_ball=0.04`, `t_max_flight=10`, `dt_pc=0.01`, `t_max_pc=15`, exact target distances and exponential integration. Launch candidates span 5–25 m/s and 0–45 degrees, 30 values on each axis; drag settings are `rho=1.22`, `Cd=0.25`, `A=0.038`, `m=0.42`, `g=9.81`, controllable height `z_max=2`. The full-data parameters are `lambda_control=5.437830`, `s=0.294560`; isotonic knots are separate from those physical estimates. Export provenance.
 
 The default drive artifact uses the verified additive splines and angle term, `v_max=7`, independent linear/turning acceleration settings, preserved initial overspeed, signed boundary distance, constant carrier velocity and exponential integration with partial final steps. The wrapper supplies native pitch dimensions. Physical overrides and named fitted-parameter dictionaries are supported; omitted settings retain their model defaults. [Model and spline definitions](vignettes/01_ball_drive_risk/01_ball_drive_risk.ipynb).
 

@@ -1,77 +1,35 @@
-# Ball-drive risk: CatBoost
+# CatBoost ball-drive comparison
 
-Stesso schema di action/residual: **features → training → pipeline**.
+Read `features.py` → `training.py` → `pipeline.py`. `run_pipeline` coordinates feature preparation, training and pooled scoring; `train_model` calls native `CatBoostClassifier.fit` with `Logloss`.
 
-## Ordine di lettura
+## Features and cohort
 
-1. `pipeline.run_pipeline`: vede tutto il flusso in tre fasi.
-2. `features.py`: `calculate_defender_tti`, `build_spatial_features`,
-   `build_features`; `prepare_features` le applica agli stati reali.
-3. `training.train_model`: singolo fit **nativo** CatBoost.
-4. `training.select_configuration`: ricerca completa sulle quattro rotazioni.
-5. `training.train_validate_test`: calibrazione inner-OOF, refit su otto e test.
-6. `training.compute_pooled_metrics`: concatena i cinque test prima delle metriche.
+The cohort contains 9,114 attempts and 456 losses. A loss before the end of the one-second window still has target 1. CatBoost is an exploratory benchmark comparison; the physical model is deployed.
 
-## Feature
+The 50 features comprise carrier speed; nearest-boundary distances at 0, 0.5 and 1 s; the three smallest TTIs at each of those times; eleven encounter probabilities at 0.1 s intervals; initial/projected carrier and goal geometry; relative distance, speed, closing, transverse motion and position for the three initially nearest defenders; two local counts and nearest-pair geometry.
 
-Coorte finale invariata: **9.114 stati, 456 loss**. Target y=1 per la perdita
-entro un secondo, anche quando avviene prima della fine della finestra.
-Il modello fisico resta quello distribuito; CatBoost è il confronto esplorativo.
+States are reconstructed through the shared tracking getter. TTI uses speed cap 7 m/s and linear/turning acceleration scales 7 m/s², preserving initial overspeed. Encounter curves use the physical ball-drive dispersion fitted on the corresponding six inner-fitting or eight development matches. Shared geometry is calculated once; training loads the prepared features.
 
-Le 50 feature sono le ultime approvate: velocità BC; bordo più vicino a
-0/0.5/1 s; tre TTI minimi a quegli istanti; undici probabilità di encounter a
-passo 0.1 s; posizione iniziale/proiettata e geometria rispetto alla porta;
-distanza, velocità, closing, trasversale e posizione relativa dei tre difensori
-inizialmente più vicini; due conteggi locali e geometria della coppia più vicina.
+## Training and calibration
 
-Lo stato viene ricostruito dal tracking con lo stesso getter degli altri task.
-TTI usa vmax=7 e accelerazioni lineare/centripeta=7, con overspeed preservato.
-La curva encounter usa **s della ball drive fisica dello split corrispondente**:
-sei match nei fit interni, otto nel refit che predice il test.
+The 36 configurations combine depth (4, 6, 8), learning rate (0.02, 0.05, 0.1) and L2 (1, 3, 10, 30). Trees are symmetric, with Plain boosting and Bayesian bootstrap. Within each outer fold, four 6+2 rotations evaluate 3,000-tree fits at 25-tree checkpoints. Pooled validation CE selects configuration and length.
 
-La geometria è preparata una sola volta per entrambi i bracci e tutti i fold.
-`--stage train` legge questi file senza riaprire tracking o ricalcolare TTI.
+- `natural`: all fitting observations.
+- `loss10`: all losses and nine successes per loss, without replacement.
+- Validation/test: unchanged natural prevalence.
 
-## Training
+The loss10 selection criterion applies analytical prior correction. With the selected configuration, seeds 19, 41 and 73 generate predictions covering the eight development matches out of fold, then three new eight-match fits predict the outer test pair. Probabilities are averaged across seeds. Platt and isotonic calibration use inner out-of-fold predictions and natural labels. All calibration variants are reported separately; test labels do not fit the calibrators. There is no ten-match CatBoost deployment refit.
 
-`train_model` passa X e y a `CatBoostClassifier.fit`, con `loss_function=Logloss`.
-Nessun gradiente custom. Alberi simmetrici, boosting Plain, bootstrap Bayesian;
-le altre impostazioni fisse e la grid sono scritte all'inizio di `features.py`.
-
-La grid comprende **36 configurazioni**: depth=(4,6,8), learning rate=
-(0.02,0.05,0.1), L2=(1,3,10,30). Per ogni configurazione si fittano 3.000 alberi
-in quattro rotazioni 6+2 all'interno degli otto match di sviluppo. Si valutano
-prefissi ogni 25 alberi. La CE pooled di validation sceglie configurazione e
-lunghezza; nel braccio ricampionato usa la correzione analitica della prior.
-
-- **Naturale:** tutte le osservazioni di training.
-- **loss10:** tutte le loss e nove successi per loss, senza reinserimento.
-- **Validation/test:** proporzioni naturali, nessun ricampionamento.
-
-Con la configurazione fissata, tre seed (19,41,73) generano predizioni inner-OOF
-che coprono gli otto match e tre modelli nuovi su tutti gli otto match.
-Si mediano i tre seed. Platt e isotonic sono stimati sulle predizioni inner-OOF
-e label naturali; i due test restano esclusi fino alla valutazione finale.
-Si riportano nativo, correzione della prior, Platt e isotonic. Le metriche sono
-pooled su cinque coppie di test. Non si rifitta un CatBoost all-ten per il pacchetto.
-
-## Esecuzione
+## Execution
 
 ```bash
 python pipeline/ball_drive/catboost/pipeline.py --stage features \
   --physical-splits pipeline/inputs/ball_drive/reference_parameters/physical_splits.json
 python pipeline/ball_drive/catboost/pipeline.py --stage train --fold 0 --sampling natural --threads 4
-# Dopo i cinque fold di entrambi i bracci:
+# After both sampling arms and all five folds:
 python pipeline/ball_drive/catboost/pipeline.py --stage scores
 ```
 
-Per una riproduzione completa, il percorso predefinito di `physical-splits`
-è l'output della nuova stima fisica in `pipeline/outputs/ball_drive/physical/`.
-La copia accettata sopra è un'opzione esplicita. Gli output già presenti non
-vengono sovrascritti. La versione del benchmark è CatBoost **1.2.10**.
+For a complete new estimation, use the `physical_splits.json` produced by the physical pipeline. Completed output directories are protected against overwriting. The benchmark uses CatBoost 1.2.10.
 
-## Verifica
-
-`checks/verify_pipeline.py` conferma identità di TTI, feature, sampling e metriche
-sui 9.114 stati reali. Questo controllo non ripete la ricerca completa
-degli iperparametri né verifica nuovi fit nativi.
+`checks/verify_pipeline.py` checks TTI, features, sampling and metric replay. This does not replace a full search or verify native fitting when CatBoost is unavailable.

@@ -1,18 +1,12 @@
 # 01 — Preprocessing
 
-`features.py` contiene il flusso principale, senza un dispatcher nascosto:
+Read `features.py` for the three preparation stages:
 
-1. `prepare_tracking`: JSONL/JSON/CSV pubblici → coordinate native, identità,
-   derivate cinematiche offline e annotazioni originali.
-2. `prepare_possessions`: estremi matched, collegamenti, frame utilizzabili,
-   segmentazione canonica e snapshot separati. Nessun filtro di esito del task.
-3. `prepare_task_tables`: applicazione esplicita dei filtri dei task e tabelle
-   di righe/label. La preparazione degli eventi xT mantiene la sua coorte.
+1. `prepare_tracking`: read original JSONL/JSON/CSV files, preserve native coordinates and identities, and estimate offline kinematics.
+2. `prepare_possessions`: check matched boundaries and usable frames, link possessions, and construct canonical actions and separate snapshots.
+3. `prepare_task_tables`: apply the task-specific filters and create observation/label tables. Expected Threat retains its distinct event cohort.
 
-`tracking.py` raccoglie le operazioni sui campioni e la segmentazione;
-`events.py` annota i possessi individuali; `possession_selection.py` e
-`passes.py` definiscono il collegamento rilascio–controllo successivo.
-Sono le operazioni del processing già verificato, senza nuove convenzioni.
+`tracking.py` contains sample processing and segmentation; `events.py` annotates individual possessions; `possession_selection.py` and `passes.py` implement release-to-next-control links. The [segmentation guide](../../vignettes/setup/possession_and_checkpoint_setup.ipynb) defines the conventions and context labels.
 
 ```bash
 python pipeline/preprocessing/pipeline.py \
@@ -20,22 +14,8 @@ python pipeline/preprocessing/pipeline.py \
   --output /path/to/new_run/preprocessing
 ```
 
-Si può scegliere `--match 1925299` e lanciare le tre fasi separatamente con
-`--stage tracking`, `possessions` e `datasets`. Il tracking annotato si trova
-in `matches/<match>/<match>_tracking.parquet`, compatibile con `frame_states.py`.
-Le righe sono in `task_inputs/<task>/rows.parquet`; gli upstream addestrati e
-i protocolli delle pipeline di fitting sono input distinti.
+Use `--match 1925299` for one match. Stages can be run separately with `--stage tracking`, `possessions` and `datasets`. Annotated tracking is saved as `matches/<match>/<match>_tracking.parquet`; task observations are in `task_inputs/<task>/rows.parquet`.
 
-Con `--templates pipeline/inputs` vengono aggiunti esplicitamente i protocolli
-e gli upstream accettati, senza copiare le osservazioni. Sono creati anche
-`pass_probability/arrays.npz` (solo destinazione osservata), i metadati dei
-giocatori per pass selection, `binary_classification/action_rows.parquet` e
-`residual_labels.parquet`, e i label/metadata per h e report. I modelli non
-sono ristimati dal preprocessing: la provenienza è registrata.
+`--templates pipeline/inputs` adds the declared protocols and upstream artifacts without copying observations. It also creates pass-probability target arrays, pass-selection player metadata, binary-task observations and labels, and composed-risk/report metadata. Preprocessing does not refit upstream models.
 
-Per usare questi nuovi input si passa il loro percorso a `--data-root` del
-task e la radice del preprocessing a `--tracking-root`. Il piano generale
-accetta gli stessi percorsi tramite `--input-root` e `--tracking-root`.
-
-Il confronto con le coorti accettate riguarda le **chiavi delle righe e i label**,
-non soltanto i conteggi. Non si applicano filtri di durata ai possessi di h.
+Pass the generated task directory as `--data-root` and the preprocessing root as `--tracking-root`. The overall execution plan accepts `--input-root` and `--tracking-root`. Cohort checks compare row keys and labels, not only counts. There is no general minimum-possession-duration filter for h.

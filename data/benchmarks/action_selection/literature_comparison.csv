@@ -1,3 +1,0 @@
-study,model,cross_entropy,null_cross_entropy,gain_on_null,brier,locator,caveat
-Stalpaert2022,major_categories,0.5762,0.6602,0.12723417146319294,0.1982,"Section4.6, Table4.6, printed p39/PDF p49",Different dataset; specific preceding-action types are human annotated. Table4.7 ECE is postcalibration and not assigned to the Table4.6 variants.
-Stalpaert2022,specific_types_included,0.4807,0.6602,0.27188730687670404,0.1617,"Section4.6, Table4.6, printed p39/PDF p49",Different dataset; specific preceding-action types are human annotated. Table4.7 ECE is postcalibration and not assigned to the Table4.6 variants.

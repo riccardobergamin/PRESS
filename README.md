@@ -12,7 +12,7 @@ The motivating question is: given the current game state and the player in posse
 
 The model style is hybrid: pass and carry outcomes use physics-inspired motion and arrival probabilities, while action selection and pass destination use tree models. The risk unit is team possession, represented as a discrete-time survival process over a sequence of canonical on-ball actions across successive carriers. A successful pass is nonterminal: it continues team possession with the receiver. It ends only the passer's individual control, which is the separate endpoint used by xLoss. The current-action hazard can be evaluated at any usable tracking frame attributable to the current carrier. Canonical action starts define the benchmark, and separately marked snapshots can enrich a descriptive trajectory.
 
-Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking, whereas the observed-possession summary is retrospective. See the [hazard and bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb) for the interpretation of the hazard and the [possession segmentation page](vignettes/setup/possession_and_checkpoint_setup.ipynb) for the definition of canonical actions and checkpoints.
+Pressure means constraining the carrier's time, space and usable passing options in this project. The local next-step estimate is forward-looking, whereas the observed-possession summary is retrospective. See the [hazard and bands vignette](vignettes/06_composed_risk/06_composed_risk.ipynb) for the interpretation of the hazard and the [possession segmentation page](vignettes/setup/possession_and_checkpoint_setup.ipynb) for the definition of canonical actions and checkpoints.
 
 ## Model overview
 
@@ -30,7 +30,7 @@ Operational difficulty bands follow from the half-life of possession under a con
 
 **Ball-drive risk.** The drive solver accumulates defender-specific loss probabilities under a shared remaining survival mass. The tackle rate has additive penalized spline effects for carrier speed, signed distance to the pitch boundary and defender approach angle. `BallDriveModel.pretrained()` loads the ten-match refit, which the frame API uses by default. The drive model names its baseline tackle rate `lambda_0`, and `lambda_control` belongs to pass control.
 
-**Pass probability.** Two physical parameters, the control rate and the arrival dispersion, are fitted by maximum likelihood along reconstructed pass trajectories and transferred to target pitch control, with exact-distance flight and exponential integration. An isotonic map calibrates the completion probability. `PassRiskModel.pretrained()` loads parameters and calibration, `PRESS(..., pass_risk_model=model)` accepts it explicitly, and `compute_ppcf` uses it by default. The [vignette](vignettes/02_pass_probability/02_pass_probability.ipynb) explains flight, control and model assumptions, and the [provenance file](docs/pass-risk-refit-provenance.json) records the refit.
+**Pass probability.** Two physical parameters, the control rate and the arrival dispersion, are fitted by maximum likelihood along reconstructed pass trajectories and transferred to target pitch control, with exact-distance flight and exponential integration. An isotonic map calibrates the completion probability. `PassRiskModel.pretrained()` loads parameters and calibration, `PRESS(..., pass_risk_model=model)` accepts it explicitly, and `compute_ppcf` uses it by default. The [vignette](vignettes/02_pass_probability/02_pass_probability.ipynb) explains flight, control and model assumptions, and the provenance file records the refit.
 
 **Choice and residual models.** Pass selection is a flat XGBoost categorical model over candidate destinations. Action selection is a binary XGBoost pass-versus-carry policy. Residual risk estimates the probability that the individual possession eventually ends in a loss after a successful carry. The tree models use features derived from the physical components together with tactical and contextual information.
 
@@ -53,12 +53,15 @@ The package checks the integrity and feature contract of each tree model when it
 The workflow is load → navigate → compute → retrieve → plot or save. Team and individual possessions have separate getters. Any usable frame can be evaluated independently of canonical checkpoint sampling. `compute_risk_frame(frame_id)` computes h, and `include_residual=True` also computes the conditional residual risk and the terminal individual xLoss, deriving the elapsed time from annotations and never imputing zero. The fitted xT surface and the frozen model parameters are included in the pretrained artifacts.
 
 ```python
+import os
+from pathlib import Path
 from PRESS import PRESS
 from PRESS.visualization import plot_ball_drive_risk
 
-press = PRESS(tracking, player_possessions_data=individuals,
-              actions_data=actions, fps=input_frequency)
-frame_id = int(press.get_checkpoints().frame_id.iloc[0])
+match_dir = Path(os.environ["SKILLCORNER_OPENDATA"]) / "data/matches/2006229"
+press = PRESS.from_skillcorner(match_dir)
+actions = press.get_actions(valid_only=True)
+frame_id = int(actions.frame_start.iloc[0])
 press.compute_ball_drive_risk(frame_id)
 result = press.get_ball_drive_risk_result(frame_id)
 fig, ax = plot_ball_drive_risk(press, frame_id, show=False)
@@ -72,9 +75,10 @@ All plot functions return figure and axes. Getters copy results by default. Save
 
 **User guide.** [Using the package](usage.qmd) follows the path from raw observations to a possession-level risk profile:
 
-1. [Dataset and preprocessing](data.qmd): preprocess one observed match and inspect the input tables.
+1. [Datasets, installation and preprocessing](data.qmd): obtain the data, install PRESS, load a match and inspect the input tables.
 2. [Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb): individual possessions, canonical actions and checkpoints, additional snapshots, start type and previous action.
-3. [Installation and use](vignettes/00_match_workflow/00_match_workflow.ipynb): a complete real-match workflow with h and xLoss, plots, getters and result persistence.
+3. [Use on a match](vignettes/00_match_workflow/00_match_workflow.ipynb): a complete real-match workflow with h and xLoss, plots, getters and result persistence.
+4. [Use with other providers](external-data.qmd): input requirements and preparation, followed by the [Bundesliga example](vignettes/00_external_data/idsse.ipynb).
 
 **Models.** Each vignette explains the concept, the mathematics and an observed match example using the package visualization.
 
@@ -86,7 +90,7 @@ All plot functions return figure and axes. Getters copy results by default. Save
 
 **Risk profiles and reports.**
 
-- [06 · Composed hazard and bands](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb): the hazard, half-life bands and held-out band validation.
+- [06 · Composed hazard and bands](vignettes/06_composed_risk/06_composed_risk.ipynb): the hazard, half-life bands and held-out band validation.
 - [07 · Case studies](vignettes/07_case_studies/07_case_studies.ipynb): pressure patterns, observed cases and the team and player report.
 
 **Benchmarks.** The [benchmark overview](benchmark.qmd) describes the dataset, the shared evaluation protocol and the metrics. Each task has its own page: [ball-drive risk](benchmarks/01_ball_drive_risk.qmd), [pass probability](benchmarks/02_pass_probability.qmd), [pass selection](benchmarks/03_pass_selection.qmd), [action selection](benchmarks/04_action_selection.qmd), [residual risk](benchmarks/05_residual_risk.qmd) and [composed risk](benchmarks/06_composed_risk.qmd).
@@ -135,7 +139,7 @@ Install Quarto 1.10.19 and the pinned Python environment above, activate that en
 quarto render --no-execute
 ```
 
-Quarto renders the saved notebook outputs as pages in `_site/`. Re-executing the notebook code requires the local processed matches. The publishing workflow is started manually through GitHub Actions. In the repository settings, select **Settings → Pages → Build and deployment → GitHub Actions** for the first deployment. The intended site URL is <https://riccardobergamin.github.io/PRESS/>.
+Quarto renders the saved notebook outputs as pages in `_site/`. Re-executing the notebook code requires the original match files described above. The publishing workflow is started manually through GitHub Actions. In the repository settings, select **Settings → Pages → Build and deployment → GitHub Actions** for the first deployment. The intended site URL is <https://riccardobergamin.github.io/PRESS/>.
 
 ## Data
 
@@ -151,8 +155,7 @@ PRESS uses ten matches of the Australian A-League 2024/25 season from the [Skill
 - `pipeline/`: procedural research code for preprocessing, features, training, evaluation and production refits, linked from `pipeline.qmd`.
 - `scripts/`, `examples/`: environment checks, notebook rebuild and command-line examples.
 - `.github/workflows/publish-site.yml`: GitHub Pages build and deployment.
-- `references/refs.bib`, `REFERENCES.md`: citation records and unresolved references.
-- `archive/legacy_package/`: unused implementations, outside the installed package.
+- `references/refs.bib`, `REFERENCES.md`: bibliographic records.
 
 ## AI assistance
 

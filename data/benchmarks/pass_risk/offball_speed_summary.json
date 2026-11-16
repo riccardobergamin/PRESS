@@ -1,6 +1,0 @@
-{
-  "definition": "Player-level off-ball: canonical carrier differs from player ID; finite speed strictly above2m/s; all tracked players; pooled frame-player exposures",
-  "n": 3865755,
-  "p95": 5.745469932468366,
-  "reference_no_carrier_frames_p95": 5.656248125470344
-}

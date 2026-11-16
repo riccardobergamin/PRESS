@@ -1,5 +1,0 @@
-# Pressure report
-
-Current report: 14,919 fixed OOF canonical states, 7,265 terminal-covered outfield/non-shot individual possessions. Parent key is (match_id, possession_id). A one-checkpoint micropossession uses that point as both initial and final by explicit convention. Pattern definitions, Wilson shares, E−O action score and possession-bootstrap uncertainty are recorded in metadata.json and the case-study vignette. player_summary.csv includes every player, with missing scores/rates for empty exposure and missing score intervals below 20 exposed possessions. Pattern shares are also provided separately for players and teams. No O/E ratio or ability model is fitted. Old band_validation.csv tables describe the previous cohort; the adopted band table is h_band_bootstrap_terminal_coverage_20261105.csv.
-
-Pattern counts now report both denominators: original `share`, `lower95`, `upper95` refer to the pattern-specific eligible subset. `cohort_possessions`, `cohort_share`, `cohort_lower95`, `cohort_upper95` refer to the full terminal-covered report cohort. Both use Wilson 95% intervals. Counts, score tables and model predictions are unchanged.

@@ -13,13 +13,13 @@ The evaluation contains **6,810 decisions across ten SkillCorner matches**, of w
 
 ### Effective task-specific exclusions
 
-The transition candidate base requires a usable matched release, a matched next-control start and a positive duration below ten seconds. A pass is kept when its annotated outcome agrees with the receiving or recovering team, the recipient of a completed pass agrees with the next possessor, and no interruption is annotated. These criteria leave the **6,810 decisions**. [Effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv).
+The transition candidate base applies the [shared verified-pass-link criteria](../benchmark.qmd#verified-pass-links), a usable release state and its positive flight-duration limit below ten seconds. These criteria leave the **6,810 decisions**. Effective exclusion counts.
 
 The cohort contains every pass of the final pass-probability cohort and also the passes shorter than 0.5 s. Destination choice uses the decision state and a hypothetical destination field, so the five initial ball observations used to reconstruct the observed flight, and the 0.5 s lower limit that they require, apply only to the pass-probability task.
 
 ## 2. Model specification and features {#features}
 
-The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). Definitions and groups are given in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). Pitch control enters in its raw form, without isotonic calibration, and the observed receiver and outcome are excluded.
+The model uses 19 numerical predictors and two one-hot encoded contextual variables (50 encoded columns). Definitions and groups are given in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). Pitch control enters in its raw form, and the observed receiver and outcome are excluded.
 
 ### Choice specifications and learning {#choice-specifications-and-learning}
 
@@ -94,13 +94,13 @@ $$
 \rho^{(t+1)}=\rho^{(t)}+0.1\bigl(\rho^*-\rho^{(t)}\bigr).
 $$
 
-Boosting then resumes with probabilities and derivatives recomputed at the new dissimilarity. Validation cross-entropy selects the joint checkpoint of tree ensemble and $\mu$. This alternating scheme extends the RUMBoost cross-nested approach [@salvade2024beyond] to fixed pitch-control memberships and the shared PRESS XGBoost utility. The 20-tree interval and 10% damping follow the [RUMBoost source implementation](https://github.com/big-ucl/rumboost/blob/main/rumboost/rumboost.py) [@rumboostrepository], as recorded in the [reference provenance](../docs/pass-selection-final-provenance.json). They are implementation choices, rather than requirements of the likelihood. The scalar scan, shared scale bounds and fixed pitch-control memberships are PRESS-specific adaptations.
+Boosting then resumes with probabilities and derivatives recomputed at the new dissimilarity. Validation cross-entropy selects the joint checkpoint of tree ensemble and $\mu$. This alternating scheme extends the RUMBoost cross-nested approach [@salvade2024beyond] to fixed pitch-control memberships and the shared PRESS XGBoost utility. The 20-tree interval and 10% damping follow the [RUMBoost source implementation](https://github.com/big-ucl/rumboost/blob/main/rumboost/rumboost.py) [@rumboostrepository], as recorded in the reference provenance. They are implementation choices of the estimation procedure. The scalar scan, shared scale bounds and fixed pitch-control memberships are PRESS-specific adaptations.
 
 ## 3. Model selection and validation {#model-selection-and-validation}
 
 ### Hyperparameter screening
 
-Before the held-out evaluation, **five hyperparameter configurations** were compared for each model family on **one development partition**: six matches for training and two for validation. The partition was the same for flat and CNL, and the remaining two matches were left out of screening. The criterion was validation cross-entropy.
+Before the held-out evaluation, **five hyperparameter configurations** were compared for each model family on **one development partition**: six matches for training and two for validation. The partition was the same for flat and CNL, and the remaining two matches were held out. The criterion was validation cross-entropy.
 
 | Maximum depth | Minimum child weight | L2 | Flat | CNL |
 |---:|---:|---:|---:|---:|
@@ -117,7 +117,7 @@ The lowest validation cross-entropy selects **depth 4, minimum child weight 20, 
 The selected configurations were evaluated on **five match-disjoint 6 + 2 + 2 partitions**:
 
 - **Six training matches** fit the XGBoost utilities and the upstream feature components (physical pass-risk and ball-drive parameters, xT smoothing, categorical vocabulary).
-- **Two fixed validation matches** select the tree checkpoint by early stopping on native choice CE, then fit a **single temperature-scaling parameter** with the selected trees and CNL dissimilarity held fixed. The same pair is used for both operations and stays fixed within that outer fold. It contributes no fitting examples to the trees.
+- **Two fixed validation matches** select the tree checkpoint by early stopping on native choice CE, then fit a **single temperature-scaling parameter** with the selected trees and CNL dissimilarity held fixed. The same pair is used for both operations and stays fixed within that outer fold.
 - **Two test matches** are used only for performance evaluation.
 
 **Temperature scaling.** The calibrated distribution is $\pi_{ij}^{(T)}\propto \pi_{ij}^{1/T}$, as defined in the [model vignette](../vignettes/03_pass_selection/03_pass_selection.ipynb). The single scalar $T$ minimizes the cross-entropy of the observed choices on the two validation matches. $T>1$ flattens the distribution and $T<1$ concentrates it. The fitted values are close to one in every fold (table below), and the gain in cross-entropy is small. The deployed flat model retains the temperature.
@@ -153,7 +153,7 @@ All fits stopped before the tree ceiling. Given the modest CNL gain and its adde
 
 ### Feature importance {#feature-importance}
 
-Split-gain importance is the total XGBoost split gain, normalized within each fitted ensemble, with one-hot levels grouped under their original feature. The figure and table refer to the deployed flat model and its five outer-fold fits. Bars show production shares; points and ranges show the fold mean and min–max, which describe variation across fits rather than confidence intervals.
+Split-gain importance is the total XGBoost split gain, normalized within each fitted ensemble, with one-hot levels grouped under their original feature. The figure and table refer to the deployed flat model and its five outer-fold fits. Bars show production shares; points and ranges show the fold mean and min–max, which describe variation across fits.
 
 ![Normalized split-gain shares for the production flat model and five outer-fold fits.](../figures/feature_importance_pass_selection.png)
 
@@ -166,7 +166,7 @@ Split-gain importance is the total XGBoost split gain, normalized within each fi
 | Opponents beyond target | 5.04% | 5–7 |
 | Carrier speed | 3.49% | 5–6 |
 
-Pass distance, raw target pitch control and pass angle account for 69.76% of production split gain and rank first, second and third in every outer fold. Destination player counts and carrier speed also contribute. These are descriptions of predictive use: correlated inputs can share gain, and split gain does not establish a causal effect. The CNL comparison does not enter this flat-model importance summary.
+Pass distance, raw target pitch control and pass angle account for 69.76% of production split gain and rank first, second and third in every outer fold. Destination player counts and carrier speed also contribute. These values describe how the trees use each input, and correlated inputs can share gain.
 
 ## 5. Comparison with published results {#comparison-with-published-results}
 
@@ -185,10 +185,10 @@ After evaluation, the flat model was refitted on all ten matches with **1,444 tr
 
 The flat multinomial logit lowers the cross-entropy by 34.3% relative to the uniform-choice reference (5.827787 against 8.873286), using information available at the decision: pass geometry, pitch control, expected threat, pressure lines, ball-drive risk and match context. The temperature fitted in each fold is close to one, which suggests that the raw choice probabilities are already close to calibrated on the validation pair, and temperature scaling changes cross-entropy only marginally. The nested specification gave only a small gain over the flat model, so the flat model is deployed for its simplicity and the CNL is kept as an exploratory alternative. A plausible explanation is that the predictors (pass geometry, raw pitch control and the other contextual features) are already informative and that XGBoost uses them flexibly, which leaves little for the nest structure to add. The CNL evaluated here has one dissimilarity parameter shared by all nests and memberships fixed by individual pitch control, so the comparison covers this specific nesting structure.
 
-Hyperparameter screening compares five configurations per model family on a single development partition. The computational cost of boosting over the full candidate grid does not allow a wider search, or a search repeated inside each outer fold. Early stopping and temperature scaling share the same two validation matches within each fold, so no separate calibration sample is reserved. The evaluation covers ten matches from a single competition and season, and the comparison with Fernández et al. is reported as context because dataset, split and candidate grid differ. Generalization to other competitions, tracking providers and annotation conventions remains to be assessed.
+Hyperparameter screening compares five configurations per model family on a single development partition. The computational cost of boosting over the full candidate grid limits the search to this size and to a single partition. Early stopping and temperature scaling share the same two validation matches within each fold. The evaluation covers ten matches from a single competition and season, and the comparison with Fernández et al. is reported as context because dataset, split and candidate grid differ. Generalization to other competitions, tracking providers and annotation conventions remains to be assessed.
 
-Unsuccessful passes enter the training data with their recovery location as the observed destination. This location is a proxy for the intended destination and may be an interception point where the passer did not aim. If so, the model assigns probability to regions that are contested more often than the intended destinations are, and the resulting distribution leans towards riskier destinations. We have not tested this explanation. A direct check would refit the choice model on completed passes only and compare the downstream results.
+Unsuccessful passes enter the training data with their recovery location as the observed destination. This location is a proxy for the intended destination and may be an interception point away from the intended destination. If so, the model assigns probability to regions that are contested more often than the intended destinations are, and the resulting distribution leans towards riskier destinations. This explanation remains to be tested; a direct check would refit the choice model on completed passes only and compare the downstream results.
 
 ## 8. Supplementary resources
 
-For reproducibility, the [screening table](../data/benchmarks/pass_selection/screening54.csv), [pooled metrics](../data/benchmarks/pass_selection/final_pooled_metrics.csv), [fold summaries](../data/benchmarks/pass_selection/final_fold_summary.csv), [per-match results](../data/benchmarks/pass_selection/final_metrics_by_match.csv) , [feature-importance summaries](../data/benchmarks/feature_importance/README.md) and [installed artifact provenance](../docs/pass-selection-final-provenance.json) are provided as supplementary resources.
+For reproducibility, the screening table, [pooled metrics](../data/benchmarks/pass_selection/final_pooled_metrics.csv), [fold summaries](../data/benchmarks/pass_selection/final_fold_summary.csv), [per-match results](../data/benchmarks/pass_selection/final_metrics_by_match.csv) , [feature-importance summaries](../data/benchmarks/feature_importance/README.md) and installed artifact provenance are provided as supplementary resources.

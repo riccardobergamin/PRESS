@@ -89,4 +89,4 @@ The 10 × 6 grid has the lowest CE and is retained. The coarser 8 × 5 grid is c
 
 The production surface is fitted on all ten matches with a 10 × 6 grid and the bandwidths selected at the production level (8 m passes, 5 m carries, 5 m goal given shot). It is embedded in the deployed pass-selection and action-selection models, while the predictive benchmarks use xT fitted only on their corresponding training matches.
 
-For reproducibility, the [coverage](../data/examples/expected_threat/coverage.csv), [component scores](../data/examples/expected_threat/metrics.csv), [map stability](../data/examples/expected_threat/map_stability.csv) and [production provenance](../docs/expected-threat-vignette-provenance.json) are provided as supplementary resources.
+For reproducibility, the [coverage](../data/examples/expected_threat/coverage.csv), [component scores](../data/examples/expected_threat/metrics.csv), [map stability](../data/examples/expected_threat/map_stability.csv) and production provenance are provided as supplementary resources.

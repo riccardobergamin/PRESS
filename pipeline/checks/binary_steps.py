@@ -24,7 +24,7 @@ def main():
     labels=pd.read_parquet(inputs/"residual_labels.parquet")
     for table in [action,labels]:table["match_id"]=table.match_id.astype(str)
     # Real states from every match, and actual terminal-loss cases, retained
-    # by their keys rather than constructing artificial outcomes/features.
+    # by their keys, without constructing artificial outcomes/features.
     successful_keys=labels.groupby("match_id",sort=True).head(24)[training.KEYS]
     lost_keys=labels.loc[labels.residual_loss.eq(1)].groupby("match_id",sort=True).head(4)[training.KEYS]
     other_keys=action.groupby("match_id",sort=True).head(12)[training.KEYS]

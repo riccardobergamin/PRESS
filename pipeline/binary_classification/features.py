@@ -77,7 +77,7 @@ def build_features(state, checkpoint, targets, pass_choice, pass_completion,
     teammates_ahead = ahead(teammates, targets, direction)
     opponents_ahead = ahead(opponents, targets, direction)
 
-    # Keep named columns next to their definitions, rather than an unnamed
+    # Keep named columns next to their definitions, instead of an unnamed
     # list zipped to column names. The final matrix order is fixed separately.
     return dict(
         # Observed match context and the number of ALREADY completed carries.

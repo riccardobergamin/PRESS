@@ -12,8 +12,9 @@ def match(grid=None):
 
 
 def compute(press, **kwargs):
-    return press.compute_risk_frame(5, bcos_value=.5, include_residual=True, keep_details=True,
-                               ppcf_kwargs={'r_max':12,'step':6}, **kwargs)
+    return press.compute_risk_frame(5, include_residual=True, keep_details=True,
+                               ppcf_kwargs={'r_max':12,'step':6},
+                               bcos_kwargs={'r_max':8,'step':4}, **kwargs)
 
 
 def test_object_map_reaches_choice_action_and_residual(monkeypatch):
@@ -49,10 +50,11 @@ def test_frame_override_and_separate_calls_use_one_map():
     press.compute_ppcf(5,r_max=12,step=6)
     press.compute_ball_drive_risk(5)
     press.compute_pass_selection(5,xT_grid=alternate)
-    press.compute_action_selection_probability(5,bcos_value=.5)
+    press.compute_bcos(5,r_max=8,step=4,formulation='effective_hazard')
+    press.compute_action_selection_probability(5)
     assert press.get_action_selection_result(5)['Features']['xt_team_drive_1s']==pytest.approx(.31)
     with pytest.raises(ValueError,match='differs from pass selection'):
-        press.compute_action_selection_probability(5,xT_grid=np.ones((8,5))*.1,bcos_value=.5)
+        press.compute_action_selection_probability(5,xT_grid=np.ones((8,5))*.1)
     compute(press,xT_grid=alternate)
     np.testing.assert_array_equal(press.get_xt_grid(5),alternate)
     np.testing.assert_array_equal(press.get_xt_grid(),np.full((8,5),.1))

@@ -15,36 +15,6 @@
       "sha256": "c2a8b3b2a7089f7fc02446d619c304014005ebdcd00bd2458fefa518172952fa"
     },
     {
-      "path": "data/benchmarks/action_selection/calibration_h_diagnostic_20261105.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1218,
-      "sha256": "e1122bb55495069c6b26071f634e5c4b256caa87f52bdc69b9cd2cde4bb0acf9"
-    },
-    {
-      "path": "data/benchmarks/action_selection/context_probe_by_seed.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 2505,
-      "sha256": "5ee24265f73dc1f8590d01a833c744f1afd22a25bc2d45d2919a8dae6cbdeceb"
-    },
-    {
-      "path": "data/benchmarks/action_selection/context_probe_summary.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 666,
-      "sha256": "130f9bea93733f910df8a03849e5a690d4b29e2e6e612a35942dcd9f20aeeab1"
-    },
-    {
-      "path": "data/benchmarks/action_selection/feature_schemas.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 21148,
-      "sha256": "0a8b2da703ad87c1facb86bedc3d01238e97191722cb017761ec1f1a04250ecf"
-    },
-    {
-      "path": "data/benchmarks/action_selection/literature_comparison.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 612,
-      "sha256": "7eaeb0fe3363cb657861e841e01d352a317d34f6b88e564e94559ec6bd80dc6e"
-    },
-    {
       "path": "data/benchmarks/action_selection/metrics.csv",
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 411,
@@ -63,88 +33,16 @@
       "sha256": "06d5c886569b4360d3754b1409b5f6ce0179c43677fe2fd13f15a4a07a6802ba"
     },
     {
-      "path": "data/benchmarks/action_selection/selected_configurations.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 572,
-      "sha256": "949214c70b33aceb4fda6d26396df3212058432f567d1eb2926455bd2874b53a"
-    },
-    {
-      "path": "data/benchmarks/action_selection/summary.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 715,
-      "sha256": "6a86675b5c5374f0eea679e819246b8c7856938b996fd9b7441b6e3a49daaffd"
-    },
-    {
-      "path": "data/benchmarks/action_selection/temperature_diagnostic.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 350,
-      "sha256": "a94313ca0c2547da2fe04575dfcce354ed464778e4b324affd22108e82810bd6"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/angle_free_one_se_validation.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 707,
-      "sha256": "ce0bf4420feafbf60744da3c61cfc6398361ac52cfda4491bff914c86fb4f61a"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/arrival_dispersion_laplace.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1617,
-      "sha256": "d4fbf9beb530c33740f822fd0b988ce3910bcb08c36a0145a4e97e6c2e35d6e4"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/calibration_deciles.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 979,
-      "sha256": "dea58b782773ffb330ccfc4d6aa1058a592023b3eac34144834572fce6023e86"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/catboost_common_floor.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 2052,
-      "sha256": "c99d669a7f7c0e46fd8323ddd363d0198fa737e1295004e447335d80129ca600"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/catboost_exploration.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 3633,
-      "sha256": "49fbda771dbba25d5da0420576451d5d74581fcd80d1481f19d537ca0fdbae7a"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/catboost_final_importance.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 491,
-      "sha256": "69c22d335b572f210cdb8435983a8a073193bcfb7d4020f7f3493264c001a891"
-    },
-    {
       "path": "data/benchmarks/ball_drive/catboost_final_metrics.csv",
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 2120,
       "sha256": "c3b6e7a7600677d301eea3e55c5c417d5e502d8e452271e696705a826d286842"
     },
     {
-      "path": "data/benchmarks/ball_drive/catboost_final_parameters.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 580,
-      "sha256": "f1590d19186292f75d4265d61edaee246333a748fddfbce5b91e8b3775b3c35a"
-    },
-    {
       "path": "data/benchmarks/ball_drive/engagement_quantiles.csv",
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 1021,
       "sha256": "07f584b10770b16d0413ef7a2ba1e42affb8c6ddc3800b1f080fb3d89396c5b6"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/exploratory_angle_increment.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 316,
-      "sha256": "c9928b71c2cc72cc45a597ee6f639f3a67827db40af6fd09b374a3f29d41096f"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/exploratory_obe_angle_separation.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 438,
-      "sha256": "a4ef3df0119c059395c9c18754ae741009baf85d7eb123752c2cabada3b0028e"
     },
     {
       "path": "data/benchmarks/ball_drive/filtered_calibration_deciles.csv",
@@ -163,18 +61,6 @@
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 468,
       "sha256": "be66fdb34335173d8c9f3ac88032a4c192d329cc8987497356e8078a8a95db21"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/literature_comparison.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1031,
-      "sha256": "4f580d4b1bfc8304650e3468dbeb7d0f750cd2b0f1deb7ef32776cddb807bc75"
-    },
-    {
-      "path": "data/benchmarks/ball_drive/spline_regularization_grid.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 2022,
-      "sha256": "a5883747c31c33fcba22db2db69fcd70abd382ac6a35e153afb769ae6665210c"
     },
     {
       "path": "data/benchmarks/ball_drive/spline_regularization_selection.csv",
@@ -261,46 +147,16 @@
       "sha256": "173a3134212cb35b1bbd2130e506b241477bf1819d8f1c33bd8ed8352608fe86"
     },
     {
-      "path": "data/benchmarks/filters/effective_exclusions.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1989,
-      "sha256": "f46b136de1b43c7126bb793afece5c14c47eed88b670ba374b5a83b581212074"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/README.md",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 913,
-      "sha256": "c938854f04dde98f799fd8513e31c4465d9a78d957b4a9a7957ea818003d72d9"
-    },
-    {
       "path": "data/benchmarks/pass_risk/calibration_deciles.csv",
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 13804,
       "sha256": "c2e7e65e879896a888346ccd7c03073f837fde16177af1c685b450b1adc0a2a8"
     },
     {
-      "path": "data/benchmarks/pass_risk/curvature_by_match.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 37663,
-      "sha256": "b2c0331072fec4b1852768b65b5a1cf62186d8c15b19de25d4f7e684d31c1a42"
-    },
-    {
       "path": "data/benchmarks/pass_risk/curvature_metrics.csv",
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 4891,
       "sha256": "d0f2f496a6f4628890b80c92a18c74a28bbb915a8430a887b09e33d29299ae8c"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/frozen_specification.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 4785,
-      "sha256": "735e8ecb6d30cd2a6b423b692cc3011698ac434048f06e1401b4fe0e545ec2d3"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/literature_comparison.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 824,
-      "sha256": "b771ae47c92da52d01485c72e730d377b96cf3c793ba8d928cfe0e27a1f04f44"
     },
     {
       "path": "data/benchmarks/pass_risk/metrics.csv",
@@ -315,52 +171,10 @@
       "sha256": "3e597a6adae564d03d275cc747053daaf65a28c9e9304cdcf3a9852b24b653bf"
     },
     {
-      "path": "data/benchmarks/pass_risk/numerical_time_step_check.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 594,
-      "sha256": "eb8d70f13241fb7e566bc85d71c20dee2f83f7ea6076fa271042f48c26f192ae"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/offball_speed_by_match.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 646,
-      "sha256": "b7e01b633493cfd689fe47b5772f1c238e3ea18bc82c4d2aa6a9da5d23e81347"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/offball_speed_summary.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 271,
-      "sha256": "843e4a8f532f289923f36573fb65476c7ef19e677d9555095082005ed7dcb075"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/paired_comparisons.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1189,
-      "sha256": "348dcb9fa15f50aaa250b426c935e414795f628d7ab4d296de67b6298f44f64a"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/paired_parameters.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1054,
-      "sha256": "469caa0b1343329e65a9530ec14f8839e78f4d2b901bfc821ca01442c360e0b8"
-    },
-    {
       "path": "data/benchmarks/pass_risk/parameters.csv",
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 497,
       "sha256": "54b3d3f8b9bce0f25c04a8c946b4d9fca375312b7c1ef22cdd3743ff7f6eb9f0"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/provenance.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1613,
-      "sha256": "942139cb9109900516b1a3cded22d3cc1feb3a8d34fab7393139e65cbd1a8808"
-    },
-    {
-      "path": "data/benchmarks/pass_risk/uniform_tti_comparison.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 4831,
-      "sha256": "188872afbfbfc20135c02bdfaf2a5274e59c48a8d81cd2ab50f8547172f834e9"
     },
     {
       "path": "data/benchmarks/pass_selection/final_fold_summary.csv",
@@ -387,52 +201,10 @@
       "sha256": "60ebfb887ba9c1f8581d61c4410cbebb15278ff95f12365a89400617fb9adade"
     },
     {
-      "path": "data/benchmarks/pass_selection/paired_comparisons.json",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1436,
-      "sha256": "a390f28778ed2c0ee8075ac2e3c374bebf9b7a5d1b8202f1b54ac2beb37dba22"
-    },
-    {
-      "path": "data/benchmarks/pass_selection/paired_vs_final50.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 506,
-      "sha256": "327b49ca1f8667b894b500702d1b554c37c44de8ad22dd2cd71291f332bbdea5"
-    },
-    {
-      "path": "data/benchmarks/pass_selection/screening49.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1916,
-      "sha256": "011b2003efdd0f51a8c882b33c7c537e26b861fec20f27fd0a35f2d2a8cc6633"
-    },
-    {
-      "path": "data/benchmarks/pass_selection/screening54.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1909,
-      "sha256": "2759fd60083b5ae136bffa914d8fb6d373de8c4fce1a7bd1d404b0770f2ff2ab"
-    },
-    {
       "path": "data/benchmarks/residual_risk/calibration_quantile10.csv",
       "role": "Aggregate benchmark/statistical summary or protocol",
       "bytes": 2715,
       "sha256": "86dee3c200e8348eafd190380cec989379b3609f4dff7cf2cdd625b9d7a5f3d2"
-    },
-    {
-      "path": "data/benchmarks/residual_risk/metrics_by_fold.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 3915,
-      "sha256": "4a92f1c8b2bf36378238f91fe620879b3584f394859d477fbcc0dc1234c4789e"
-    },
-    {
-      "path": "data/benchmarks/residual_risk/metrics_by_match.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 7829,
-      "sha256": "416b6417c22fcf944880eda977fd4c5e233ad940905a95aeadbd85fcf6ed7a62"
-    },
-    {
-      "path": "data/benchmarks/residual_risk/pooled_metrics.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 875,
-      "sha256": "4459df9953fc994c72e617c478f1637d9753ca238b124c833bf9975381543f4a"
     },
     {
       "path": "data/benchmarks/residual_risk/primary_metrics_by_fold.csv",
@@ -459,30 +231,6 @@
       "sha256": "c3de5e3bc2eec9d63008996d20dc5cb11f63b4017dde63da82deac4f953ecbb4"
     },
     {
-      "path": "data/benchmarks/residual_risk/primary_selected_configurations.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1586,
-      "sha256": "f89331312b4290f207956003107871f459f52aec170a30d67d0b89efa07021b5"
-    },
-    {
-      "path": "data/benchmarks/residual_risk/related_literature.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 980,
-      "sha256": "0cb8a28d16edf50446765e84124112b40e5b60ec80a11146fe9b3c82a901a21b"
-    },
-    {
-      "path": "data/benchmarks/residual_risk/remaining_time_sensitivity.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 1147,
-      "sha256": "1b8062ff34dee28960bf28a2da4c52e706b8a3f6accafadcbab6811e272eaee1"
-    },
-    {
-      "path": "data/benchmarks/residual_risk/selected_configurations.csv",
-      "role": "Aggregate benchmark/statistical summary or protocol",
-      "bytes": 3028,
-      "sha256": "ff959a9cc50fc615dd245bc7923fc9ed6e5e4db3ed7b8a145abed234cb95bd5f"
-    },
-    {
       "path": "data/examples/ball_drive/defender_speed_check.csv",
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 135,
@@ -495,100 +243,10 @@
       "sha256": "db4feb0c3cb9d7b734589333b1429ef55e874a6ac3866ef2e2883d44a4863e51"
     },
     {
-      "path": "data/examples/ball_drive/real_loss_case.json",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 2339,
-      "sha256": "1a2f73f5e6f8a0ed6f97f765f183bf3b08fd9b4947e8f0fcddd299f6b7a1e9de"
-    },
-    {
-      "path": "data/examples/ball_drive/standardized_parameterization.json",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 9130,
-      "sha256": "2f745c908042eff54193dd693b91be82d162c7a76b39b240516bc4e94de699d0"
-    },
-    {
-      "path": "data/examples/bcos/README.md",
-      "role": "Resource documentation",
-      "bytes": 2286,
-      "sha256": "9a03f0e2662e648fec3f6df2a199832919dbc53dca1a52b00984e804f3d679b9"
-    },
-    {
-      "path": "data/examples/bcos/checkpoint_series.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 109290,
-      "sha256": "6316825025bd6dd683a5d9d407232c58996c892d20b699d53be54f9052d99f93"
-    },
-    {
-      "path": "data/examples/bcos/example_field.npz",
-      "role": "Selected derived spatial example",
-      "bytes": 37723,
-      "sha256": "30fa1e1f1d138a8a27c9c3a9c21f1c705f653b23da1f6a3930a963a5cb6652c2"
-    },
-    {
-      "path": "data/examples/bcos/example_summary.json",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 893,
-      "sha256": "c1b6ad721a85e1650a751870b55ac1874e0695caf211825d0ce4671ae970a177"
-    },
-    {
-      "path": "data/examples/bcos/feature_permutation_by_seed.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 6367,
-      "sha256": "a0ac060f236da5e28992bffa15eff937666e1df59743257f8cd8f72a9c5f966e"
-    },
-    {
-      "path": "data/examples/bcos/feature_permutation_summary.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 476,
-      "sha256": "752aa766b4fc04b2665e7d6e71deb9d0da787543de891f54560b2f033e33d9be"
-    },
-    {
-      "path": "data/examples/bcos/feature_split_gain.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 25034,
-      "sha256": "43cfc34630ac3df942bbbef825ca6a9491ab73d3513810055ba6d3c3d037974b"
-    },
-    {
-      "path": "data/examples/bcos/final_example_summary.json",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 627,
-      "sha256": "41152afcfac22057da1ba02c807dfe913e5e97fbff9ad2c4a15da416f5cbf1b6"
-    },
-    {
-      "path": "data/examples/bcos/grid_bootstrap_summary.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 2295,
-      "sha256": "a22d00353445757f0cd144edc2f253aca23ec996b21d215f60a3ce93849b1b03"
-    },
-    {
-      "path": "data/examples/bcos/grid_mean_stability.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 1376,
-      "sha256": "af139af2801f756b76a2aa1fae1c057e853f4132f577795fb08e30c05db397bf"
-    },
-    {
       "path": "data/examples/bcos/grid_support.csv",
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 1006,
       "sha256": "c0ec8142e353a417ba928b0331e99b37c45ede437c2379cfd39007180805b4f1"
-    },
-    {
-      "path": "data/examples/bcos/match_phase_summary.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 1454,
-      "sha256": "f0fb11d731bb8353c5508fcbe0c0b41ebca3377376208b0d85d5e1d72b21dc20"
-    },
-    {
-      "path": "data/examples/bcos/metadata.json",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 2026,
-      "sha256": "85287129c20bf2d9b25a16de5782371fe4d2b63680c621e495015c43525073cd"
-    },
-    {
-      "path": "data/examples/bcos/path_convergence.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 6733,
-      "sha256": "3c2e0a1d2a0e47ed9db66f19792c1cf24f25f262b88d1ad54503b286471911c4"
     },
     {
       "path": "data/examples/bcos/period_third_summary.csv",
@@ -603,58 +261,16 @@
       "sha256": "d4cc2ca414fee9f27e3e2baa1390d66a42a8636fb21263ff97cb16131f14dc7f"
     },
     {
-      "path": "data/examples/bcos/spatial_display_cells.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 6510,
-      "sha256": "c4572db37a4aa1a38fafa52acd3d1d29982a7616c40ad394baa50310eb29ae22"
-    },
-    {
-      "path": "data/examples/bcos/team_summary.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 195,
-      "sha256": "b407ad1bd04f6ed2d0540ef12f6bcacf8d70db78608d13e7a7af8e21abc96300"
-    },
-    {
-      "path": "data/examples/bcos/temporal_convergence.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 3877,
-      "sha256": "9b5cf50495539c493ea675207c0bee3889f96c7e7daac54d6fb31d2576833400"
-    },
-    {
-      "path": "data/examples/bcos/temporal_display.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 79323,
-      "sha256": "1433cfa119e806ff3896caa3ca2233699e7d9c806d133c94f1d5b55c706e29ba"
-    },
-    {
-      "path": "data/examples/bcos/temporal_refinement.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 1596,
-      "sha256": "ce0defb6119b71908079edf6916d180a73db504f670d761070bfcb25793f954e"
-    },
-    {
       "path": "data/examples/bcos/temporal_thirds.csv",
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 5168,
       "sha256": "f1fc54da9be25c870433e12a4d2c18590bf6571cbb90075c5b2cf51f8ab02503"
     },
     {
-      "path": "data/examples/expected_threat/README.md",
-      "role": "Resource documentation",
-      "bytes": 701,
-      "sha256": "6bef33a8532fb2bb86bd6fdd52784e679f71175043e32ff62d63bde26e82225c"
-    },
-    {
       "path": "data/examples/expected_threat/coverage.csv",
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 151,
       "sha256": "069840de768c14cf2f0c9296975d68f9300d02a87284546eab6d4b06293fb1da"
-    },
-    {
-      "path": "data/examples/expected_threat/manifest.json",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 1979,
-      "sha256": "04951dcca22a6e9fc3466e020e111bab8c484a197065ffe5f3df72df4ac7b79c"
     },
     {
       "path": "data/examples/expected_threat/map_stability.csv",
@@ -667,18 +283,6 @@
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 1417,
       "sha256": "1f8d4e1ebe34cf2cf52ce86cea158ec961b15edc868f9476602a6cdbad79145b"
-    },
-    {
-      "path": "data/examples/expected_threat/xt_grid.npy",
-      "role": "Selected derived spatial example",
-      "bytes": 608,
-      "sha256": "932583702d18d952b8c8f19907013e104fdeacf512b9a5e6d94d1c50137e89c2"
-    },
-    {
-      "path": "data/examples/hazard/README.md",
-      "role": "Resource documentation",
-      "bytes": 735,
-      "sha256": "b035cfec1fb5b48461310690862a4661a14083effebf30328646f6c4f5bf7783"
     },
     {
       "path": "data/examples/hazard/case_summary.csv",
@@ -699,70 +303,16 @@
       "sha256": "0ce74c1c824bc5d0b9eae7c69e18bb9f1eb68e1b40a2b0655d5440d732464c67"
     },
     {
-      "path": "data/examples/hazard/drawing_defender_motion.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 446,
-      "sha256": "021b3f1675e312e7296d54aed759cdcab20151633aeab560ab21b223e5b6fdb5"
-    },
-    {
-      "path": "data/examples/hazard/full_interval_geometry.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 326,
-      "sha256": "3dc46954671e4bccf9d96d7a9fee222a298fca7aee2c6989c60e684aa8fc1f90"
-    },
-    {
       "path": "data/examples/hazard/metadata.json",
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 10290,
       "sha256": "a19d571231e6e4bf84787246130444603527ddb465cd84fbb73938b7135d7981"
     },
     {
-      "path": "data/examples/plot_examples/cases.json",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 5149,
-      "sha256": "eace5b42994b52d49ff3600d209efa3832c5055337b85bfaafd4fceb6e7e173a"
-    },
-    {
-      "path": "data/examples/pressure_report/README.md",
-      "role": "Resource documentation",
-      "bytes": 1159,
-      "sha256": "287a8848eaf05e9ac192a3138fbca605044ba5eab31c604e2659a620059a1f53"
-    },
-    {
-      "path": "data/examples/pressure_report/band_validation.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 475,
-      "sha256": "49d5bd8dcc85e8a8fa181f49f2ca396ed2084f0af5a8684d7dd16a5535cf8baa"
-    },
-    {
-      "path": "data/examples/pressure_report/band_validation_by_action.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 497,
-      "sha256": "cbdfd48dfaccc6357833bad907f30a6b6f2b16464999e340469570354b63d9b0"
-    },
-    {
-      "path": "data/examples/pressure_report/endpoint_transitions.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 315,
-      "sha256": "e772b5ae2b6eae584ac54e9ff6d194ae903c156526a5f72d56bb9bd6781aeec2"
-    },
-    {
-      "path": "data/examples/pressure_report/h_band_bootstrap_20261105.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 921,
-      "sha256": "e5c32b4ce08e7d4100a8d5a33ddd03b3b049bd15987239363287c93b9cbd40c1"
-    },
-    {
       "path": "data/examples/pressure_report/h_band_bootstrap_terminal_coverage_20261105.csv",
       "role": "Descriptive example/report summary or selected-case metadata",
       "bytes": 1206,
       "sha256": "3410be10edac2b672016c8085254ef0580adfefe6cff2026bd952e08f676a796"
-    },
-    {
-      "path": "data/examples/pressure_report/h_pass_selection_diagnostic_20261105.csv",
-      "role": "Descriptive example/report summary or selected-case metadata",
-      "bytes": 432,
-      "sha256": "e31c08619866e737c1a239110bec52926bd788371dd24c8a326b0bed3d027bcd"
     },
     {
       "path": "data/examples/pressure_report/metadata.json",

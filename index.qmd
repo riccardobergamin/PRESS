@@ -23,7 +23,7 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 ::: {.directory-section}
 ### Risk profiles and reports {#risk-and-reports}
 
-- [Hazard and risk bands](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb)
+- [Hazard and risk bands](vignettes/06_composed_risk/06_composed_risk.ipynb)
 - [Possession difficulty](vignettes/07_case_studies/07_case_studies.ipynb)
 - [Pressure patterns and cases](vignettes/07_case_studies/07_case_studies.ipynb)
 - [Team and player report](vignettes/07_case_studies/07_case_studies.ipynb)
@@ -32,9 +32,10 @@ PRESS is a work-in-progress, physics-informed framework for quantifying the risk
 ::: {.directory-section}
 ### Guides {#guides}
 
-1. [Dataset and preprocessing](data.qmd)
+1. [Datasets, installation and preprocessing](data.qmd)
 2. [Possession segmentation and context](vignettes/setup/possession_and_checkpoint_setup.ipynb)
-3. [Installation and use](vignettes/00_match_workflow/00_match_workflow.ipynb)
+3. [Use on a match](vignettes/00_match_workflow/00_match_workflow.ipynb)
+4. Use with other providers: [data requirements and preparation](external-data.qmd), then the [Bundesliga example](vignettes/00_external_data/idsse.ipynb)
 :::
 
 ::: {.directory-section}
@@ -152,7 +153,7 @@ By combining the physical feasibility of available actions with the average deci
 
 The conventional segmentation of possession into canonical actions also allows the process to be interpreted within the framework of **survival analysis**. In particular, the hazard can be related to the expected lifetime and half-life of possession under the hypothetical assumption that the current level of difficulty remains constant across subsequent action opportunities. The half-life represents the number of actions required for the probability of retaining possession to decrease to $50\%$ if the same hazard were maintained. It therefore provides an intuitive interpretation of possession difficulty: the higher the hazard, the shorter the reference half-life. This is not a prediction of actual possession duration, since difficulty evolves throughout play.
 
-Inspired by SkillCorner's approach to classifying defensive pressure [@skillcorner2026], PRESS uses this survival-based interpretation to define **possession-difficulty bands**, whose construction and thresholds are described in the [hazard and risk bands vignette](vignettes/06_composed_hazard_and_bands/06_composed_risk_and_bands.ipynb).
+Inspired by SkillCorner's approach to classifying defensive pressure [@skillcorner2026], PRESS uses this survival-based interpretation to define **possession-difficulty bands**, whose construction and thresholds are described in the [hazard and risk bands vignette](vignettes/06_composed_risk/06_composed_risk.ipynb).
 
 The main application is to characterize the difficulty encountered by individual players and investigate their ability to retain possession under pressure. Evaluating the hazard throughout individual possessions produces risk profiles, while comparing observed outcomes across difficulty levels provides a basis for assessing player performance relative to the situations faced.
 
@@ -219,7 +220,7 @@ Raw tracking files are not redistributed with the package. Analyses and notebook
 
 ## Start using the package
 
-To get started with PRESS, follow the [user guide](usage.qmd) or explore the [installation and use example](vignettes/00_match_workflow/00_match_workflow.ipynb), which illustrates the analysis of real match situations using tracking and event data.
+To get started with PRESS, follow the [user guide](usage.qmd) or explore the [match-use example](vignettes/00_match_workflow/00_match_workflow.ipynb), which illustrates the analysis of real match situations using tracking and event data.
 
 The workflow begins by loading and validating a match, then selecting team possessions, individual frames, and canonical action checkpoints. The relevant model components can subsequently be evaluated to estimate possession vulnerability and generate risk profiles.
 

@@ -69,7 +69,7 @@ def drive_observations(actions):
     """Observed exposure for rate training; distinct from canonical choice rows.
 
     Failure time is interval-observed at 10Hz. A zero-frame failure is kept
-    in the first 0.1s bin, explicitly flagged rather than dropped.
+    in the first 0.1s bin, explicitly flagged and retained.
     """
     rows = actions.loc[actions.action.eq('ball_drive') | actions.snapshot_reason.eq('short_control_tail')].copy()
     rows['action'] = 'ball_drive'

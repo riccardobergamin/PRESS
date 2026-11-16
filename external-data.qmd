@@ -1,79 +1,79 @@
 ---
-title: "External event and tracking data"
+title: "4.1 · Use with other providers: data and preparation"
 ---
 
-PRESS evaluates a match in a provider-independent representation. Original SkillCorner files can be loaded directly with `PRESS.from_skillcorner(...)`. For another provider, map identifiers and coordinates explicitly, align events to tracking, then construct individual possessions and canonical actions. [Köln–Bayern example](vignettes/00_external_data/idsse.ipynb).
+This is part 4.1 of the [User guide](usage.qmd). PRESS evaluates a match in a provider-independent representation. Original SkillCorner files can be loaded directly with `PRESS.from_skillcorner(...)`. For another provider, map identifiers and coordinates explicitly, align events to tracking, then construct individual possessions and canonical actions. [Köln–Bayern example](vignettes/00_external_data/idsse.ipynb).
 
-## 1. Tracking and match metadata
+## Tracking and match metadata
 
-Positions use metres, centred at the pitch centre: x is longitudinal and y lateral. Velocities use m/s in those same axes. No automatic direction reversal is applied. State the ball carrier's attacking direction at each frame. `fps` is the input sampling frequency; the models' numerical integration steps do not change with it.
+Positions use metres, centred at the pitch centre: x is longitudinal and y lateral. Velocities use m/s in those same axes. PRESS keeps the supplied direction, so state the ball carrier's attacking direction at each frame. `fps` is the input sampling frequency; the models' numerical integration steps remain fixed.
 
 | Information | Canonical fields | Requirement and consequence of absence |
 |---|---|---|
 | Match and sampling | `match_id` (string), `fps` (positive float) | Match identifier is optional for isolated inference. Correct fps is mandatory for segmentation, elapsed time and checkpoint spacing. |
 | Pitch | `pitch_length`, `pitch_width` (positive metres) | Supply actual dimensions; the constructor retains its 105 × 68 m default when omitted. |
 | Frame key | `frame` (unique integer) | Mandatory. Consecutive IDs must represent consecutive samples; gaps must retain their missing IDs. |
-| Period | `period` (integer/string identifier) | Mandatory for segmentation and period-relative synchronization. Period means a half or extra-time period, not a possession. |
-| Player identity | `home_<integer>` or `away_<integer>` | Mandatory, stable within match. Numbers are aliases, not necessarily shirt numbers. Preserve provider IDs in player metadata. |
+| Period | `period` (integer/string identifier) | Mandatory for segmentation and period-relative synchronization. Period means a half or an extra-time period. |
+| Player identity | `home_<integer>` or `away_<integer>` | Mandatory, stable within match. Numbers are aliases that may differ from shirt numbers. Preserve provider IDs in player metadata. |
 | Player state | `<player>_x`, `_y`, `_vx`, `_vy` (numeric) | Observed players require finite position/velocity. Absent players remain missing; PRESS pads numerical states internally. At most eleven observed players per team. |
-| Carrier | `player_possession` (alias or missing) | Mandatory to evaluate a frame. Must be annotated or estimated explicitly upstream; PRESS does not identify the carrier by nearest distance. |
-| Direction | `attacking_side`: `left_to_right` or `right_to_left` | Mandatory for the contextual models and field geometry. Cannot be recovered reliably from a single frame. |
-| Ball | `ball_x`, `ball_y`; optional `ball_z` | XY required by the match interface and real-frame plots. Z is needed for observed 3D launch fitting in training, not production field predictions. |
-| Clock and score | `match_clock_min`, `score_difference_prefix` | Required contextual information for a complete observed feature record. Numeric missing values are accepted by the fitted trees, but are not equivalent to known values. Score difference is carrier-team minus opposition, using only prior confirmed goals. |
-| Player metadata | `player_id`, optional source IDs, name, goalkeeper flag | Optional for physical inference; role is needed to reproduce outfield-only evaluation cohorts. Do not infer role solely from location. |
+| Carrier | `player_possession` (alias or missing) | Mandatory to evaluate a frame. Must be annotated or estimated explicitly upstream, since PRESS takes the carrier from this field. |
+| Direction | `attacking_side`: `left_to_right` or `right_to_left` | Mandatory for the contextual models and field geometry. Reliable recovery requires information beyond a single frame. |
+| Ball | `ball_x`, `ball_y`; optional `ball_z` | XY required by the match interface and real-frame plots. Z is needed for observed 3D launch fitting in training; production field predictions use XY only. |
+| Clock and score | `match_clock_min`, `score_difference_prefix` | Required contextual information for a complete observed feature record. Numeric missing values are accepted by the fitted trees, and differ from known values. Score difference is carrier-team minus opposition, using only prior confirmed goals. |
+| Player metadata | `player_id`, optional source IDs, name, goalkeeper flag | Optional for physical inference; role is needed to reproduce outfield-only evaluation cohorts. Take role from provider metadata or annotations. |
 
 For long data, use `convert_long_tracking(players, ball, context, home_team=..., away_team=...)`. Player rows require `frame, team_id, player_id, x, y, vx, vy`; ball rows require `frame, x, y`; context requires `frame, player_possession, attacking_side`. `team_possession` disambiguates carrier IDs reused between teams. The returned roster records the alias mapping.
 
-`map_columns(table, {source: canonical})` renames fields. `to_pitch_coordinates(...)` converts declared coordinate bounds and optional velocity components. Neither guesses provider units or orientation. `differentiate(...)` is available when velocities must be reconstructed: derivatives are calculated separately on finite contiguous runs and never across missing frames or periods. The filtering window must be stated by the caller.
+`map_columns(table, {source: canonical})` renames fields. `to_pitch_coordinates(...)` converts declared coordinate bounds and optional velocity components. Both rely on the units and orientation declared by the caller. `differentiate(...)` is available when velocities must be reconstructed: derivatives are calculated separately on finite contiguous runs within each period. The filtering window must be stated by the caller.
 
-## 2. Event information
+## Event information
 
 `normalize_events` accepts a DataFrame with unique `event_id`, `event_type`, and either `frame`, UTC-compatible `datetime`, or `period` plus `time_seconds`. A supplied mapping translates provider event labels to the canonical event vocabulary. Unsupported event types become `unknown`; their source label is retained in `original_event`.
 
 | Event/attribute | Needed for | Missing information |
 |---|---|---|
-| Actor and team: `player_id`, `team_id` | Release, recovery and terminal action identification | Actorless administrative events are retained in the preprocessing audit; they do not identify a player action. |
-| Time and period; optional event XY | Event–tracking synchronization | Time links alone provide nearest-timestamp matching, not release/contact refinement. Event XY and type-specific tracking information can support an external synchronizer. |
+| Actor and team: `player_id`, `team_id` | Release, recovery and terminal action identification | Actorless administrative events are retained in the preprocessing audit; they remain administrative entries of the audit. |
+| Time and period; optional event XY | Event–tracking synchronization | Time links alone provide nearest-timestamp matching; release/contact refinement uses event XY and type-specific tracking information through an external synchronizer. |
 | `pass`, `is_successful` (nullable boolean), `receiver_player_id` | Pass release, successful reception and verified pass links | Missing success stays unknown. A successful pass without an identified, observed receiver has an unverified endpoint. |
-| `recovery`, `interception`, `tackle` | Control origin and direct possession loss | Contact/tackle alone does not prove recovery. A different tracked controller alone does not establish a verified loss label. |
-| `restart_type`: `open_play`, `throw_in`, `corner`, `free_kick`, `goal_kick`, `unknown` | Reception/interception context | Reconstruct from the preceding pass and its restart qualifier. If unavailable, use `unknown`, not open play. |
+| `recovery`, `interception`, `tackle` | Control origin and direct possession loss | A recovery needs supporting control information beyond contact/tackle, and a verified loss label needs more than a change of tracked controller. |
+| `restart_type`: `open_play`, `throw_in`, `corner`, `free_kick`, `goal_kick`, `unknown` | Reception/interception context | Reconstruct from the preceding pass and its restart qualifier. If unavailable, use `unknown`. |
 | `shot` | Terminal action and shot-ending cohort exclusion | Without shot labels, the published no-shot cohort cannot be reproduced. |
-| `foul_suffered`, `clearance` | Separate noncanonical terminal actions | Neither is automatically labelled individual loss. Omission can leave the endpoint unknown. |
+| `foul_suffered`, `clearance` | Separate noncanonical terminal actions | Both remain terminal actions separate from individual loss. Omission can leave the endpoint unknown. |
 | `stoppage`, `restart` | Prevent linking across interrupted play | Missing interruption information weakens endpoint verification and should be reported. |
-| OBE and reliable endpoint annotations | Reproduce the published outcome-validation filters | These are not supplied by every provider. Tracking-derived control is not a substitute for annotated on-ball engagement or validated loss outcomes. |
+| OBE and reliable endpoint annotations | Reproduce the published outcome-validation filters | Providers supply these in varying degree, and the outcome labels must come from annotated on-ball engagement or validated loss outcomes. |
 
-The public raw context categories are `pass_reception`, `pass_interception`, `recovery`, `keep_possession`, and reception/interception variants prefixed with `throw_in`, `corner`, `free_kick`, or `goal_kick`. `ball_drive` is additionally a previous-action category. `unknown` is accepted by the unchanged trained categorical vocabularies. The adapter does not infer `keep_possession` without supporting annotation. Other unseen categories use the fitted unseen bucket.
+The public raw context categories are `pass_reception`, `pass_interception`, `recovery`, `keep_possession`, and reception/interception variants prefixed with `throw_in`, `corner`, `free_kick`, or `goal_kick`. `ball_drive` is additionally a previous-action category. `unknown` is accepted by the unchanged trained categorical vocabularies. The adapter infers `keep_possession` only with supporting annotation. Other unseen categories use the fitted unseen bucket.
 
-## 3. Synchronization and segmentation
+## Synchronization and segmentation
 
-For already prepared data, initialize `PRESS(tracking_data, ...)` directly. If individual intervals are missing, call `segment_possessions(tracking, events, fps=..., match_id=...)` first. It returns `(tracking, individual_possessions, actions, report)`; pass the tracking and individual-possession tables to the constructor. PRESS constructs canonical actions and checkpoints internally. Tracking/events must already share canonical identifiers and synchronized frame links. The function verifies links without performing time alignment.
+For already prepared data, initialize `PRESS(tracking_data, ...)` directly. Supplied individual possessions are used as they are. Initialize `PRESS(tracking, player_possessions_data=individuals, ...)` without `actions_data`: PRESS constructs the canonical action table and checkpoints internally with `canonical_actions(...)`. If individual intervals are missing, call `segment_possessions(tracking, events, fps=..., match_id=...)` first. It returns `(tracking, individual_possessions, actions, report)`; pass the tracking and individual-possession tables to the constructor. PRESS constructs canonical actions and checkpoints internally. Tracking/events must already share canonical identifiers and synchronized frame links. The function verifies links, and time alignment happens upstream.
 
-The separate `synchronize_events(...)` helper can validate supplied frame links or find nearest timestamps within periods. It does not replace event-specific release/contact refinement. Keep provider loading and alignment in the external preprocessing workflow. Supplied individual possessions do not need to be reconstructed. Initialize `PRESS(tracking, player_possessions_data=individuals, ...)` without `actions_data`: PRESS constructs the canonical action table and checkpoints internally with `canonical_actions(...)`. Synchronization and individual-possession boundaries may be prepared outside PRESS; canonical action segmentation follows the PRESS convention.
+The separate `synchronize_events(...)` helper can validate supplied frame links or find nearest timestamps within periods. Event-specific release/contact refinement remains a separate step. Keep provider loading and alignment in the external preprocessing workflow. Synchronization and individual-possession boundaries may be prepared outside PRESS; canonical action segmentation follows the PRESS convention.
 
-The segmenter uses synchronized actor events and the supplied carrier stream. No synthetic reception frame is inserted. Successful pass links require the identified receiver as the next different tracked controller; failed links require opposition control. Restarts produce reception and interception variants through the same context rule. Missing verification remains explicit.
+The segmenter uses synchronized actor events and the supplied carrier stream. The reception frame is always an observed frame. Successful pass links require the identified receiver as the next different tracked controller; failed links require opposition control. A matched release frame and a verified subsequent reception are separate checks. Restarts produce reception and interception variants through the same context rule. Missing verification remains explicit. Unknown terminal outcomes, including team outcomes, remain missing and are left unfilled.
 
-Actions follow the existing [canonical segmentation conventions](vignettes/setup/possession_and_checkpoint_setup.ipynb): successful whole one-second carries; a failed final carry even when shorter than one second; and a pass-release checkpoint. Short successful tails are noncanonical exposure snapshots. Foul, clearance and shot endings do not become terminal pass/carry choices. `previous_action` uses the control's origin before the first whole carry, then `ball_drive`. `time_since_start` is computed from actual frame differences and fps.
+Actions follow the existing [canonical segmentation conventions](vignettes/setup/possession_and_checkpoint_setup.ipynb): successful whole one-second carries; a failed final carry even when shorter than one second; and a pass-release checkpoint. Short successful tails are noncanonical exposure snapshots. Foul, clearance and shot endings remain outside the terminal pass/carry choices. `previous_action` uses the control's origin before the first whole carry, then `ball_drive`. `time_since_start` is computed from actual frame differences and fps.
 
-Keep the external event audit and segmentation report alongside the input tables. The direct constructor receives prepared tracking, individual intervals and metadata; an action table is not required. The original SkillCorner loader additionally exposes its raw dynamic-event audit through `get_preprocessing_events()` and its loading report through `get_preparation_report()`. A matched release frame and a verified subsequent reception are separate checks. Unknown terminal outcomes remain missing, including team outcomes; they are not false-filled. Export input/audit tables separately from numerical result exports.
+Keep the external event audit and segmentation report alongside the input tables. The direct constructor receives prepared tracking, individual intervals and metadata; an action table is optional. The original SkillCorner loader additionally exposes its raw dynamic-event audit through `get_preprocessing_events()` and its loading report through `get_preparation_report()`. Export input/audit tables separately from numerical result exports.
 
-## 4. Requirements by model
+## Requirements by model
 
 | Calculation | Minimum information beyond its fitted artifact |
 |---|---|
-| Ball-drive risk | Carrier and defender positions/velocities, native pitch dimensions. No possession outcome is required for inference. |
-| Pitch control/pass probability | Team identity, player positions/velocities, carrier and candidate destinations. The production flight model does not require an observed future reception. |
+| Ball-drive risk | Carrier and defender positions/velocities, native pitch dimensions. Inference needs the state only. |
+| Pitch control/pass probability | Team identity, player positions/velocities, carrier and candidate destinations. The production flight model works from the current state. |
 | Pass selection | The physical fields, xT, carrier state and contextual features. Missing categorical information has explicit fitted buckets. |
 | BCOS | Carrier and defender positions/velocities; pitch dimensions and chosen destination domain. |
 | Action selection and h | Preceding fields/choices, BCOS model feature, context and completed-carry count. The count needs a control start or an explicit supplied value. |
-| Residual risk and xLoss | The same state plus action selection and observed elapsed individual-control time. No remaining duration or future information is used. |
+| Residual risk and xLoss | The same state plus action selection and observed elapsed individual-control time. Only past and current information is used. |
 | Published validation/report cohorts | In addition: matched control endpoints, identified pass links, terminal action/outcome, interruptions, role and OBE where required. Missing annotations prevent reproducing that evaluation cohort. |
 
-Interoperability means that the same mathematical models can evaluate a mapped state. It does not establish calibration or predictive validity on a new league, provider or segmentation system.
+Interoperability means that the same mathematical models can evaluate a mapped state; calibration and predictive validity on a new league, provider or segmentation system require separate evidence.
 
-## 5. IDSSE preprocessing
+## IDSSE preprocessing
 
 The [standalone preprocessing scripts](examples/preprocessing/idsse.py) load Sportec metadata and map provider semantics. The [DataBallPy bridge](examples/preprocessing/databallpy_bridge.py) runs separately from PRESS and exports portable Parquet tables. It was executed with DataBallPy 0.7.3; the bridge checks that API version explicitly. Other synchronizers can supply the same canonical interface.
 
-The example uses DataBallPy's event-order-preserving alignment and tracking-based control estimate. Its control parameters are explicit: 1.5 m possession zone, 5 m/s ball-speed threshold, 10° ball-angle threshold and zero minimum possession-zone frames. Unsupported events may receive a separately labelled clock interpolation only between nearby aligned anchors in one period; no extrapolation is made. A synchronization certainty score is not a calibrated match probability. The resulting possessions are estimates, not SkillCorner-equivalent annotated ground truth.
+The example uses DataBallPy's event-order-preserving alignment and tracking-based control estimate. Its control parameters are explicit: 1.5 m possession zone, 5 m/s ball-speed threshold, 10° ball-angle threshold and zero minimum possession-zone frames. Unsupported events may receive a separately labelled clock interpolation only between nearby aligned anchors in one period. A synchronization certainty score is an uncalibrated indicator. The resulting possessions are tracking-based estimates.
 
-IDSSE is provided by the Deutsche Fußball Liga (DFL) under CC BY 4.0; cite Bassek et al. and credit the DFL [@bassek2025idsse; @idsse-repository]. Obtain original files through the official repository's data link. This project supplies code and selected derived figures, not the raw match XML. DataBallPy is a separate MIT-licensed dependency [@oonk2026databallpy; @databallpy-repository].
+IDSSE is provided by the Deutsche Fußball Liga (DFL) under CC BY 4.0; cite Bassek et al. and credit the DFL [@bassek2025idsse; @idsse-repository]. Obtain original files through the official repository's data link. This project supplies code and selected derived figures. DataBallPy is a separate MIT-licensed dependency [@oonk2026databallpy; @databallpy-repository].

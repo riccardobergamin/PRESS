@@ -18,7 +18,7 @@ $$
 F(\ell,t)=[1+\exp\{-\kappa[t-\tau(\ell)]\}]^{-1}.
 $$
 
-Its spatial density and current are
+It is the probability that the particle has reached $\ell$ by time $t$ in the absence of killing; the particle reaches $\ell$ at time $\tau(\ell)+T$, with $T$ a logistic delay common to all positions. The corresponding density of the particle's position, $p_0$, and its current are
 
 $$
 \begin{aligned}
@@ -35,10 +35,10 @@ $$
 
 ## 2. Initial conditioning {#initial-conditioning}
 
-At $t=0$, the reference law assigns mass $F(L,0)$ to the destination or beyond. We condition on non-absorption, retaining all mass on $(-\infty,L)$:
+The initial condition is the reference density at time zero, conditioned on non-absorption. At $t=0$, the reference law assigns mass $F(L,0)$ to the destination or beyond; removing it and retaining all mass on $(-\infty,L)$ gives
 
 $$
-Z=1-F(L,0),\qquad p_k(\ell,0)=p_0(\ell,0)/Z.
+Z=1-F(L,0),\qquad p_k(\ell,0)=p_0(\ell,0)/Z,\quad -\infty<\ell<L.
 $$
 
 Since $F(-\infty,0)=1$, the initial density integrates to one. The reference law has median at the point where $\tau(\ell)=0$, when that point exists. In particular, if $\tau(0)=0$, its unconditioned median is zero; truncation at $L$ shifts the conditioned median. The negative half-line can represent a latent waiting state, as in the BCOS application below.
@@ -70,7 +70,7 @@ $$
 X_\xi=\tau^{-1}(\tau(\ell)-t+\xi),\qquad 0\le\xi\le t.
 $$
 
-Every backward characteristic reaches the initial line because $\tau$ tends to $-\infty$ at the left end. This construction also specifies the passage through points where the spatial velocity vanishes: transport proceeds at unit speed in $\zeta$, with no additional waiting at such points.
+Every backward characteristic reaches the initial line because $\tau$ tends to $-\infty$ at the left end. This construction also specifies the passage through points where the spatial velocity vanishes: transport proceeds at unit speed in $\zeta$ through such points.
 
 Along a characteristic,
 
@@ -207,7 +207,7 @@ $$
 
 Here $\kappa=\pi/(\sqrt{3}\,s)$, where $s$ is the standard deviation of arrival-time uncertainty.
 
-For a carrier initially at $x_{\mathrm{bc}}(0)$, the route is $x(\ell;z)=x_{\mathrm{bc}}(0)+\ell(z-x_{\mathrm{bc}}(0))/L$ for $0\le\ell\le L$, with $L=\|z-x_{\mathrm{bc}}(0)\|$. Along this route, $\tau(\ell)$ is the nominal TTI of the carrier at $x(\ell;z)$, and $F(\ell,t)$ is its logistic arrival-time distribution. The extension to negative transport coordinates represents waiting at the observed origin, as specified below.
+For a carrier initially at $x_{\mathrm{bc}}(0)$, the route is $x(\ell;z)=x_{\mathrm{bc}}(0)+\ell(z-x_{\mathrm{bc}}(0))/L$ for $0\le\ell\le L$, with $L=\|z-x_{\mathrm{bc}}(0)\|$. Along this route, $\tau(\ell)$ is the nominal TTI of the carrier at $x(\ell;z)$, and $F(\ell,t)$ is its logistic arrival-time distribution. Time is measured from the observed instant: the carrier first turns and then moves along the route. The extension to negative transport coordinates represents waiting at the observed origin, as specified below.
 
 ### Transport velocity
 
@@ -257,7 +257,7 @@ t_{\mathrm{move}}(\ell),&\ell\ge0.
 \end{cases}}
 $$
 
-This extension is strictly increasing and tends to $-\infty$ at the left end. For $u>0$, it is $C^1$ at zero, with $\tau'(0)=1/u$. For $u=0$, the derivative has an integrable singularity at zero; the velocity tends to zero from both sides. The transport-time coordinate specifies passage through zero without an additional delay. No new movement parameter is introduced.
+This extension is strictly increasing and tends to $-\infty$ at the left end. For $u>0$, it is $C^1$ at zero, with $\tau'(0)=1/u$. For $u=0$, the derivative has an integrable singularity at zero; the velocity tends to zero from both sides. The transport-time coordinate specifies passage through zero, as in the characteristic construction above. The extension uses only the movement parameters already defined.
 
 The inverse of the positive movement time is, for $r\ge0$ and $u<v_{\max}$,
 
@@ -280,11 +280,13 @@ $$
 x(\ell;z)=x_{\mathrm{bc}}(0)+\frac{\max(\ell,0)}{L}(z-x_{\mathrm{bc}}(0)),\qquad \ell\le L.
 $$
 
+Since all negative coordinates share this location, the form of the extension is a convention.
+
 For $\tau(0)=t_{\mathrm{turn}}\ge0$, the initial physical position concentrates at the observed origin as $\kappa\to\infty$: for $0<\epsilon<L$, the conditioned probability of being beyond $\epsilon$ is $[F(\epsilon,0)-F(L,0)]/Z\to0$. When the turning delay is positive, the latent reference median lies on the negative half-line, which maps to the origin.
 
 ### Interception intensities
 
-Interception occurs when a defender reaches the location occupied by the carrier while the carrier is still in possession. In pitch control, the arrival of each player is evaluated at every point of the ball trajectory, and each point represents an opportunity for interception. Here the arrival of each defender is evaluated in the same way at every point of the carrier's route, and we model the local interception intensity by the defender’s arrival hazard at that location. Conditional on the carrier’s characteristic and the observed tracking state, the defenders’ interception processes are assumed independent; their intensities therefore add. This neglects explicit interactions between defenders. For the route $x(\ell;z)$, PRESS specifies the local killing intensity as
+Interception occurs when a defender reaches the location occupied by the carrier while the carrier is still in possession. In pitch control, the arrival of each player is evaluated at every point of the ball trajectory, and each point represents an opportunity for interception. Here the arrival of each defender is evaluated in the same way at every point of the carrier's route, and we model the local interception intensity by the defender’s arrival hazard at that location. Conditional on the carrier’s characteristic and the observed tracking state, the defenders’ interception processes are assumed independent; their intensities therefore add. For the route $x(\ell;z)$, PRESS specifies the local killing intensity as
 
 $$
 k(\ell,t)=\sum_{i\in\mathrm{opp}} k_i(\ell,t),\qquad

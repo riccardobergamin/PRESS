@@ -9,9 +9,9 @@ This benchmark documents the cohort, estimation and predictive evaluation of the
 
 ## 1. Evaluation cohort {#accepted-cohort-and-endpoint-checks}
 
-The benchmark contains **6,706 passes: 5,742 completions and 964 failures (14.38%), across ten SkillCorner matches**, selected from **7,078 outfield pass candidates** by the matching criteria and the duration interval described below ([effective exclusion counts](../data/benchmarks/filters/effective_exclusions.csv)). Passers are outfield players; goalkeepers remain in the state and can receive or intercept passes.
+The benchmark contains **6,706 passes: 5,742 completions and 964 failures (14.38%), across ten SkillCorner matches**, selected from **7,078 outfield pass candidates** by the matching criteria and the duration interval described below (effective exclusion counts). Passers are outfield players; goalkeepers remain in the state and can receive or intercept passes.
 
-Release and the immediate next individual-possession start must be matched in the same match/period, with positive chronology, no intervening annotated interruption and complete observed ball XY. For completed passes, the identified recipient must be the next carrier with a matched pass reception; for failures, the next endpoint is an opponent interception/recovery. The recovery location is a proxy for a failed pass's intended destination. Native-coordinate conversion, endpoint identity, tracking state and the five initial observations are checked. The passer's possession start and receiver's possession end need not both be matched.
+Pass endpoints satisfy the [shared verified-pass-link criteria](../benchmark.qmd#verified-pass-links). Native-coordinate conversion, the release tracking state and the first five ball observations are also checked for the physical trajectory fit.
 
 Passes are retained when the duration from release to matched reception or recovery lies within the inclusive interval **[0.5, 10] s**. The lower bound ensures sufficient tracking observations to estimate the ball-flight initial conditions, whereas the upper bound limits the trajectory integration horizon. This interval is also consistent with the temporal selection adopted by Spearman [@spearman2017]. Passes with curvature above 5%, excluded in the original paper, are retained.
 
@@ -35,7 +35,7 @@ The resulting parameters are then applied to hypothetical passes towards candida
 
 ### Optimization
 
-The negative Bernoulli log-likelihood of the passes on the reconstructed trajectories is minimized without priors, and only $\lambda_{\mathrm{control}}$ and $s$ are estimated. The optimization is carried out in the coordinates $(\eta_\lambda,\eta_s)=(\log\lambda_{\mathrm{control}},\log s)$, so that both parameters remain positive without upper bounds.
+The negative Bernoulli log-likelihood of the passes on the reconstructed trajectories is minimized over $\lambda_{\mathrm{control}}$ and $s$. The optimization is carried out in the coordinates $(\eta_\lambda,\eta_s)=(\log\lambda_{\mathrm{control}},\log s)$, so that both parameters remain positive.
 
 Three complete and independent optimizations are run, starting from the following points:
 
@@ -99,7 +99,7 @@ These ranges describe variation between training partitions. Spearman [@spearman
 
 ## 7. Discussion and limitations {#curvature-and-limitations}
 
-All accepted curvature levels are included in model fitting and evaluation. To assess where the simplified flight representation is less accurate, we stratified the held-out predictions by observed trajectory curvature without refitting either the physical model or its calibrator.
+All accepted curvature levels are included in model fitting and evaluation. To assess where the simplified flight representation is less accurate, we stratified the held-out predictions by observed trajectory curvature with the physical model and its calibrator held fixed.
 
 | Held-out subset | Passes | Failure share | Cross-entropy ↓ | Gain over subgroup null ↑ | ECE ↓ |
 |---|---:|---:|---:|---:|---:|
@@ -113,4 +113,4 @@ Further limitations include the use of the observed recovery location as a proxy
 
 ## 8. Supplementary resources
 
-The [pooled metrics](../data/benchmarks/pass_risk/metrics.csv), [calibration bins](../data/benchmarks/pass_risk/calibration_deciles.csv), [parameter estimates](../data/benchmarks/pass_risk/parameters.csv), [curvature diagnostic](../data/benchmarks/pass_risk/curvature_metrics.csv) and [production provenance](../docs/pass-risk-refit-provenance.json) support the reported results. The [research pipeline](../pipeline.qmd) provides trajectory reconstruction, parameter fitting, calibration and production refitting.
+The [pooled metrics](../data/benchmarks/pass_risk/metrics.csv), [calibration bins](../data/benchmarks/pass_risk/calibration_deciles.csv), [parameter estimates](../data/benchmarks/pass_risk/parameters.csv), [curvature diagnostic](../data/benchmarks/pass_risk/curvature_metrics.csv) and [production provenance](../PRESS/utils/data/pass_risk_model.json) support the reported results. The [research pipeline](../pipeline.qmd) provides trajectory reconstruction, parameter fitting, calibration and production refitting.

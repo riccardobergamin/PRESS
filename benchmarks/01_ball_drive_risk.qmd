@@ -42,7 +42,7 @@ Write $\rho_{\mathrm{bc}}$ for the shared nonlinear smoothing multiplier of the 
 | Speed and boundary together | Linear terms only; or splines with $\rho_{\mathrm{bc}}\in\{0.01,1,100\}$ |
 | Approach angle | Absent; or linear-plus-spline effect with $\rho_\phi\in\{0.01,1,100\}$ |
 
-The three smoothing strengths, **0.01, 1 and 100**, span four orders of magnitude and cover weak, intermediate and strong curvature regularization. The Cartesian product contains **16 configurations** (four choices for speed and boundary times four for the angle). When angle is present, its linear coefficient keeps its prior, and $\rho_\phi$ penalizes only its two nonlinear coefficients. [Exact candidate grid and priority order](../data/benchmarks/ball_drive/spline_regularization_grid.json).
+The three smoothing strengths, **0.01, 1 and 100**, span four orders of magnitude and cover weak, intermediate and strong curvature regularization. The Cartesian product contains **16 configurations** (four choices for speed and boundary times four for the angle). When angle is present, its linear coefficient keeps its prior, and $\rho_\phi$ penalizes only its two nonlinear coefficients. Exact candidate grid and priority order.
 
 The selection is carried out separately in each of the five outer folds, using only the eight development matches of that fold.
 
@@ -78,7 +78,7 @@ Following the shared outer-fold protocol, the final spline specification was ref
 | Loss-class PR AUC | 0.30837 |
 | Mean predicted / observed loss | 5.059% / 5.003% |
 
-[Final metrics](../data/benchmarks/ball_drive/filtered_physics_metrics.csv), [fold parameters](../data/benchmarks/ball_drive/filtered_physics_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
+[Final metrics](../data/benchmarks/ball_drive/filtered_physics_metrics.csv), [fold parameters](../data/benchmarks/ball_drive/filtered_physics_parameters.csv), and audit provenance.
 
 ## 5. Comparison with published results {#comparison-with-published-results}
 
@@ -91,7 +91,7 @@ Published results provide context. The studies differ in sample size, loss defin
 | Stalpaert; CatBoost start-only, resampled | 10% training only | 0.1053 | 0.2455 | 57.11% | 1.64% |
 | PRESS; final physical spline | 5.00% pooled | 0.143483 | 0.198722 | 27.80% | 0.475% |
 
-*For Fernández et al., the approximate null uses entropy at the published overall success rate (90.6%) [@fernandez2021]. Stalpaert's published results use a different drive-labelling convention, marking the last two seconds of failed drives as unsuccessful, whereas PRESS labels only the terminal section [@stalpaert2022]. [Literature comparison details](../data/benchmarks/ball_drive/literature_comparison.csv).
+*For Fernández et al., the approximate null uses entropy at the published overall success rate (90.6%) [@fernandez2021]. Stalpaert's published results use a different drive-labelling convention, marking the last two seconds of failed drives as unsuccessful, whereas PRESS labels only the terminal section [@stalpaert2022]. Literature comparison details.
 
 ### CatBoost with training-set resampling
 
@@ -123,7 +123,7 @@ After selecting configuration and tree count, the selected model is refitted on 
 | Natural prevalence | 0.139855 | 29.623% | 0.490% |
 | 10% losses, prior-corrected | 0.139928 | 29.586% | 0.397% |
 
-In our experiment, resampling yielded no meaningful change in held-out cross-entropy, and CatBoost performs close to the physical model, so we do not observe the same benefit. A possible explanation is the scale of the dataset, although we have no evidence that it is the only reason. The physical likelihood model is maintained as the deployed one. Full hyperparameter settings, feature definitions, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [selected parameters](../data/benchmarks/ball_drive/catboost_final_parameters.csv), and [audit provenance](../docs/ball-drive-benchmark-provenance.json).
+In our experiment, resampling yielded no meaningful change in held-out cross-entropy, and CatBoost performs close to the physical model, so we do not observe the same benefit. A possible explanation is the scale of the dataset, although we have no evidence that it is the only reason. The physical likelihood model is maintained as the deployed one. Full hyperparameter settings, feature definitions, and common-floor sensitivity remain available in the [experiment metrics](../data/benchmarks/ball_drive/catboost_final_metrics.csv), selected parameters, and audit provenance.
 
 ![Pooled out-of-fold calibration of the final physical model and the CatBoost comparisons on the verified-loss cohort. Each marker represents one quantile bin.](../figures/ball_drive_physical_pooled_calibration.png){#fig-ball-drive-physical-calibration}
 
@@ -152,7 +152,7 @@ The approximate credible intervals use $\exp\{\hat m\pm1.96\sqrt{\Sigma_{kk}}\}$
 
 ![Prior densities and approximate posterior marginals for the two fitted scales.](../figures/vignette_01_drive_risk.png)
 
-These intervals describe uncertainty conditional on the model, movement assumptions, prior strengths, and training data, and exclude model-selection uncertainty and systematic annotation error. The final fit converged, with a valid Laplace approximation. [Posterior summaries](../data/examples/ball_drive/posterior_summary.json) and [refit provenance](../docs/ball-drive-refit-provenance.json).
+These intervals describe uncertainty conditional on the model, movement assumptions, prior strengths, and training data, and exclude model-selection uncertainty and systematic annotation error. The final fit converged, with a valid Laplace approximation. [Posterior summaries](../data/examples/ball_drive/posterior_summary.json) and refit provenance.
 
 ## 7. Discussion and limitations {#discussion}
 
@@ -163,4 +163,4 @@ The scope of the model is described in the [model vignette](../vignettes/01_ball
 
 ## 8. Supplementary resources
 
-The [final physical metrics](../data/benchmarks/ball_drive/filtered_physics_metrics.csv), [fold parameter estimates](../data/benchmarks/ball_drive/filtered_physics_parameters.csv), [regularization selection](../data/benchmarks/ball_drive/spline_regularization_selection.csv), [CatBoost comparison](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [posterior summaries](../data/examples/ball_drive/posterior_summary.json) and [production provenance](../docs/ball-drive-refit-provenance.json) support the reported results. The [research pipeline](../pipeline.qmd) provides the procedural source and input/output layout.
+The [final physical metrics](../data/benchmarks/ball_drive/filtered_physics_metrics.csv), [fold parameter estimates](../data/benchmarks/ball_drive/filtered_physics_parameters.csv), [regularization selection](../data/benchmarks/ball_drive/spline_regularization_selection.csv), [CatBoost comparison](../data/benchmarks/ball_drive/catboost_final_metrics.csv), [posterior summaries](../data/examples/ball_drive/posterior_summary.json) and [production provenance](../PRESS/utils/data/ball_drive_model.json) support the reported results. The [research pipeline](../pipeline.qmd) provides the procedural source and input/output layout.

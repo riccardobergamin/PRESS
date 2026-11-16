@@ -21,7 +21,6 @@ class ComputationMixin:
         *,
         start_type=None,
         previous_action=None,
-        bcos_value=None,
         ppcf_kwargs=None,
         ball_drive_kwargs=None,
         bcos_kwargs=None,
@@ -39,9 +38,9 @@ class ComputationMixin:
         possession sampling. Resolve missing context from frame annotations
         or a containing action interval; explicit arguments override it.
         The fitted model accepts raw categories with missing/unseen buckets.
-        Supply bcos_value to reuse an external BCOS area; otherwise compute
-        only the preliminary effective-hazard BCOS required by the fitted
-        trees. The standalone compute_bcos default remains final transport.
+        Compute the preliminary effective-hazard BCOS required by the fitted
+        trees, replacing any previous BCOS result for this frame. The
+        standalone compute_bcos default remains final transport.
         Keyword dictionaries pass to their component methods.
         Always recomputes this frame; returns four core result mappings. With
         include_residual=True, also computes residual risk and xLoss using
@@ -55,13 +54,12 @@ class ComputationMixin:
         if not isinstance(keep_details, bool):
             raise TypeError('keep_details must be True or False.')
         feature_bcos_kwargs = dict(bcos_kwargs or {})
-        if bcos_value is None:
-            feature_bcos_kwargs.setdefault('formulation', 'effective_hazard')
-            if feature_bcos_kwargs['formulation'] != 'effective_hazard':
-                raise ValueError(
-                    'The fitted trees require effective_hazard BCOS. '
-                    'Use compute_bcos() separately for the final transport descriptor.'
-                )
+        feature_bcos_kwargs.setdefault('formulation', 'effective_hazard')
+        if feature_bcos_kwargs['formulation'] != 'effective_hazard':
+            raise ValueError(
+                'The fitted trees require effective_hazard BCOS. '
+                'Use compute_bcos() separately for the final transport descriptor.'
+            )
         # Reuse inputs only within this evaluation. Standalone calls and the
         # next frame always see fresh tracking/annotations, including edits.
         previous_inputs = getattr(self, '_frame_inputs', None)
@@ -88,8 +86,6 @@ class ComputationMixin:
                     raise ValueError('time_since_start must be finite and nonnegative seconds.') from None
                 if not np.isfinite(time_since_start) or time_since_start < 0:
                     raise ValueError('time_since_start must be finite and nonnegative seconds.')
-            if bcos_value is not None and (not np.isfinite(bcos_value) or bcos_value < 0):
-                raise ValueError('bcos_value must be a finite nonnegative scalar.')
             self.compute_ppcf(frame_id, **ppcf_kwargs or {})
             self.compute_ball_drive_risk(frame_id, **ball_drive_kwargs or {})
             choice_context = dict(pass_selection_kwargs or {})
@@ -100,17 +96,12 @@ class ComputationMixin:
             if score_difference_prefix is not None:
                 choice_context['score_difference_prefix'] = score_difference_prefix
             self.compute_pass_selection(frame_id, grid, **choice_context)
-            if bcos_value is None:
-                self.compute_bcos(frame_id, **feature_bcos_kwargs)
-            else:
-                self.results['BCOS'][frame_id] = {'BCOS area': float(bcos_value)}
-                self._record_component_configuration('BCOS', frame_id, {'formulation': 'explicit'})
+            self.compute_bcos(frame_id, **feature_bcos_kwargs)
             self.compute_action_selection_probability(
                 frame_id,
                 grid,
                 start_type,
                 previous_action,
-                bcos_value,
                 match_clock_min=match_clock_min,
                 score_difference_prefix=score_difference_prefix,
                 completed_canonical_drives=completed_canonical_drives,
@@ -472,7 +463,6 @@ class ComputationMixin:
         xT_grid=None,
         start_type=None,
         previous_action=None,
-        bcos_value=None,
         *,
         match_clock_min=None,
         score_difference_prefix=None,
@@ -486,9 +476,8 @@ class ComputationMixin:
 
         Requires compute_ppcf(), compute_ball_drive_risk(), and
         compute_pass_selection() to have already been run for
-        this frame_id. Supply ``bcos_value`` explicitly or compute BCOS first
-        through ``compute_bcos``. The pretrained model retains its effective-
-        hazard BCOS feature until retraining with final transport.
+        this frame_id. It computes the preliminary effective-hazard BCOS when
+        needed, replacing a final-transport result for this frame.
 
         The revised model uses raw start/previous categories, e.g.
         "pass_reception" and "ball_drive", preserving unknown/missing.
@@ -531,12 +520,7 @@ class ComputationMixin:
         if pass_grid is not None and not np.array_equal(grid, pass_grid):
             raise ValueError('xT_grid differs from pass selection; recompute pass selection with the same map.')
         ball_drive_loss = self.results['BALL_DRIVE_RISK'][frame_id]['Ball drive risk']
-        bcos_feature_source = 'explicit' if bcos_value is not None else 'effective_hazard'
-        if bcos_value is None:
-            cached_bcos = self.results['BCOS'].get(frame_id)
-            if cached_bcos is None:
-                raise ValueError('Supply bcos_value or compute BCOS before action selection.')
-            bcos_value = self._classifier_bcos(frame_id, state=state)
+        bcos_area = self._classifier_bcos(frame_id)
         final = self._action_model()
         if self.get_result_configuration(frame_id, 'BALL_DRIVE_RISK')['BALL_DRIVE_RISK']['t_press'] != 1.0:
             raise ValueError('Action selection requires one-second carry loss.')
@@ -573,7 +557,7 @@ class ComputationMixin:
             targets=ppcf['grid'],
             pass_selection_probabilities=ppcf['Pass selection probabilities'],
             pass_success_probability=ppcf['Pass probability'],
-            bcos=bcos_value,
+            bcos=bcos_area,
             ball_drive_loss=ball_drive_loss,
             start_type_raw=raw_start,
             previous_action_raw=raw_previous,
@@ -592,10 +576,10 @@ class ComputationMixin:
             'Ball drive probability': 1.0 - pass_probability,
             'Features': feature_record,
             'model_id': final.model_id,
-            'BCOS feature formulation': bcos_feature_source,
+            'BCOS feature formulation': 'effective_hazard',
         }
         self._record_component_configuration('ACTION_SELECTION', frame_id, {
-            'BCOS feature formulation': bcos_feature_source,
+            'BCOS feature formulation': 'effective_hazard',
         }, xt_grid=grid)
         self._invalidate(frame_id, 'HAZARD')
         return pass_probability
@@ -671,24 +655,14 @@ class ComputationMixin:
             supplied = self._action_model().xt_grid
         return validate_xt_grid(supplied)
 
-    def _classifier_bcos(self, frame_id, *, state=None):
-        """Keep the pretrained feature definition separate from the displayed map."""
-        from PRESS.spatial_features import BCOS
-        result = self.results['BCOS'][frame_id]
-        settings = self.get_result_configuration(frame_id, 'BCOS')['BCOS']
-        if settings.get('formulation','effective_hazard') == 'effective_hazard':
-            return float(result['BCOS area'])
-        if 'Model feature BCOS area' not in result:
-            if result.get('details_available') is False:
-                raise ValueError('Recompute BCOS or run compute_risk_frame with keep_details=True.')
-            physical = {key:value for key,value in settings.items() if key in
-                {'s','v_bc_max','v_def_max','a_bc_max','a_def_max','a_turn_bc','a_turn_def'}}
-            feature = BCOS(self.tracking_data,ball_drive_model=self.ball_drive_model).compute_bcos(
-                frame_id,r_max=settings['r_max'],step=settings['step'],
-                physics_args=physical,formulation='effective_hazard',state=state)
-            result['Model feature BCOS area'] = float(feature['BCOS area'])
-            result['Model feature formulation'] = 'effective_hazard'
-        return result['Model feature BCOS area']
+    def _classifier_bcos(self, frame_id):
+        """Compute the preliminary BCOS feature unless it is already stored."""
+        result = self.results['BCOS'].get(frame_id)
+        if result is not None:
+            settings = self.get_result_configuration(frame_id, 'BCOS')['BCOS']
+            if settings.get('formulation') == 'effective_hazard':
+                return float(result['BCOS area'])
+        return float(self.compute_bcos(frame_id, formulation='effective_hazard')['BCOS area'])
 
     def compute_bcos(self, frame_id, r_max=40.0, step=1.0, physics_args=None, *, formulation="transport"):
         """Compute/store the optional BCOS map and area for this frame.

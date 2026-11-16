@@ -1,15 +1,12 @@
-# 09 — Pattern, squadre, giocatori e case studies
+# 09 — Possession patterns and reports
 
-Ordine: `features.py` → `scores.py` → `cases.py` → `pipeline.py`.
+Reading order: `features.py` → `scores.py` → `cases.py` → `pipeline.py`.
 
-- `classify_possessions`: una riga per `(match_id, possession_id)`, stato
-  iniziale/finale, micropossessi e tre pattern concordati.
-- `pattern_shares`: quote sulla coorte completa e sui denominatori specifici.
-- `entity_score`: E−O/100, numerosità, h medio, fallimenti osservati e quota High.
-- `bootstrap_entity`: 2.000 ricampionamenti di possessi interi per gli intervalli;
-  si conservano insieme tutte le azioni elevated di ciascun possesso estratto.
-- `export_cases`: tabella dei checkpoint e, se richiesto, plot dei frame reali.
-  Il frame del controllo successivo mostra l'esito ma non genera un nuovo h.
+- `classify_possessions` creates one row per `(match_id, possession_id)`, with initial/final states and the three pressure patterns, including the single-checkpoint convention for micropossessions.
+- `pattern_shares` reports shares in the full cohort and the pattern-specific denominators.
+- `entity_score` calculates E−O per 100 elevated actions, counts, mean h, observed failure frequency and High share.
+- `bootstrap_entity` resamples whole possessions 2,000 times, retaining all elevated actions of each sampled possession together.
+- `export_cases` exports checkpoint tables and optional real-frame plots. The next control illustrates the outcome without adding another h checkpoint.
 
 ```bash
 python pipeline/reports/pipeline.py \
@@ -18,6 +15,4 @@ python pipeline/reports/pipeline.py \
   --tracking-root pipeline/inputs/shared/tracking
 ```
 
-Omettere `--tracking-root` genera soltanto le tabelle. Il caso illustrato deve
-continuare a soddisfare il pattern; il codice lo verifica prima del plot.
-I profili usano le predizioni held-out, mai i modelli di produzione.
+Omit `--tracking-root` to generate tables only. Pattern membership is checked before plotting a case. Reports use held-out predictions, not production-model predictions. Definitions and interval limitations are documented in the [report vignette](../../vignettes/07_case_studies/07_case_studies.ipynb).
