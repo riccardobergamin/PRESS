@@ -26,4 +26,4 @@ python pipeline/pass_probability/pipeline.py --stage scores
 python pipeline/pass_probability/pipeline.py --stage refit
 ```
 
-The website's download places this released source at `pipeline/pass_probability/`. The linked website source is under `pipeline/released/pass_probability/` to keep it distinct from local development code. The output directory must be new; generated arrays, fit objects, predictions and the production JSON are saved there.
+In the download, this source occupies `pipeline/pass_probability/`. Use a new output directory for generated arrays, fit objects, predictions and the production JSON.

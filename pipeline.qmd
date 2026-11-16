@@ -6,7 +6,7 @@ The procedural research code is organized in **`pipeline/`**, separately from th
 
 [Download the research pipeline](pipeline/press-training-pipeline.zip) · [Source and reading guide](pipeline/README.md) · [Distributed objects](data/README.md) · [Roadmap](roadmap.qmd)
 
-The archive contains the `pipeline/` source tree, documentation and split/grid protocols. Match data, fitted fold objects and generated outputs are kept separately; the package supplies the final pretrained inference models.
+The archive contains the `pipeline/` source tree, documentation and split/grid protocols. It prepares task inputs from public SkillCorner match files and connects each fitted stage to its downstream tasks. Match data and fitted fold objects are generated during execution; the package supplies the final pretrained inference models.
 
 ## Numbered workflow
 
@@ -33,19 +33,11 @@ Flat and cross-nested pass selection share their feature calculation. Action sel
 pipeline/
   00_pipeline.py
   frame_states.py
-  inputs/                         # local numerical inputs, by task
-    shared/tracking/matches/<id>/
-    preprocessing/matches/<id>/
-    expected_threat/
-    ball_drive/
-    pass_probability/
-    pass_selection/
-    binary_classification/
-    composed_risk/
-    reports/
+  inputs/                         # fixed split/grid protocols and report cases
   <component>/                    # source files in the table above
   outputs/                        # a new run's generated objects
-    preprocessing/
+    preprocessing/matches/<id>/   # tracking, events and segmented possessions
+    preprocessing/task_inputs/    # observations and upstream models by task
     expected_threat/
     ball_drive/physical/
     ball_drive/catboost/
@@ -61,11 +53,11 @@ pipeline/
 
 Each model stores feature tables or physical arrays separately from fold fits, scores and production refits. Saved trees, spline bases, posterior quantities and calibration objects have explicit task folders. The pipelines preserve completed outputs; a fresh pipeline execution should use a new output root. The [input/output guide](pipeline/README.md) describes the individual files.
 
-The raw-data adapter reads the public SkillCorner match files. Shared preprocessing retains the broad observations and quality flags; task-specific outcome filters remain beside the task. Reconstructed task cohorts are saved under `outputs/preprocessing/task_inputs/` and compared by observation keys and labels before replacing accepted inputs. Segmentation and context-label meanings are explained in the [User guide](vignettes/setup/possession_and_checkpoint_setup.ipynb).
+The raw-data adapter reads the public SkillCorner match files. Shared preprocessing retains the broad observations and quality flags; task-specific outcome filters remain beside the task. Reconstructed task cohorts are saved under `outputs/preprocessing/task_inputs/`. Segmentation and context-label meanings are explained in the [User guide](vignettes/setup/possession_and_checkpoint_setup.ipynb).
 
 ## Dependencies between models
 
-Fold-specific feature builders receive explicit upstream model artifacts from the matching split. Held-out evaluation uses the models of the matching split. Accepted upstream inputs are stored under `inputs/<task>/upstream/fold_<f>/`; production counterparts are under `upstream/production/`. The numbered plan runs the reviewed task procedures from these declared inputs; newly generated fits stay separate until they are promoted.
+Fold-specific feature builders receive explicit upstream model artifacts from the matching split. Held-out evaluation uses the models of the matching split. The [handoff code](pipeline/handoff.py) exports completed physical, xT and choice fits into `outputs/preprocessing/task_inputs/<task>/upstream/fold_<f>/`; production counterparts are under `upstream/production/`. It checks the six-fitting/two-validation/two-test match roles before downstream feature extraction.
 
 For the six-fitting/two-validation/two-test tree-model splits, physical and xT features use the matching fitting data; pass-completion and pass-selection calibration retain their declared validation roles. Residual-risk training uses cross-fitted P(carry); validation and test use the corresponding main action-selection model. Production residual training uses the five eight-fit/two-held action fits. The [general benchmark](benchmark.qmd) and individual benchmark pages describe these procedures.
 
@@ -95,7 +87,7 @@ For pass selection, the [short real-data check](pipeline/checks/pass_selection_s
 # Print the ordered research commands without executing fits.
 python pipeline/00_pipeline.py --output-root /path/to/new_run
 
-# Print local checks; add --execute to run selected checks.
+# Print checks; add --execute to run selected checks.
 python pipeline/checks/run.py --output /path/to/new_checks
 ```
 

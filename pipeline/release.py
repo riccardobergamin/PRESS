@@ -21,7 +21,7 @@ EXCLUDE_PARTS = {"old", "checks", "__pycache__"}
 def export_code(destination):
     """Copy readable source only into a NEW destination, never the history."""
     destination.mkdir(parents=True, exist_ok=False)
-    for filename in ["__init__.py", "00_pipeline.py", "frame_states.py", "io.py", "benchmarks.py", "release.py", "README.md"]:
+    for filename in ["__init__.py", "00_pipeline.py", "frame_states.py", "io.py", "handoff.py", "benchmarks.py", "release.py", "README.md"]:
         shutil.copy2(ROOT / filename, destination / filename)
     for name in ["ball_drive/README.md", "ball_drive/TRAINING.md", "inputs/README.md",
                  "inputs/binary_classification/README.md", "inputs/pass_probability/README.md"]:
@@ -38,12 +38,15 @@ def export_code(destination):
             shutil.copy2(source, target)
     # The published pass-probability source follows the benchmark's
     # fitting-split trajectory choice. Keep the local per-pass variant intact.
-    for source in sorted((ROOT / "released" / "pass_probability").glob("*")):
-        if source.is_file() and source.suffix in CODE_SUFFIXES:
-            shutil.copy2(source, destination / "pass_probability" / source.name)
+    released_pass = ROOT / "released" / "pass_probability"
+    if released_pass.is_dir():
+        for source in sorted(released_pass.glob("*")):
+            if source.is_file() and source.suffix in CODE_SUFFIXES:
+                shutil.copy2(source, destination / "pass_probability" / source.name)
     # Give the archive the input contract for its split-level source too.
-    shutil.copy2(ROOT / "released" / "inputs" / "pass_probability" / "README.md",
-                 destination / "inputs" / "pass_probability" / "README.md")
+    released_guide = ROOT / "released" / "inputs" / "pass_probability" / "README.md"
+    if released_guide.is_file():
+        shutil.copy2(released_guide, destination / "inputs" / "pass_probability" / "README.md")
     # Inside the download, the released pass-probability variant occupies
     # pipeline/pass_probability/; adjust the top-level reading guide accordingly.
     guide = destination / "README.md"
@@ -56,6 +59,11 @@ def export_code(destination):
             target = destination / "inputs" / name / "protocol.json"
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
+    for name in ["folds.json", "reports/cases.json"]:
+        source = ROOT / "inputs" / name
+        target = destination / "inputs" / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
     # Two task-specific cohort filters live one level above model variants.
     for name in ["ball_drive/filters.py", "pass_probability/filters.py"]:
         target = destination / name

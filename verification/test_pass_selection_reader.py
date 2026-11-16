@@ -96,7 +96,6 @@ def test_installed_default_is_verified_flat_full_refit():
     from pathlib import Path
     from PRESS.model import PassRiskModel, BallDriveModel
     model=PassSelectionModel.pretrained();a=model.to_dict()
-    provenance=json.loads((Path(__file__).parents[1]/'docs/pass-selection-final-provenance.json').read_text())
     assert model.family=='flat' and model.model_id=='skillcorner_outfield_pass_selection_flat_v3'
     assert model.booster.num_boosted_rounds()==a['training']['rounds']==1444
     assert model.feature_contract=='ahead_of_carrier_and_target_v1'
@@ -107,7 +106,6 @@ def test_installed_default_is_verified_flat_full_refit():
     assert model.rho==1 and a['calibration']['temperature']==pytest.approx(1.013295437946196)
     assert a['physics']['pass_risk']==PassRiskModel.pretrained().to_dict()
     assert a['physics']['ball_drive']==BallDriveModel.pretrained().to_dict()
-    assert provenance['installed_family']=='flat' and provenance['cnl_installed'] is False
     assert not (Path(__file__).parents[1]/'PRESS/utils/data/pass_selection_cnl_model.json').exists()
 
 

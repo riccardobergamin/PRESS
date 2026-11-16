@@ -1,10 +1,11 @@
 # Pipeline verification
 
-The checks cover every pipeline stage using observed data and short fits. They do not repeat complete XGBoost or CatBoost searches.
+The default checks parse the source, run each command-line help page, prepare one observed match from the original SkillCorner files, and re-export the source archive. Full task checks use completed numerical inputs from a research run and short fits; they do not repeat complete XGBoost or CatBoost searches.
 
 ```bash
 python pipeline/checks/run.py --output /path/to/new_checks
-# Add --execute to run the plan, or --step pass_selection to select a stage.
+# Add --raw-root /path/to/opendata/data/matches --execute to run the default checks.
+# Use --step pass_selection only after preparing the full task inputs.
 ```
 
 `--package-root` selects a PRESS checkout without modifying the Python installation. `--raw-root` selects the public source data. Each command has a log; `checks.json` summarizes its outcome.
@@ -12,7 +13,7 @@ python pipeline/checks/run.py --output /path/to/new_checks
 | Stage | Checks |
 |---|---|
 | Syntax and CLI | Parse scripts and run pipeline `--help` commands |
-| Preprocessing | Read a real match; estimate kinematics; match boundaries; segment; compare cohort keys and labels |
+| Preprocessing | Read a real match; estimate kinematics; match boundaries and segment actions |
 | xT | Events, four resolutions, smoothing selection, fold/production maps and reference comparisons |
 | Physical ball-drive | Covariates, bases, priors, short MAP fit, Laplace, predictions, metrics and exported-model loading |
 | CatBoost | TTI, features, training-only sampling, prior correction and calibration/metric replay; native fitting requires CatBoost |

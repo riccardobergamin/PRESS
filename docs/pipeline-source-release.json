@@ -1,15 +1,15 @@
 {
   "archive": "pipeline/press-training-pipeline.zip",
-  "sha256": "dd645386bb00323ab6ef8302dd46dd9a5d9ef121c114b0f4e76773ee0a6570bf",
-  "file_count": 67,
+  "sha256": "a0e65f7f63e101122de65173242d2bda836305146e1ee00b055d91c8fca84199",
+  "file_count": 70,
   "files": [
     {
       "path": "pipeline/00_pipeline.py",
-      "sha256": "f19cc70aac82e43ee24eb9fa5d040a97973c4fa6f066b91b8bfb02f3ec44574b"
+      "sha256": "d2ad2509d7e124849dfdb5af4cd532749e1dd64d7ce532767f9d0e7953c03148"
     },
     {
       "path": "pipeline/README.md",
-      "sha256": "902c1a60dfb7f9a1d2e170fdde8b1bff071ea1427a0d53880e7be71f9a890558"
+      "sha256": "81fec76c97c88a3e94a5fa4bf86ba73540b24926559ca723bdbed915753bd0d9"
     },
     {
       "path": "pipeline/__init__.py",
@@ -77,7 +77,7 @@
     },
     {
       "path": "pipeline/checks/README.md",
-      "sha256": "af5ef7cce718e150c31c082057d35d1df3ea9c03b7eb3d4deda07b39a2a95e28"
+      "sha256": "3ad29d4bc463348a2dd627fe555f2cf14d901eab1431739690179e35cd88c2cc"
     },
     {
       "path": "pipeline/checks/binary_steps.py",
@@ -105,7 +105,7 @@
     },
     {
       "path": "pipeline/checks/run.py",
-      "sha256": "9a30c9f7a093c1ca12896c4e706e568f14b40e501ce23f5c278df678185941e8"
+      "sha256": "91be14367ad14c954213ddd95c82a7aaf6417ed16e2474f40fea7206954dc53a"
     },
     {
       "path": "pipeline/checks/xt_steps.py",
@@ -148,8 +148,12 @@
       "sha256": "52af9adccc2e6c0042333e69c6cc54d69fd5560143b91aec84d05223b0392b71"
     },
     {
+      "path": "pipeline/handoff.py",
+      "sha256": "8706f0fb5bb300c23577e21022b31de2defe3a9ec9c06f1add53a210371ec40f"
+    },
+    {
       "path": "pipeline/inputs/README.md",
-      "sha256": "c17b5314a08c18e461e7d815affd53d798bab520ec03f66c26a52fd620e18602"
+      "sha256": "09244875e0bf7619008c0499de16ffd2223671c2ba6a972faf4eb5c6dfb26525"
     },
     {
       "path": "pipeline/inputs/binary_classification/README.md",
@@ -168,6 +172,10 @@
       "sha256": "0f5e2074d8db76faca507eb606a18685177c7c751103059dcbb788e1b64ecf12"
     },
     {
+      "path": "pipeline/inputs/folds.json",
+      "sha256": "6d9ca0cd9e664d02a89e4be2f6fab82327bf6d7376585bad2b126d2e0a787ae3"
+    },
+    {
       "path": "pipeline/inputs/pass_probability/README.md",
       "sha256": "395d053aa3dcf166b3b5ff9e809d99eac52b46a0d33c4e376008f8dadcb5c1de"
     },
@@ -176,12 +184,16 @@
       "sha256": "4daf47c73776a34d710b6e21fa63e7b9dbe930e7ddb6d13e36a8febd6871bffa"
     },
     {
+      "path": "pipeline/inputs/reports/cases.json",
+      "sha256": "e502392944a8ad9fc84b9ae841dced69d3e32e4f329a7d1ba4449bf0154bc412"
+    },
+    {
       "path": "pipeline/io.py",
       "sha256": "ad57a352d482ad9c52f23c5d4a722f00e6afa514c9cfdc8da67d227be1144b23"
     },
     {
       "path": "pipeline/pass_probability/README.md",
-      "sha256": "4a1e2a5971ce1b33a68b3b314411c7fbb80ddc4c0f148c9b5217687d150e881a"
+      "sha256": "9baa2b87d9d61d89d9e7615b91308c3401b7c2975dd8dadc6e5bcd429a781792"
     },
     {
       "path": "pipeline/pass_probability/filters.py",
@@ -249,7 +261,7 @@
     },
     {
       "path": "pipeline/release.py",
-      "sha256": "643098c8219494ede58314e8a46f8a14c5f984a344d8f7364a2c58078183ce4e"
+      "sha256": "23c375e753deae437118dbbaf0d8e201a76d2ec2e4eaf982db0351133d0ff750"
     },
     {
       "path": "pipeline/reports/README.md",

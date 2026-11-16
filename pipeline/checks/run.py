@@ -1,6 +1,7 @@
 """Step-by-step local verification plan; no complete ML hyperparameter search.
 
-Default prints the commands. --execute runs selected checks and stores logs.
+Default prints the source-only and one-match smoke commands. --execute runs
+selected checks and stores logs. Full task checks require completed task data.
 Use a NEW output directory. The installed/checkout PRESS is selected explicitly;
 this script neither installs a package nor changes the pretrained weights.
 """
@@ -30,8 +31,7 @@ def main():
     def call(path,*values):
         return [py,str(PIPELINE_ROOT/path),*map(str,values)]
     steps = {
-        "preprocessing": [call("preprocessing/pipeline.py","--raw-root",args.raw_root or "/path/to/opendata/data/matches","--match","1925299","--templates",PIPELINE_ROOT/"inputs","--output",out/"preprocessing"),
-                          call("checks/preprocessing_rows.py","--output",out/"preprocessing")],
+        "preprocessing": [call("preprocessing/pipeline.py","--raw-root",args.raw_root or "/path/to/opendata/data/matches","--match","1925299","--output",out/"preprocessing")],
         "xt": [call("checks/xt_steps.py","--output",out/"xt")],
         "ball_drive": [call("checks/physical_steps.py","--task","ball_drive","--output",out/"physical_drive")],
         "catboost": [call("checks/catboost_steps.py","--output",out/"catboost")],
@@ -45,11 +45,11 @@ def main():
                     call("checks/compare_reports.py","--output-root",out)],
         "release": [call("release.py","--code-destination",out/"code_release","--output-root",out,"--tables-destination",out/"public_tables")],
     }
-    selected = args.step or ["syntax","cli",*steps]
+    selected = args.step or ["syntax", "cli", "preprocessing", "release"]
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join([str(ROOT), *([str(args.package_root.resolve())] if args.package_root else []), env.get("PYTHONPATH","")])
     env.update(MPLBACKEND="Agg",JAX_ENABLE_X64="1")
-    if args.execute and "preprocessing" in (args.step or steps) and args.raw_root is None:
+    if args.execute and "preprocessing" in selected and args.raw_root is None:
         parser.error("The preprocessing check requires --raw-root.")
     if args.execute:
         out.mkdir(parents=True,exist_ok=True)

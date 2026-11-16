@@ -4,7 +4,7 @@ The procedural pipeline prepares observations, estimates model parameters, evalu
 
 ## Reading and execution order
 
-`00_pipeline.py` prints commands in dependency order. Add `--execute` to run them, or select a stage with `--step 05`, for example.
+`00_pipeline.py` prints commands in dependency order. Add `--execute` to run selected stages, for example `--step 01 --raw-root /path/to/opendata/data/matches`. Stage 01 writes the task inputs and installs the fixed protocols. Stages 06 and 07 export the matching fitted models into downstream input folders before calculating features. Use a fresh `--output-root` for each run; the default input root is `<output-root>/preprocessing/task_inputs`.
 
 | Stage | Directory | Reading order |
 |---|---|---|
@@ -19,13 +19,13 @@ The procedural pipeline prepares observations, estimates model parameters, evalu
 | 09 | `reports/` | `features.py` → `scores.py` → `cases.py` → `pipeline.py` |
 | 10 | `benchmarks.py` | Physical-parameter and performance summaries |
 
-`frame_states.py` reads observed frames through `PRESS.utils.state.get_pv_players`. Carries use `frame_start`; passes use the release at `frame_end`. `io.py` provides table and summary serialization.
+`frame_states.py` reads observed frames through `PRESS.utils.state.get_pv_players`. Carries use `frame_start`; passes use the release at `frame_end`. `handoff.py` connects completed fits to the next task using the declared folds. `io.py` provides table and summary serialization.
 
 ## Inputs, dependencies and outputs
 
-[Input specifications](inputs/README.md) describe the observation tables and protocols in `inputs/<task>/`. Upstream physical, xT and pass-selection artifacts are explicit inputs under `upstream/fold_<f>/` or `upstream/production/`. The execution plan does not automatically install new fits as downstream inputs: the caller must supply compatible artifacts from the required split.
+[Input specifications](inputs/README.md) describe the observation tables and protocols. Stage 01 writes observations under `outputs/preprocessing/task_inputs/<task>/`; the released ZIP contains the fixed protocols. Upstream physical, xT and pass-selection artifacts are then exported from this run under each downstream task's `upstream/fold_<f>/` or `upstream/production/`.
 
-Preprocessing reconstructs cohorts from public SkillCorner files under `outputs/preprocessing/task_inputs/<task>/`. Compare row keys and labels with the reference cohorts before substituting these inputs. Task-specific outcome filters are defined in each task's `filters.py`.
+Preprocessing reconstructs cohorts from public SkillCorner files. Task-specific outcome filters are defined in each task's `filters.py`.
 
 Generated objects are separated into feature, training, score and production directories under `outputs/<task>/`. The two binary tasks share code but have distinct outputs. Select a new `--output-root` for a new execution; completed outputs are protected against overwriting. Exported production fits are not automatically installed in PRESS.
 

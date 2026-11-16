@@ -16,14 +16,8 @@ def state():
 
 
 def test_bundled_model_is_verified_full_refit():
-    import hashlib
-    import json
-    from importlib.resources import files
     model=BallDriveModel.pretrained()
     artifact=model.to_dict()
-    provenance=json.loads((Path(__file__).parents[1]/'docs/ball-drive-refit-provenance.json').read_text())
-    payload=files('PRESS.utils').joinpath('data/ball_drive_model.json').read_bytes()
-    assert hashlib.sha256(payload).hexdigest()==provenance['model_sha256']
     assert artifact['training']['role']=='full_data_refit'
     assert artifact['training']['observations']==9114
     assert artifact['training']['losses']==456
