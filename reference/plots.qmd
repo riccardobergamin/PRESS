@@ -21,7 +21,7 @@ fig.savefig("pass_probability.png", dpi=160)
 
 ## Shared options
 
-The pitch functions accept `pitch_length=None`, `pitch_width=None`, `figsize=(12,8)`, `title_fontsize=9`, `legend_fontsize=8`, plus keyword-only `title=None`, `ax=None`, `show=True`, `legend=True`, `velocity_scale=1.5`. Choice convenience functions retain their original title-size defaults. An explicit axis supports multi-panel figures; its figure is returned. `show=False` supports scripts and batch saving. Plot dimensions use native tracking metadata unless overridden for display.
+The pitch functions accept `pitch_length=None`, `pitch_width=None`, `figsize=(12,8)`, `title_fontsize=9`, `legend_fontsize=8`, plus keyword-only `title=None`, `ax=None`, `show=True`, `legend=True`, `velocity_scale=1.0`. Choice convenience functions retain their original title-size defaults. An explicit axis supports multi-panel figures; its figure is returned. `show=False` supports scripts and batch saving. Plot dimensions use native tracking metadata unless overridden for display.
 
 Velocity arrows are drawing aids of length `velocity_scale × velocity`, indicating the current direction of movement. They can be hidden with `velocity_scale=0`. Missing players are omitted; a frame without a carrier can still be drawn with `plot_frame`.
 

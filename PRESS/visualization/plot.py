@@ -30,7 +30,7 @@ def _canvas(press, frame_id, pitch_length, pitch_width, figsize, ax):
     return fig, ax, pitch, frame, frame_to_long(frame)
 
 
-def _draw_state(pitch, ax, frame, players, *, velocity_scale=1.5, defender_shares=None):
+def _draw_state(pitch, ax, frame, players, *, velocity_scale=1.0, defender_shares=None):
     for team, color in TEAM_COLORS.items():
         selected = players[players.team_id.eq(team)]
         colors = color
@@ -38,8 +38,8 @@ def _draw_state(pitch, ax, frame, players, *, velocity_scale=1.5, defender_share
             defending_team, shares, cmap = defender_shares
             if team == defending_team:
                 colors = [cmap(shares.get(player, 0.0)) for player in selected.player_id]
-        pitch.scatter(selected.x, selected.y, ax=ax, s=45, color=colors,
-                      edgecolors="white", linewidth=0.6, zorder=3)
+        pitch.scatter(selected.x, selected.y, ax=ax, s=100, color=colors,
+                      edgecolors="black", linewidth=1.0, zorder=3)
     ball = frame.iloc[0]
     if np.isfinite([ball.ball_x, ball.ball_y]).all():
         pitch.scatter(ball.ball_x, ball.ball_y, ax=ax, s=20, color="white",
@@ -48,14 +48,15 @@ def _draw_state(pitch, ax, frame, players, *, velocity_scale=1.5, defender_share
         for row in players.dropna(subset=["vx", "vy"]).itertuples():
             pitch.arrows(row.x, row.y, row.x + velocity_scale * row.vx,
                          row.y + velocity_scale * row.vy, ax=ax, color="black",
-                         width=0.5, headwidth=3, headlength=3, alpha=0.55, zorder=4)
+                         width=1, headwidth=4, headlength=3, headaxislength=3,
+                         minlength=0, alpha=1, zorder=2.8)
 
 
 def _finish(fig, ax, title, title_fontsize, legend_fontsize, *, show, legend, pass_line=False):
     ax.set_title(title, fontsize=title_fontsize, fontweight="bold", pad=12)
     if legend:
         handles = [Line2D([0], [0], marker="o", color="w", markerfacecolor=color,
-                          markeredgecolor="white", markersize=9, label=f"Team {team}")
+                          markeredgecolor="black", markeredgewidth=1, markersize=10, label=f"Team {team}")
                    for team, color in TEAM_COLORS.items()]
         handles.append(Line2D([0], [0], marker="o", color="w", markerfacecolor="white",
                               markeredgecolor="black", markersize=5, label="Ball"))
@@ -93,7 +94,7 @@ def _field(fig, ax, grid, values, *, label, cmap, legend_fontsize, scale=1.0):
 
 def plot_frame(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
                title_fontsize=9, legend_fontsize=8, *, title=None, ax=None,
-               show=True, legend=True, velocity_scale=1.5):
+               show=True, legend=True, velocity_scale=1.0):
     """Draw an observed frame and return (figure, axes), without inference.
 
     Accepts a PRESS or BCOS object exposing canonical tracking_data. Optional
@@ -117,7 +118,7 @@ def plot_frame(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12
 def plot_pass_map(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
                   title_fontsize=9, legend_fontsize=8, *, field="pass_success",
                   pass_target=None, title=None, ax=None, show=True, legend=True,
-                  velocity_scale=1.5):
+                  velocity_scale=1.0):
     """Draw stored pitch_control, pass_success or pass_selection; return (fig, ax).
 
     Control/completion use absolute probabilities on 0–1. Choice colors are
@@ -191,7 +192,7 @@ def plot_ppcf(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12,
 
 def plot_ball_drive_risk(press, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
             title_fontsize=9, legend_fontsize=8, *, title=None, ax=None, show=True,
-            legend=True, velocity_scale=1.5):
+            legend=True, velocity_scale=1.0):
     """Color defenders by their share of total drive risk; return (fig, ax).
 
     The absolute loss probability appears in the title. Cause probabilities
@@ -235,7 +236,7 @@ def plot_ball_drive_risk(press, frame_id, pitch_length=None, pitch_width=None, f
 
 def plot_bcos(bcos, frame_id, pitch_length=None, pitch_width=None, figsize=(12, 8),
               title_fontsize=9, legend_fontsize=8, *, title=None, ax=None,
-              show=True, legend=True, velocity_scale=1.5):
+              show=True, legend=True, velocity_scale=1.0):
     """Draw a stored BCOS probability field from PRESS or BCOS; return (fig, ax)."""
     result = (bcos.get_bcos_result(frame_id) if hasattr(bcos, "get_bcos_result")
               else bcos.get_result(frame_id))
