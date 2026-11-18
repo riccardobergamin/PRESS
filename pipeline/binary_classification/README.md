@@ -64,4 +64,4 @@ python pipeline/binary_classification/pipeline.py --task residual_risk --stage t
 
 ## Checks
 
-`checks/verify_pipeline.py` covers formulas on real states, encoding, short native fits, 4+2 cross-fitting and reference metrics. `checks/verify_production.py` checks refit/export compatibility with public readers. Small verification refits are not expected to reproduce the distributed predictions exactly and do not replace benchmark weights or a full search.
+`pipeline/checks/binary_steps.py` covers formulas on real states, encoding, short native fits, 4+2 cross-fitting, reference metrics and export compatibility with public readers. Small verification refits are not expected to reproduce the distributed predictions exactly and do not replace benchmark weights or a full search.

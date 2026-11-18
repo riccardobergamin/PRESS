@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from model import (PITCH_LENGTH, PITCH_WIDTH, EVENT_TYPES, bin_events,
+from pipeline.expected_threat.model import (PITCH_LENGTH, PITCH_WIDTH, EVENT_TYPES, bin_events,
                    transition_probabilities, goal_probabilities, fit_xt, spatial_cells)
 
 

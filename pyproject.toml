@@ -20,6 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 io = ["pyarrow==19.0.1"]
+training = ["catboost==1.2.10"]
 vignettes = [
   "ipykernel==7.2.0",
   "ipython==9.10.0",

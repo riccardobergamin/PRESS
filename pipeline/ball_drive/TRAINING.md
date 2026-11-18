@@ -46,8 +46,8 @@ python pipeline/ball_drive/catboost/pipeline.py --stage train --threads 4
 python pipeline/ball_drive/catboost/pipeline.py --stage scores
 ```
 
-An explicit reference input is `pipeline/inputs/ball_drive/reference_parameters/physical_splits.json`. Use `--stage train --fold 0 --sampling natural` to select one CatBoost fit.
+The physical stage generates `physical_splits.json`; pass that output to CatBoost. Use `--stage train --fold 0 --sampling natural` to select one CatBoost fit.
 
 ## Verification scope
 
-`check_training_versions.py` compares formulas, gradients, regularization selection, features and reference metrics, including a short physical MAP fit and exported-model loading. These checks are distinct from the complete nested search. Native CatBoost fitting requires its optional dependency; replaying features and metrics alone does not test tree training.
+`pipeline/checks/physical_steps.py` compares formulas, gradients, regularization selection, features and reference metrics, including a short physical MAP fit and exported-model loading. These checks are distinct from the complete nested search. Native CatBoost fitting requires its optional dependency; replaying features and metrics alone does not test tree training.

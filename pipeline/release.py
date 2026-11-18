@@ -36,22 +36,6 @@ def export_code(destination):
             target = destination / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
-    # The published pass-probability source follows the benchmark's
-    # fitting-split trajectory choice. Keep the local per-pass variant intact.
-    released_pass = ROOT / "released" / "pass_probability"
-    if released_pass.is_dir():
-        for source in sorted(released_pass.glob("*")):
-            if source.is_file() and source.suffix in CODE_SUFFIXES:
-                shutil.copy2(source, destination / "pass_probability" / source.name)
-    # Give the archive the input contract for its split-level source too.
-    released_guide = ROOT / "released" / "inputs" / "pass_probability" / "README.md"
-    if released_guide.is_file():
-        shutil.copy2(released_guide, destination / "inputs" / "pass_probability" / "README.md")
-    # Inside the download, the released pass-probability variant occupies
-    # pipeline/pass_probability/; adjust the top-level reading guide accordingly.
-    guide = destination / "README.md"
-    text = guide.read_text().replace("released/pass_probability/README.md", "pass_probability/README.md")
-    guide.write_text(text)
     # Each pipeline needs its declared split/grid protocol but no fitted trees.
     for name in ["pass_selection", "binary_classification", "expected_threat", "composed_risk"]:
         source = ROOT / "inputs" / name / "protocol.json"
@@ -64,6 +48,11 @@ def export_code(destination):
         target = destination / "inputs" / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+    # Identifiers only: retain the declared order for seeded carry sampling.
+    source = ROOT / "inputs/ball_drive/observation_order.json"
+    target = destination / "inputs/ball_drive/observation_order.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
     # Two task-specific cohort filters live one level above model variants.
     for name in ["ball_drive/filters.py", "pass_probability/filters.py"]:
         target = destination / name

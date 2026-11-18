@@ -18,7 +18,7 @@ from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 
-from model import PHYSICAL_SETTINGS, negative_log_likelihood, integrate_pitch_control_logs
+from pipeline.pass_probability.model import PHYSICAL_SETTINGS, negative_log_likelihood, integrate_pitch_control_logs
 
 
 # ============================================================
@@ -87,13 +87,37 @@ def fit_mle(path_tti, ball_low, valid_players, outcomes):
 # ============================================================
 
 
+def choose_trajectory_method(pass_table, model_inputs, training_matches):
+    """Select one launch method from mean forecast errors on fitting matches.
+
+    For each method, average pass errors within each match, then average the
+    match means equally. A missing comparison window contributes no error.
+    Ties favor the position fit. Only fitting matches enter this decision.
+    """
+    scores = {}
+    for method in ("fit_positions", "mean_velocity"):
+        errors = np.asarray(model_inputs[f"error_{method}"], float)
+        match_means = []
+        for match_id in training_matches:
+            selected = errors[pass_table.match_id.eq(match_id).to_numpy()]
+            finite = selected[np.isfinite(selected)]
+            if len(finite):
+                match_means.append(float(finite.mean()))
+        if not match_means:
+            raise ValueError(f"No forecast-error comparison for {method} on fitting matches.")
+        scores[method] = float(np.mean(match_means))
+    return min(("fit_positions", "mean_velocity"), key=lambda method: scores[method]), scores
+
+
+
 def fit_on_matches(pass_table, model_inputs, training_matches):
     """Estimate lambda_control and s using only the requested training matches.
 
     pass_table: one row per pass, with match_id and observed outcome (1=success).
     model_inputs: precomputed arrays, aligned row by row with pass_table:
-      path_tti: player TTI along the already chosen ball path, shape (N,T,22);
-      ball_low: ball height <=2m at each time, shape (N,T);
+      path_tti_<method>: player TTI on each candidate path, shape (N,T,22);
+      ball_low_<method>: ball height <=2m, shape (N,T);
+      error_<method>: forecast error on observed flight, shape (N,);
       valid_players: eligible players, shape (N,22), passer excluded.
     N is the full number of passes, T=251. These are input data, not fitted
     parameters. The output contains parameter estimates and fit diagnostics.
@@ -102,11 +126,15 @@ def fit_on_matches(pass_table, model_inputs, training_matches):
     # Apply the same row mask to model inputs and observed outcomes.
     training_mask = pass_table.match_id.isin(training_matches).to_numpy()
 
-    # 2. Extract the already chosen paths' inputs for the N_train passes.
+    # 2. Select one launch method from this fit's training matches only.
+    trajectory_method, method_errors = choose_trajectory_method(
+        pass_table, model_inputs, training_matches,
+    )
+    # Extract that method's likelihood inputs for the N_train passes.
     # TTI of all 22 players to the ball position at each time: (N_train,T,22).
-    training_player_tti = model_inputs["path_tti"][training_mask]
+    training_player_tti = model_inputs[f"path_tti_{trajectory_method}"][training_mask]
     # Control is allowed only when the ball is low enough: (N_train,T).
-    training_ball_low = model_inputs["ball_low"][training_mask]
+    training_ball_low = model_inputs[f"ball_low_{trajectory_method}"][training_mask]
     # Player eligibility is fixed at release: (N_train,22).
     training_valid_players = model_inputs["valid_players"][training_mask]
     # Observed pass completion: (N_train,), with 1=success and 0=failure.
@@ -122,7 +150,7 @@ def fit_on_matches(pass_table, model_inputs, training_matches):
 
     # 4. Record the upstream trajectory-selection rule and training matches.
     parameter_estimates.update(
-        boundary="per_pass_forecast_error",
+        boundary=trajectory_method, boundary_selection=method_errors,
         fit_matches=sorted(training_matches),
         n_fit=int(training_mask.sum()),
     )
@@ -234,7 +262,7 @@ def run_fold(pass_table, model_inputs, fold, test_matches, output):
             if match not in calibration_matches
         ]
 
-        # A. Estimate lambda,s on SIX matches using the already chosen paths.
+        # A. Estimate lambda,s on SIX matches using the path method selected on the six fitting matches.
         inner_parameter_estimates = fit_on_matches(
             pass_table, model_inputs, training_matches,
         )
@@ -365,7 +393,7 @@ def refit_production(pass_table, model_inputs, pooled_predictions, output):
     # 2. ESTIMATE ONE lambda,s PAIR FROM ALL TEN MATCHES
     # --------------------------------------------------------
     # Use all available trajectories in one new MLE. The five fold estimates
-    # are not averaged. The trajectory for each pass was chosen upstream.
+    # are not averaged. The trajectory method is selected on all ten fitting matches.
     all_training_matches = sorted(pass_table.match_id.unique())
     production_parameter_estimates = fit_on_matches(
         pass_table, model_inputs, all_training_matches,

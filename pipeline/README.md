@@ -4,7 +4,17 @@ The procedural pipeline prepares observations, estimates model parameters, evalu
 
 ## Reading and execution order
 
+Install PRESS from the repository root with `python -m pip install -e '.[io,training]'` and set `JAX_ENABLE_X64=1`. The `training` extra supplies CatBoost for the comparison model; the deployed physical model does not require it. Download the public SkillCorner matches using the [dataset instructions](../data.qmd). The raw-data root passed below must contain the ten match directories, each with its match JSON, tracking JSONL and dynamic-event CSV.
+
 `00_pipeline.py` prints commands in dependency order. Add `--execute` to run selected stages, for example `--step 01 --raw-root /path/to/opendata/data/matches`. Stage 01 writes the task inputs and installs the fixed protocols. Stages 06 and 07 export the matching fitted models into downstream input folders before calculating features. Use a fresh `--output-root` for each run; the default input root is `<output-root>/preprocessing/task_inputs`.
+
+To print the complete workflow, run:
+
+```bash
+python pipeline/00_pipeline.py --raw-root /path/to/opendata/data/matches --output-root results
+```
+
+To execute the complete workflow, append `--execute --step 01 --step 02 --step 03 --step 04 --step 05 --step 06 --step 07 --step 08 --step 09 --step 10`. This runs the full training searches. No saved research inputs are required: stage 01 reconstructs the observations, and subsequent stages create their upstream dependencies.
 
 | Stage | Directory | Reading order |
 |---|---|---|
@@ -31,12 +41,12 @@ Generated objects are separated into feature, training, score and production dir
 
 The published benchmarks and frozen classifiers use **a preliminary BCOS formulation with effective hazards**. Standalone BCOS in the package defaults to the final transport-with-killing formulation. Downstream retraining with that formulation remains planned.
 
-The downloadable pass-probability pipeline selects one trajectory estimator on each fitting split, as in the published benchmark. Its [task guide](released/pass_probability/README.md) describes the selection and the two candidate trajectory inputs.
+The downloadable pass-probability pipeline selects one trajectory estimator on each fitting split, as in the published benchmark. Its [task guide](pass_probability/README.md) describes the selection and the two candidate trajectory inputs.
 
 ## Task guides
 
 - [Ball-drive risk](ball_drive/TRAINING.md): physical estimation and CatBoost comparison.
-- [Pass probability](released/pass_probability/README.md): trajectories, MLE and calibration.
+- [Pass probability](pass_probability/README.md): trajectories, MLE and calibration.
 - [Pass selection](pass_selection/README.md): features, flat/CNL learning, screening and temperature scaling.
 - [Expected Threat](expected_threat/README.md): transitions, smoothing, grid comparison and fitted maps.
 - [Action selection and residual risk](binary_classification/README.md): shared features, cross-fitted carry probability and binary learning.

@@ -77,4 +77,4 @@ Shared feature caches are under `features/`; screening results under `screening/
 
 Feature importance is normalized total split gain, summing one-hot levels first. Production values and fold mean/minimum/maximum remain separate; fold ranges are not confidence intervals or causal effects.
 
-`checks/verify_pipeline.py` exercises ten real releases, table alignment, loss derivatives, 22-tree fits, stopping, calibration and serialization. Short fits do not select final hyperparameters. See the [benchmark](../../benchmarks/03_pass_selection.qmd) for the RUMBoost article, cross-nested method and source-code attribution.
+`pipeline/checks/pass_selection_steps.py` exercises ten real releases, table alignment, loss derivatives, 22-tree fits, stopping, calibration and serialization. Short fits do not select final hyperparameters. See the [benchmark](../../benchmarks/03_pass_selection.qmd) for the RUMBoost article, cross-nested method and source-code attribution.

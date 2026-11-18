@@ -105,28 +105,53 @@ def pass_origin_label(restart_type, *, intercepted=False):
     return prefix + '_' + suffix if prefix else 'unknown'
 
 
-def segment_controls(tracking,events,*,fps,match_id=None):
+def segment_controls(tracking, events, *, fps, match_id=None,
+                     include_unannotated_starts=True,
+                     reception_fallback_max_distance=1.5):
     """Recover individual controls from synchronized events and carrier states.
 
     Reuses reception-to-next-actor-action searches. A successful reception
     requires the identified receiver in the observed/estimated control stream;
-    the one-frame-before-next-event fallback is deliberately not used.
-    Releases terminate that actor's control. A different tracked controller
-    bounds a control when no terminal actor event is available; this ending
-    remains unknown unless an explicit opponent recovery verifies a loss.
+    a missed control may use the frame before the receiver's next event only
+    when finite ball/player XY positions confirm proximity at that frame.
+    Matched terminal events take precedence over the estimated controller.
+    A won tackle terminates the current control as a loss when its identified
+    winner differs from the carrier, regardless of the next controller or
+    PossessionChange. The carrier stream bounds otherwise unknown endings.
     """
     if not np.isfinite(fps) or fps <= 0:
         raise ValueError('fps must be finite and positive.')
+    if (reception_fallback_max_distance is not None and
+            (not np.isfinite(reception_fallback_max_distance) or reception_fallback_max_distance < 0)):
+        raise ValueError('reception_fallback_max_distance must be nonnegative metres or None.')
     required_events = {'frame','event_type','player_id','is_successful','receiver_player_id','sync_matched'}
     if required_events-set(events):
         raise ValueError('Segmentation requires normalized, synchronized events; missing: '+str(sorted(required_events-set(events))))
     required={'frame','player_possession','period'}
     if required-set(tracking):
         raise ValueError(f'Tracking missing segmentation fields: {sorted(required-set(tracking))}')
-    e=events.loc[events.sync_matched].sort_values('frame',kind='stable').copy()
+    eligible = events.sync_matched.copy()
+    if 'sync_method' in events:
+        # Clock-only links are audit information, not observed actor contacts.
+        eligible &= ~events.sync_method.isin(['interpolated_clock', 'unmatched', 'excluded'])
+    for column in ['duplicate_of', 'excluded_reason']:
+        if column in events:
+            eligible &= events[column].isna()
+    e=events.loc[eligible].sort_values('frame',kind='stable').copy()
+    if 'winner_player_id' not in e:
+        e['winner_player_id'] = None
+    # A provider may supply the winner explicitly, or identify a successful
+    # tackle's actor. An attempted/unresolved tackle is not a verified loss.
+    won = e.event_type.eq('tackle') & e.is_successful.eq(True).fillna(False)
+    e.loc[won & e.winner_player_id.isna(), 'winner_player_id'] = e.loc[
+        won & e.winner_player_id.isna(), 'player_id']
     t=tracking[['frame','player_possession','period']].sort_values('frame').copy()
     indexed=t.set_index('frame')
+    coordinates=tracking.set_index('frame')
     seeds=[]
+    seed_events={}
+    fallback_support={}
+    fallback_checks=[]
     unverified_receivers=0
     terminal_types={'pass','shot','clearance','foul_suffered'}
     for event in e.itertuples():
@@ -134,15 +159,68 @@ def segment_controls(tracking,events,*,fps,match_id=None):
             continue
         frame = int(event.frame)
         period = indexed.loc[frame, 'period']
-        if event.event_type == 'pass' and pd.notna(event.is_successful):
+        if (event.event_type == 'pass' and pd.notna(event.is_successful)
+                and (bool(event.is_successful) or include_unannotated_starts)):
             successful = bool(event.is_successful)
-            # Follow only until the next matched pass, shot or stoppage:
-            # a later control must not be attributed across another action.
-            stops = e.loc[(e.frame > frame) & e.event_type.isin(
-                ['pass', 'shot', 'stoppage', 'restart', 'foul_suffered'])]
-            limit = int(stops.frame.iloc[0]) if len(stops) else int(t.loc[t.period.eq(period)].frame.max())
-            possible = t.loc[t.frame.gt(frame) & t.frame.le(limit) & t.period.eq(period)
-                             & t.player_possession.notna() & t.player_possession.ne(event.player_id)]
+            if successful:
+                # Original reception search: look for this identified receiver
+                # up to its next synchronized actor event, within the period.
+                receiver = event.receiver_player_id
+                following = e.loc[e.frame.gt(frame) & e.player_id.eq(receiver)
+                                  & e.frame.isin(t.loc[t.period.eq(period), 'frame'])]
+                if pd.isna(receiver) or (following.empty and not include_unannotated_starts):
+                    unverified_receivers += 1
+                    continue
+                limit = int(following.frame.iloc[0]) if len(following) else int(t.loc[t.period.eq(period)].frame.max())
+                possible = t.loc[t.frame.gt(frame) & t.frame.le(limit) & t.period.eq(period)
+                                 & t.player_possession.eq(receiver)]
+            else:
+                stops = e.loc[e.frame.gt(frame) & e.event_type.isin(
+                    ['pass', 'shot', 'stoppage', 'restart', 'foul_suffered'])]
+                limit = int(stops.frame.iloc[0]) if len(stops) else int(t.loc[t.period.eq(period)].frame.max())
+                possible = t.loc[t.frame.gt(frame) & t.frame.le(limit) & t.period.eq(period)
+                                 & t.player_possession.notna() & t.player_possession.ne(event.player_id)]
+            # Retain a missed quick touch only with observed spatial support.
+            # Its candidate is the original convention: next actor frame - 1.
+            # Never place it at/before release, across a gap, or on missing XY.
+            if successful and possible.empty and len(following):
+                actor_event=following.iloc[0]
+                candidate_frame=limit-1
+                distance=None
+                reason='fallback_disabled'
+                if reception_fallback_max_distance is not None:
+                    if candidate_frame <= frame:
+                        reason='not_after_release'
+                    elif candidate_frame not in coordinates.index:
+                        reason='missing_candidate_frame'
+                    elif coordinates.loc[candidate_frame, 'period'] != period:
+                        reason='different_period'
+                    else:
+                        point=coordinates.loc[candidate_frame]
+                        columns=[receiver+'_x', receiver+'_y', 'ball_x', 'ball_y']
+                        if not all(column in point.index for column in columns):
+                            reason='missing_position_columns'
+                        else:
+                            xy=point[columns].to_numpy(dtype=float, na_value=np.nan)
+                            if not np.isfinite(xy).all():
+                                reason='missing_positions'
+                            else:
+                                distance=float(np.hypot(xy[0]-xy[2], xy[1]-xy[3]))
+                                reason=('distance_confirmed' if distance <= reception_fallback_max_distance
+                                        else 'too_far_from_ball')
+                check=dict(pass_event_id=str(event.event_id), receiver_player_id=receiver,
+                    release_frame=frame, actor_event_id=str(actor_event.event_id),
+                    actor_event_frame=limit, candidate_frame=candidate_frame,
+                    ball_distance_m=distance, reason=reason)
+                fallback_checks.append(check)
+                if reason == 'distance_confirmed':
+                    restart=getattr(event, 'restart_type', 'unknown')
+                    label=pass_origin_label(restart)
+                    seed=(candidate_frame, receiver, label, period, 'receiver_contact_fallback')
+                    seeds.append(seed)
+                    seed_events.setdefault(seed, []).append(str(event.event_id))
+                    fallback_support[seed]=check
+                    continue
             if len(possible):
                 control = possible.iloc[0]
                 same_team = control.player_possession.split('_')[0] == event.player_id.split('_')[0]
@@ -151,8 +229,10 @@ def segment_controls(tracking,events,*,fps,match_id=None):
                 if valid_reception or valid_interception:
                     restart = getattr(event, 'restart_type', 'unknown')
                     label = pass_origin_label(restart, intercepted=valid_interception)
-                    seeds.append((int(control.frame), control.player_possession, label, period,
-                                  'receiver_control' if valid_reception else 'opponent_control'))
+                    seed=(int(control.frame), control.player_possession, label, period,
+                          'receiver_control' if valid_reception else 'opponent_control')
+                    seeds.append(seed)
+                    seed_events.setdefault(seed, []).append(str(event.event_id))
                 elif successful:
                     unverified_receivers += 1
             elif successful:
@@ -160,36 +240,95 @@ def segment_controls(tracking,events,*,fps,match_id=None):
         if event.event_type in {'recovery', 'interception', 'reception'}:
             label = ('pass_interception' if event.event_type == 'interception' else
                      'recovery' if event.event_type == 'recovery' else 'pass_reception')
-            observed = indexed.loc[frame, 'player_possession']
-            if pd.notna(observed) and observed == event.player_id:
-                seeds.append((frame, event.player_id, label, period, 'event_and_control'))
+            # An annotated BallClaiming/recovery establishes its own start;
+            # it does not require simultaneous confirmation by the estimator.
+            seed=(frame, event.player_id, label, period, 'annotated_control')
+            seeds.append(seed)
+            seed_events.setdefault(seed, []).append(str(event.event_id))
     # A provider may identify control without a corresponding reception event.
     # Retain the interval with unknown origin instead of assigning a label.
     changes=t.player_possession.ne(t.player_possession.shift()) | t.period.ne(t.period.shift()) | t.frame.diff().ne(1)
-    for row in t.loc[changes&t.player_possession.notna()].itertuples():
-        seeds.append((int(row.frame),row.player_possession,'unknown',row.period,'control_stream'))
-    priority = {'receiver_control': 0, 'opponent_control': 0, 'event_and_control': 1, 'control_stream': 2}
+    if include_unannotated_starts:
+        for row in t.loc[changes&t.player_possession.notna()].itertuples():
+            seeds.append((int(row.frame),row.player_possession,'unknown',row.period,'control_stream'))
+    priority = {'receiver_control': 0, 'receiver_contact_fallback': 0, 'opponent_control': 0, 'annotated_control': 1, 'control_stream': 2}
     seeds=sorted(set(seeds),key=lambda r:(r[0],priority[r[4]],r[2],r[1]))
     parents=[]
     covered_until=-np.inf
+    overlapping_starts=[]
+    reconciliations=[]
+    by_event=e.set_index('event_id', drop=False)
+    transition_types=terminal_types | {'tackle', 'recovery', 'interception', 'reception', 'stoppage', 'restart'}
     for start,player,label,period,source in seeds:
+        original_seed=(start,player,label,period,source)
+        supporting_events=seed_events.get(original_seed, [])
+        fallback=fallback_support.get(original_seed)
+        reconciled_with=None
+        observed_start=start
         if start<=covered_until:
-            continue
+            # Two annotations can describe one transfer: recovery by the tackle
+            # winner just before the outgoing carrier's synchronized tackle.
+            # Match identities and adjacent relevant events, not an arbitrary
+            # time tolerance. Preserve the tackle frame for the outgoing player;
+            # the incoming interval starts on the next observed sample.
+            previous=parents[-1]
+            coherent=False
+            if (source == 'annotated_control' and previous['end_type'] == 'possession_loss'
+                    and previous['frame_start'] <= start and previous['period'] == period
+                    and previous['tackle_winner_id'] == player
+                    and previous['team_id'] != player.split('_')[0]):
+                duel=by_event.loc[previous['terminal_event_id']]
+                loser=getattr(duel, 'loser_player_id', None)
+                claims=e.loc[e.event_id.astype(str).isin(supporting_events)
+                    & e.event_type.isin(['recovery', 'interception']) & e.player_id.eq(player)]
+                intervening=e.loc[e.frame.ge(start) & e.frame.le(covered_until)
+                    & e.event_type.isin(transition_types)]
+                allowed=set(claims.event_id) | {duel.event_id}
+                coherent=(len(claims) > 0
+                    and (pd.isna(loser) or loser == previous['player_id'])
+                    and intervening.event_id.isin(allowed).all())
+                aligned_start=int(covered_until)+1
+                coherent=(coherent and aligned_start in indexed.index
+                    and indexed.loc[aligned_start, 'period'] == period)
+                if coherent:
+                    reconciled_with=str(duel.event_id)
+                    reconciliations.append(dict(original_frame=start, aligned_frame=aligned_start,
+                        player_id=player, recovery_event_ids=list(map(str, claims.event_id)),
+                        tackle_event_id=reconciled_with,
+                        outgoing_possession_id=previous['possession_id']))
+                    start=aligned_start
+                    source='reconciled_tackle_recovery'
+            if not coherent:
+                if source != 'control_stream':
+                    overlapping_starts.append(dict(frame=start, player_id=player, source=source))
+                continue
         remaining=t.loc[t.frame.ge(start)&t.period.eq(period)]
         if remaining.empty:
             continue
-        actor_events=e.loc[e.frame.ge(start)&e.player_id.eq(player)&e.event_type.isin(terminal_types)]
-        actor_events=actor_events.loc[actor_events.frame.isin(remaining.frame)]
-        terminal=actor_events.iloc[0] if len(actor_events) else None
-        different=remaining.loc[remaining.player_possession.notna()&remaining.player_possession.ne(player)]
-        change=int(different.frame.iloc[0]) if len(different) else int(remaining.frame.max())+1
-        # Never bridge missing frames or a period boundary in an interval.
+        same_period = e.loc[e.frame.isin(remaining.frame)]
+        own_terminal = same_period.player_id.eq(player) & same_period.event_type.isin(terminal_types)
+        lost_tackle = (same_period.event_type.eq('tackle')
+                       & same_period.winner_player_id.notna()
+                       & same_period.winner_player_id.ne(player))
+        terminal_events = same_period.loc[own_terminal | lost_tackle]
+        terminal = terminal_events.iloc[0] if len(terminal_events) else None
+        # A different actor's release/shot/foul cannot become this carrier's
+        # terminal action. Nor may an interval cross a gap or period boundary.
+        other_actions = same_period.loc[
+            same_period.event_type.isin(terminal_types) & same_period.player_id.ne(player)]
         consecutive=remaining.frame.diff().fillna(1).eq(1)
         gaps=remaining.loc[~consecutive]
-        cutoff=min(change,int(gaps.frame.iloc[0]) if len(gaps) else int(remaining.frame.max())+1)
-        stops=e.loc[e.frame.ge(start)&e.frame.lt(cutoff)&e.event_type.isin(['stoppage','restart'])]
+        cutoff=int(gaps.frame.iloc[0]) if len(gaps) else int(remaining.frame.max())+1
+        stops=same_period.loc[same_period.event_type.isin(['stoppage','restart'])]
         if len(stops):
-            cutoff=int(stops.frame.iloc[0])
+            cutoff=min(cutoff,int(stops.frame.iloc[0]))
+        if len(other_actions):
+            cutoff=min(cutoff,int(other_actions.frame.iloc[0]))
+        has_terminal = terminal is not None and int(terminal.frame) < cutoff
+        if not has_terminal:
+            different=remaining.loc[remaining.player_possession.notna() & remaining.player_possession.ne(player)]
+            if len(different):
+                cutoff=min(cutoff,int(different.frame.iloc[0]))
         if cutoff<=start:
             continue
         verified=False
@@ -199,10 +338,14 @@ def segment_controls(tracking,events,*,fps,match_id=None):
         loss=pd.NA
         ending='unknown'
         interruption=None
-        if terminal is not None and int(terminal.frame)<cutoff:
+        if has_terminal:
             end=int(terminal.frame)
             ending=terminal.event_type
-            if ending=='pass':
+            if ending == 'tackle':
+                ending='possession_loss'
+                loss=True
+                verified=True
+            elif ending=='pass':
                 value=terminal.is_successful
                 outcome='successful' if pd.notna(value) and bool(value) else 'unsuccessful' if pd.notna(value) else 'unknown'
                 loss=not bool(value) if pd.notna(value) else pd.NA
@@ -224,19 +367,21 @@ def segment_controls(tracking,events,*,fps,match_id=None):
                 interruption=ending if ending in {'shot','foul_suffered'} else None
         else:
             end=max(start,cutoff-1)
-            if cutoff==change:
-                recoveries=e.loc[e.frame.eq(change)&e.event_type.isin(['recovery','interception'])]
-                if len(recoveries) and pd.notna(recoveries.iloc[0].player_id) and recoveries.iloc[0].player_id.split('_')[0]!=player.split('_')[0]:
-                    ending='possession_loss'
-                    loss=True
-                    verified=True
         if end<start:
             continue
         parents.append(dict(match_id=str(match_id) if match_id is not None else '',possession_id=len(parents)+1,
             player_id=player,team_id=player.split('_')[0],frame_start=start,frame_end=end,period=period,
             start_type=label,end_type=ending,pass_outcome=outcome,target_pass=receiver,frame_receipt=receipt,
             loss=loss,outcome_verified=verified,boundary_source=source,game_interruption_after=interruption,
-            is_player_possession_start_matched=True,is_player_possession_end_matched=ending!='unknown'))
+            start_event_id=';'.join(dict.fromkeys(supporting_events)) or None,
+            original_frame_start=observed_start,
+            start_reconciled_with_event_id=reconciled_with,
+            start_support_event_id=fallback['actor_event_id'] if fallback else None,
+            start_ball_distance_m=fallback['ball_distance_m'] if fallback else np.nan,
+            is_player_possession_start_matched=True,is_player_possession_end_matched=ending!='unknown',
+            terminal_event_id=terminal.event_id if has_terminal else None,
+            terminal_event_type=terminal.event_type if has_terminal else None,
+            tackle_winner_id=terminal.winner_player_id if has_terminal and terminal.event_type=='tackle' else None))
         covered_until=end
     result=pd.DataFrame(parents)
     if result.empty:
@@ -245,21 +390,63 @@ def segment_controls(tracking,events,*,fps,match_id=None):
     actions=canonical_actions(result,fps=fps)
     actions['outcome_verified']=actions.possession_id.map(result.set_index('possession_id').outcome_verified)
     updated_tracking=tracking.copy()
-    updated_tracking['player_possession']=updated_tracking.frame.map(t.set_index('frame').player_possession)
+    # Keep the estimator for audit. The canonical carrier follows the inferred
+    # nonoverlapping intervals, so a checkpoint and its possession name the same
+    # player even when event/contact timing differs from estimated control.
+    updated_tracking['estimated_player_possession'] = tracking.player_possession
+    updated_tracking['player_possession'] = updated_tracking.frame.map(t.set_index('frame').player_possession)
+    for row in result.itertuples():
+        inside = updated_tracking.frame.between(row.frame_start, row.frame_end)
+        old_team = updated_tracking.loc[inside, 'player_possession'].astype('string').str.split('_').str[0]
+        changed_team = old_team.notna() & old_team.ne(row.team_id)
+        if 'attacking_side' in updated_tracking:
+            values = updated_tracking.loc[inside, 'attacking_side'].copy()
+            values.loc[changed_team] = values.loc[changed_team].map({
+                'left_to_right': 'right_to_left', 'right_to_left': 'left_to_right'})
+            known = tracking.loc[tracking.period.eq(row.period)
+                & tracking.player_possession.astype('string').str.startswith(row.team_id+'_', na=False), 'attacking_side'].dropna().unique()
+            if len(known) == 1:
+                values = values.fillna(known[0])
+            updated_tracking.loc[inside, 'attacking_side'] = values
+        if 'home_score_difference_prefix' in updated_tracking:
+            updated_tracking.loc[inside, 'score_difference_prefix'] = (
+                updated_tracking.loc[inside, 'home_score_difference_prefix'] * (1 if row.team_id == 'home' else -1))
+        elif 'score_difference_prefix' in updated_tracking:
+            indices = updated_tracking.index[inside][changed_team.to_numpy()]
+            updated_tracking.loc[indices, 'score_difference_prefix'] *= -1
+        updated_tracking.loc[inside, 'player_possession'] = row.player_id
     return updated_tracking,result,actions,dict(n_individual_possessions=len(result),n_actions=len(actions),
         n_unverified_outcomes=int((~result.outcome_verified).sum()),unverified_successful_receptions=unverified_receivers,
         policy=POLICY,control_source='supplied control stream; may be tracking-estimated',
-        one_frame_reception_fallback=False)
+        one_frame_reception_fallback=bool(result.boundary_source.eq('receiver_contact_fallback').any()),
+        reception_fallback_max_distance=reception_fallback_max_distance,
+        reception_fallback_checks=fallback_checks,
+        overlapping_start_annotations=overlapping_starts,
+        overlap_reconciliations=reconciliations,
+        tackle_loss_rule='identified winner differs from current carrier; no subsequent-control requirement',
+        include_unannotated_starts=include_unannotated_starts, n_segmentation_events=len(e))
 
 
 
-def segment_possessions(tracking, events, *, fps, match_id=None):
+def segment_possessions(tracking, events, *, fps, match_id=None,
+                        include_unannotated_starts=True,
+                        reception_fallback_max_distance=1.5):
     """Build individual possessions and actions from aligned external data.
 
     Inputs are canonical tracking and event tables already mapped/synchronized
     by the caller. No files are loaded and no time alignment is inferred.
     Returns (tracking, individual_possessions, actions, report). Supply those
     tables explicitly to PRESS(...). Unknown context/outcomes remain unknown.
+    include_unannotated_starts=False uses successful receptions and annotated
+    recovery/interception starts only, as in the IDSSE example. True also keeps
+    tracking-only starts and failed-pass opponent controls, labelled by source.
+    reception_fallback_max_distance is the maximum observed ball/receiver XY
+    distance in metres for a missed-control start one frame before the next
+    actor event (default 1.5; None disables this fallback). The candidate must
+    exist in the same period and strictly follow release. Coherent overlapping
+    recovery/tackle annotations use tackle+1 for the incoming start. Both rules
+    retain source IDs and their diagnostics in the report/interval table.
+    The original estimated carrier is retained as estimated_player_possession.
     """
     from .events import normalize_events
     from .synchronization import synchronize_events
@@ -267,6 +454,8 @@ def segment_possessions(tracking, events, *, fps, match_id=None):
         raise TypeError('tracking must be an already prepared DataFrame, not a file path.')
     events = normalize_events(events)
     events = synchronize_events(events, tracking, fps=fps, already_synchronized=True)
-    tracking, parents, actions, report = segment_controls(tracking, events, fps=fps, match_id=match_id)
+    tracking, parents, actions, report = segment_controls(tracking, events, fps=fps, match_id=match_id,
+        include_unannotated_starts=include_unannotated_starts,
+        reception_fallback_max_distance=reception_fallback_max_distance)
     report.update(n_events=len(events), n_matched_events=int(events.sync_matched.sum()))
     return tracking, parents, actions, report

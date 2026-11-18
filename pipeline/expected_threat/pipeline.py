@@ -8,12 +8,15 @@ production refits the accepted 10x6 specification on all ten matches.
 import argparse
 import json
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import numpy as np
 import pandas as pd
 
-from model import EVENT_TYPES, bin_events, plot_xt
-from training import fit_on_matches, save_fit, validate_grid, collect_validation
+from pipeline.expected_threat.model import EVENT_TYPES, bin_events, plot_xt
+from pipeline.expected_threat.training import fit_on_matches, save_fit, validate_grid, collect_validation
 
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]

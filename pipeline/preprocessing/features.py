@@ -111,6 +111,25 @@ def frame_context(events, metadata, frame, team_id):
     return clock, difference if team_id == home_id else -difference
 
 
+def order_drive_observations(table):
+    """Preserve the benchmark's row order after verifying regenerated keys.
+
+    Seeded sampling selects row indices. The distributed manifest contains
+    only observed identifiers, so a raw-data reconstruction can retain the
+    same sampling order without loading saved features or predictions.
+    """
+    path = Path(__file__).resolve().parents[1] / "inputs/ball_drive/observation_order.json"
+    specification = json.loads(path.read_text())
+    keys = specification["keys"]
+    expected = pd.DataFrame(specification["rows"], columns=keys)
+    expected = expected.loc[expected.match_id.isin(table.match_id.unique())]
+    actual_keys = pd.MultiIndex.from_frame(table[keys].astype(str))
+    expected_keys = pd.MultiIndex.from_frame(expected[keys].astype(str))
+    if actual_keys.has_duplicates or expected_keys.has_duplicates or set(actual_keys) != set(expected_keys):
+        raise ValueError("Regenerated carry keys differ from the observation-order manifest.")
+    return table.iloc[actual_keys.get_indexer(expected_keys)].reset_index(drop=True)
+
+
 def prepare_task_tables(output, match_ids, templates=None):
     """Apply declared task masks and export separate observation/label tables.
 
@@ -144,6 +163,13 @@ def prepare_task_tables(output, match_ids, templates=None):
         start_frames = events.set_index("event_id").frame_start
         elapsed = passed.frame_end-passed.event_id.map(start_frames)
         passed["previous_action_raw"] = np.where(elapsed.ge(10), "ball_drive", passed.start_type)
+        # A verified release/receipt can be retained even when the beginning
+        # of the passer's possession is unmatched. Its initial context and
+        # elapsed-action history are then unknown. Keep the existing missing
+        # encoding (__missing__ in the choice model), not a new category.
+        matched_starts = events.set_index("event_id").is_player_possession_start_matched
+        unknown_start = ~passed.event_id.map(matched_starts).fillna(False).astype(bool)
+        passed.loc[unknown_start, ["start_type_raw", "previous_action_raw"]] = None
         teams_at_release = passed.player_id.map(players.set_index("player_id").team_id)
         context = [frame_context(events,metadata,int(frame),team) for frame,team in zip(passed.frame_end,teams_at_release)]
         passed[["match_clock_min","score_difference_prefix"]] = context
@@ -205,6 +231,8 @@ def prepare_task_tables(output, match_ids, templates=None):
         destination = root / task
         destination.mkdir()
         table = pd.concat(tables, ignore_index=True)
+        if task == "ball_drive":
+            table = order_drive_observations(table)
         if templates is not None:
             # Preserve observation ordering (hence seeded sampling) only AFTER
             # proving exact cohort equality. No accepted row is inserted,

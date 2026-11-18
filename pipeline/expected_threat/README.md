@@ -41,6 +41,6 @@ python pipeline/expected_threat/pipeline.py --stage production
 
 Use `--grid 10 6` with validation for one resolution, or `--fold 0` with maps for one fitting map. `--stage all` executes every stage. Choose a fresh `--output`; existing result directories are protected.
 
-Outputs under `pipeline/outputs/expected_threat/` separate `validation/<grid>/fold_0..4/`, `scores/`, `feature_maps/fold_0..4/` and `production/`. `protocol.json` records partitions; manifests record input hashes. `checks/verify_pipeline.py` compares reference components and procedures without installing output in PRESS.
+Outputs under `pipeline/outputs/expected_threat/` separate `validation/<grid>/fold_0..4/`, `scores/`, `feature_maps/fold_0..4/` and `production/`. `protocol.json` records partitions; manifests record input hashes. `pipeline/checks/xt_steps.py` compares reference components and procedures without installing output in PRESS.
 
 Conceptual reference: [Singh, Introducing Expected Threat](https://karun.in/blog/expected-threat.html). The separate pass/carry transitions and loss branch are the PRESS specification. See the [xT benchmark appendix](../../appendix/xt_benchmark.qmd).

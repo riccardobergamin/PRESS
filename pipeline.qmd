@@ -18,7 +18,7 @@ The [execution plan](pipeline/00_pipeline.py) prints the commands in dependency 
 | 02 | Expected threat | [Model](pipeline/expected_threat/model.py) → [training](pipeline/expected_threat/training.py) → [pipeline](pipeline/expected_threat/pipeline.py). |
 | 03 | Physical ball-drive risk | [Model and priors](pipeline/ball_drive/physical/model.py) → [training](pipeline/ball_drive/physical/training.py) → [pipeline](pipeline/ball_drive/physical/pipeline.py). |
 | 04 | CatBoost ball-drive comparison | [Features](pipeline/ball_drive/catboost/features.py) → [training](pipeline/ball_drive/catboost/training.py) → [pipeline](pipeline/ball_drive/catboost/pipeline.py). |
-| 05 | Pass probability | [Physical model](pipeline/released/pass_probability/model.py) → [training](pipeline/released/pass_probability/training.py) → [pipeline](pipeline/released/pass_probability/pipeline.py). |
+| 05 | Pass probability | [Physical model](pipeline/pass_probability/model.py) → [training](pipeline/pass_probability/training.py) → [pipeline](pipeline/pass_probability/pipeline.py). |
 | 06 | Pass selection, flat and cross-nested | [Features](pipeline/pass_selection/features.py) → [training](pipeline/pass_selection/training.py) → [pipeline](pipeline/pass_selection/pipeline.py). |
 | 07 | Action selection, then residual risk | [Features](pipeline/binary_classification/features.py) → [training](pipeline/binary_classification/training.py) → [pipeline](pipeline/binary_classification/pipeline.py). |
 | 08 | h, xLoss and band evaluation | [Composition](pipeline/composed_risk/features.py) → [scores and bootstrap](pipeline/composed_risk/scores.py) → [pipeline](pipeline/composed_risk/pipeline.py). |
@@ -26,6 +26,12 @@ The [execution plan](pipeline/00_pipeline.py) prints the commands in dependency 
 | 10 | Statistical summaries | [Parameter and performance tables](pipeline/benchmarks.py). |
 
 Flat and cross-nested pass selection share their feature calculation. Action selection and residual risk also share feature definitions, but their models, labels and outputs remain separate. The physical ball-drive model remains the deployed one; CatBoost is a benchmark comparison.
+
+## Modelling choices
+
+Two considerations guide the choice of models. The analysis rests on ten matches, which favours simple models with few parameters. The project also has a portfolio character, and in several components an exploratory choice was preferred to the search for the best predictive performance.
+
+More complex architectures, such as the graph neural networks that SkillCorner uses for xLoss, would probably require a dataset of a different scale. This is a hypothesis based on the scale of the datasets typically used for such models; no feasibility study has been carried out.
 
 ## Inputs and outputs
 
@@ -63,7 +69,7 @@ For the six-fitting/two-validation/two-test tree-model splits, physical and xT f
 
 BCOS quantities used in the accepted benchmarks and pretrained classifiers come from the **preliminary formulation with effective hazards**. The [transport-with-killing formulation](vignettes/spatial_features/bcos/10_bcos.ipynb) is implemented and is the default for standalone BCOS calculations. Downstream retraining with this formulation remains planned. The training pipeline and pretrained classifiers preserve the preliminary benchmark feature definition.
 
-For pass probability, the released source preserves the benchmark's selection of one trajectory estimator per fitting split. It prepares both candidate paths, compares their reconstruction errors on the fitting matches, and uses the selected method for that fit. The [pass-probability guide](pipeline/released/pass_probability/README.md) explains the procedure.
+For pass probability, the released source preserves the benchmark's selection of one trajectory estimator per fitting split. It prepares both candidate paths, compares their reconstruction errors on the fitting matches, and uses the selected method for that fit. The [pass-probability guide](pipeline/pass_probability/README.md) explains the procedure.
 
 ## Composed risks, bands and reports
 

@@ -9,23 +9,25 @@ import argparse
 from pathlib import Path
 import sys
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPOSITORY_ROOT))
+
 import jax
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
 
-from model import (
+from pipeline.pass_probability.model import (
     PHYSICAL_SETTINGS, estimate_launch_conditions,
     mean_velocity_trajectory, forecast_position_error,
     prepare_pitch_control_inputs, trajectory_arrival_times, precision_context,
 )
-from training import run_fold, collect_results, refit_production, write_json
+from pipeline.pass_probability.training import run_fold, collect_results, refit_production, write_json
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from pipeline.frame_states import load_tracking_states
 
 
-PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+PIPELINE_ROOT = REPOSITORY_ROOT / "pipeline"
 DEFAULT_INPUT = PIPELINE_ROOT / "inputs" / "pass_probability"
 DEFAULT_TRACKING = PIPELINE_ROOT / "inputs" / "shared" / "tracking"
 DEFAULT_OUTPUT = PIPELINE_ROOT / "outputs" / "pass_probability"
@@ -39,7 +41,9 @@ TEST_MATCHES = {
     4: ["1996435", "2017461"],
 }
 MODEL_INPUT_NAMES = [
-    "endpoint_arrivals", "ball_arrival_time", "valid_players", "path_tti", "ball_low",
+    "endpoint_arrivals", "ball_arrival_time", "valid_players",
+    "path_tti_fit_positions", "ball_low_fit_positions",
+    "path_tti_mean_velocity", "ball_low_mean_velocity",
 ]
 
 
@@ -67,11 +71,9 @@ def load_selected_cohort(data_root, tracking_root=DEFAULT_TRACKING):
 
 
 def generate_trajectories(data_root, output, tracking_root=DEFAULT_TRACKING):
-    """Compare two paths per pass against tracking; save ONLY the chosen path.
+    """Prepare both launch methods and their errors without choosing one.
 
-    Selection uses mean 3D forecast error on the same observed flight frames.
-    With no valid comparison frames, prefer the position fit if usable.
-    No trajectory-method choice is repeated during lambda,s training.
+    Each physical fit selects one method using only its fitting matches.
     """
     pass_table, initial_states = load_selected_cohort(data_root, tracking_root)
     trajectories_folder = output / "trajectories"
@@ -85,7 +87,8 @@ def generate_trajectories(data_root, output, tracking_root=DEFAULT_TRACKING):
         tracking = pd.read_parquet(
             tracking_root / "matches" / match_id / f"{match_id}_tracking.parquet"
         )
-        trajectories = []
+        position_paths = []
+        velocity_paths = []
         fit_records = []
         for pass_record, target in zip(match_passes.itertuples(index=False), target_positions):
             # 1. Produce the position-fit candidate (or its fallback).
@@ -108,25 +111,13 @@ def generate_trajectories(data_root, output, tracking_root=DEFAULT_TRACKING):
             mean_error, _ = forecast_position_error(
                 mean_path, tracking, pass_record.frame_end, pass_record.frame_reception,
             )
-            comparison_available = np.isfinite(fit_error) and np.isfinite(mean_error)
-            use_mean = (not diagnostics["fit_usable"]
-                        or (comparison_available and mean_error < fit_error))
-            if use_mean:
-                chosen_path = mean_path
-                chosen_method = "mean_velocity"
-            else:
-                chosen_path = fitted_path
-                chosen_method = "fit_positions"
-
-            # Save one path per pass. Retain the errors/method as diagnostics.
-            trajectories.append(chosen_path)
+            # An unusable position fit already returns a mean-velocity fallback.
+            # Store both candidate arrays so the fitting split can choose once.
+            position_paths.append(fitted_path)
+            velocity_paths.append(mean_path)
             record = {key: getattr(pass_record, key) for key in pass_keys}
             record.update(diagnostics)
-            if use_mean:
-                v0, theta, phi = mean_parameters
-                record.update(v0=v0, theta=theta, phi=phi)
             record.update(
-                trajectory_method=chosen_method,
                 fit_positions_forecast_error=fit_error,
                 mean_velocity_forecast_error=mean_error,
                 forecast_points=n_frames,
@@ -135,20 +126,20 @@ def generate_trajectories(data_root, output, tracking_root=DEFAULT_TRACKING):
 
         match_folder = trajectories_folder / match_id
         match_folder.mkdir()
-        np.save(match_folder / "trajectory.npy", np.asarray(trajectories))
+        np.save(match_folder / "fit_positions.npy", np.asarray(position_paths))
+        np.save(match_folder / "mean_velocity.npy", np.asarray(velocity_paths))
         pd.DataFrame(fit_records).to_parquet(match_folder / "diagnostics.parquet", index=False)
         print("TRAJECTORIES", match_id, len(match_passes), flush=True)
 
     write_json(trajectories_folder / "complete.json", dict(
-        n=len(pass_table), trajectory_method="per_pass_forecast_error",
-        no_comparison_rule="position_fit_if_usable_else_mean_velocity",
+        n=len(pass_table), trajectory_method="per_fitting_split_aggregate_forecast_error",
         launch_source="reconstructed from tracking",
     ))
     return trajectories_folder
 
 
 def prepare_features(data_root, trajectories_folder, output, tracking_root=DEFAULT_TRACKING):
-    """Load the already chosen paths and release states; calculate model inputs."""
+    """Calculate model inputs for both launch methods on aligned pass rows."""
     if not (trajectories_folder / "complete.json").is_file():
         raise ValueError("Run generate_trajectories before prepare_features.")
     pass_table, initial_states = load_selected_cohort(data_root, tracking_root)
@@ -160,12 +151,14 @@ def prepare_features(data_root, trajectories_folder, output, tracking_root=DEFAU
         endpoint_arrivals=np.empty((n_passes, 22), np.float32),
         ball_arrival_time=np.empty(n_passes, np.float32),
         valid_players=np.empty((n_passes, 22), bool),
-        path_tti=np.empty((n_passes, 251, 22), np.float32),
-        ball_low=np.empty((n_passes, 251), bool),
+        path_tti_fit_positions=np.empty((n_passes, 251, 22), np.float32),
+        ball_low_fit_positions=np.empty((n_passes, 251), bool),
+        path_tti_mean_velocity=np.empty((n_passes, 251, 22), np.float32),
+        ball_low_mean_velocity=np.empty((n_passes, 251), bool),
     )
     pass_keys = ["match_id", "pass_id", "frame_end", "outcome"]
     for match_id in pass_table.match_id.unique():
-        # 1. Select release states and load one generated path per pass.
+        # 1. Select release states and align both generated paths for each pass.
         match_mask = pass_table.match_id.eq(match_id).to_numpy()
         match_passes = pass_table.loc[match_mask].reset_index(drop=True)
         match_states = {name: values[match_mask] for name, values in initial_states.items()}
@@ -173,34 +166,48 @@ def prepare_features(data_root, trajectories_folder, output, tracking_root=DEFAU
         diagnostics = pd.read_parquet(match_folder / "diagnostics.parquet")
         if not match_passes[pass_keys].equals(diagnostics[pass_keys].reset_index(drop=True)):
             raise ValueError(f"Trajectory row order does not match initial states: {match_id}")
-        ball_path = np.load(match_folder / "trajectory.npy")
-        if ball_path.shape != (len(match_passes), 251, 3) or not np.isfinite(ball_path).all():
-            raise ValueError(f"Unusable generated trajectory: {match_id}")
-
-        # 2. At the destination: player TTI, hypothetical ball time and mask.
+        # Endpoint inputs do not depend on the observed-flight estimator.
         tti_target, ball_time, valid_players = prepare_pitch_control_inputs(match_states)
         model_inputs["endpoint_arrivals"][match_mask] = tti_target
         model_inputs["ball_arrival_time"][match_mask] = ball_time
         model_inputs["valid_players"][match_mask] = valid_players
 
-        # 3. Along the already chosen path: player TTI and height-control mask.
-        with precision_context(False):
-            tti_path = trajectory_arrival_times(
-                jnp.asarray(match_states["p_pos"], jnp.float32),
-                jnp.asarray(match_states["p_vel"], jnp.float32),
-                jnp.asarray(ball_path[:, :, :2], jnp.float32),
-            )
-        model_inputs["path_tti"][match_mask] = np.asarray(tti_path)
-        model_inputs["ball_low"][match_mask] = ball_path[:, :, 2] <= 2.0
+        # Keep the two trajectory likelihood inputs separate. A physical fit
+        # chooses ONE method from its own matches before using either array.
+        for method in ("fit_positions", "mean_velocity"):
+            ball_path = np.load(match_folder / f"{method}.npy")
+            if ball_path.shape != (len(match_passes), 251, 3) or not np.isfinite(ball_path).all():
+                raise ValueError(f"Unusable {method} trajectory: {match_id}")
+            with precision_context(False):
+                tti_path = trajectory_arrival_times(
+                    jnp.asarray(match_states["p_pos"], jnp.float32),
+                    jnp.asarray(match_states["p_vel"], jnp.float32),
+                    jnp.asarray(ball_path[:, :, :2], jnp.float32),
+                )
+            model_inputs[f"path_tti_{method}"][match_mask] = np.asarray(tti_path)
+            model_inputs[f"ball_low_{method}"][match_mask] = ball_path[:, :, 2] <= 2.0
+
         print("FEATURES", match_id, len(match_passes), flush=True)
 
-    # 4. Save aligned inputs. Trajectory-fit diagnostics stay in trajectories/.
+    # 4. Save row-aligned errors so each fit uses its own training matches.
+    errors = pd.concat([
+        pd.read_parquet(trajectories_folder / match_id / "diagnostics.parquet")
+        for match_id in pass_table.match_id.unique()
+    ], ignore_index=True)
+    errors = pass_table[pass_keys].merge(
+        errors, on=pass_keys, how="left", validate="one_to_one", indicator=True,
+    )
+    if not errors._merge.eq("both").all():
+        raise ValueError("Missing trajectory diagnostics for an accepted pass.")
+    errors.drop(columns="_merge").to_parquet(features_folder / "trajectory_errors.parquet", index=False)
+
+    # 5. Save aligned inputs. Selection takes place during each fit.
     pass_table.to_parquet(features_folder / "rows.parquet", index=False)
     for name, values in model_inputs.items():
         np.save(features_folder / f"{name}.npy", values)
     write_json(features_folder / "complete.json", dict(
         n=n_passes, losses=int(pass_table.outcome.eq(0).sum()), physics=PHYSICAL_SETTINGS,
-        trajectory_method="per_pass_forecast_error", launch_source="reconstructed from tracking",
+        trajectory_method="per_fitting_split_aggregate_forecast_error", launch_source="reconstructed from tracking",
     ))
 
 
@@ -216,6 +223,12 @@ def load_features(output):
     pass_table = pd.read_parquet(folder / "rows.parquet")
     pass_table["match_id"] = pass_table.match_id.astype(str)
     model_inputs = {name: np.load(folder / f"{name}.npy", mmap_mode="r") for name in MODEL_INPUT_NAMES}
+    errors = pd.read_parquet(folder / "trajectory_errors.parquet")
+    keys = ["match_id", "pass_id", "frame_end", "outcome"]
+    if not pass_table[keys].equals(errors[keys]):
+        raise ValueError("Trajectory errors are not aligned with pass rows.")
+    for method in ("fit_positions", "mean_velocity"):
+        model_inputs[f"error_{method}"] = errors[f"{method}_forecast_error"].to_numpy(float)
     return pass_table, model_inputs
 
 

@@ -10,12 +10,15 @@ Training can also reproduce the accepted configurations without re-screening.
 import argparse
 import json
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import jax
 import pandas as pd
 
-from features import prepare_features
-from training import (
+from pipeline.pass_selection.features import prepare_features
+from pipeline.pass_selection.training import (
     SCREENING_FOLD, SCREENING_CONFIGURATIONS, SELECTED_CONFIGURATIONS,
     compare_configurations, select_best_configuration, train_validate_test,
     compute_pooled_metrics, train_production_model, collect_feature_importance,

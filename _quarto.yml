@@ -5,6 +5,7 @@ project:
   resources:
   - pipeline/**
   - examples/preprocessing/**
+  - "!examples/preprocessing/**/__pycache__/**"
   - "!pipeline/**/__pycache__/**"
   - "!pipeline/outputs/**"
   - "!pipeline/local_history/**"

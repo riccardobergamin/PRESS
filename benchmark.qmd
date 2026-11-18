@@ -123,7 +123,7 @@ Deployment calibration may use labels paired with frozen cross-fitted prediction
 
 Outer-test labels are excluded from that fold's model fitting, stopping rule and calibrator estimation. The ten matches were repeatedly examined during model development, so the complete development process serves as a development benchmark, and generalization to other competitions and annotation conventions remains open. The task benchmarks describe any development choice shared across folds and distinguish this scope from the match-disjoint fitting of the reported fold models.
 
-The benchmark uses ten matches, with two held out in each outer fold. Observations within a match are dependent, so the number of independent units is the number of matches. Differences between models and between folds should be read with that uncertainty in mind.
+The benchmark uses ten matches, with two held out in each outer fold. Observations within a match are dependent, so the number of independent units is the number of matches. Differences between models and between folds should be read with that uncertainty in mind. The same sample size motivates the choice of simple models with few parameters, as described in [Modelling choices](pipeline.qmd#modelling-choices).
 
 ## 4. Task benchmarks {#task-benchmarks}
 

@@ -135,12 +135,13 @@ def load_feature_tables(output, task, split_name, matches):
 # ============================================================
 
 def select_configuration(D_fit, D_val, fixed_parameters, configurations,
-                         max_rounds=2000, patience=100):
+                         max_rounds=2000, patience=100, curve_folder=None):
     """Compare the full grid on ONE fixed validation pair.
 
     Each candidate starts a new native model. Native validation CE chooses
     its best prefix and then the winning configuration. Exact ties keep the
     first candidate, as in the accepted benchmark. Test data are not inputs.
+    curve_folder optionally retains every candidate history for later audits.
     """
     trials = []
     best_ce = np.inf
@@ -149,6 +150,10 @@ def select_configuration(D_fit, D_val, fixed_parameters, configurations,
             D_fit, fixed_parameters | configuration, D_val=D_val,
             max_rounds=max_rounds, patience=patience,
         )
+        # Retain each candidate history before the next candidate replaces it.
+        # This is an audit artifact; it does not affect training or selection.
+        if curve_folder is not None:
+            write_json(Path(curve_folder) / f"learning_curve_{index:03d}.json", curve)
         best_tree_count = model.num_boosted_rounds()
         validation_ce = float(curve["validation"]["logloss"][best_tree_count - 1])
         trial = dict(
@@ -188,7 +193,7 @@ def train_validate_test(output, task, fold, protocol, threads=1):
     parameters = protocol["fixed_parameters"] | dict(nthread=threads, seed=protocol["seed"] + fold)
     model, selection, curve, grid_scores = select_configuration(
         D_fit, D_val, parameters, protocol["grid"],
-        protocol["max_rounds"], protocol["early_stopping_rounds"],
+        protocol["max_rounds"], protocol["early_stopping_rounds"], curve_folder=folder,
     )
     model.save_model(folder / "model.ubj")
     write_json(folder / "selection.json", selection | split | dict(fold=fold, calibration="none"))

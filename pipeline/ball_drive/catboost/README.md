@@ -24,7 +24,7 @@ The loss10 selection criterion applies analytical prior correction. With the sel
 
 ```bash
 python pipeline/ball_drive/catboost/pipeline.py --stage features \
-  --physical-splits pipeline/inputs/ball_drive/reference_parameters/physical_splits.json
+  --physical-splits pipeline/outputs/ball_drive/physical/physical_splits.json
 python pipeline/ball_drive/catboost/pipeline.py --stage train --fold 0 --sampling natural --threads 4
 # After both sampling arms and all five folds:
 python pipeline/ball_drive/catboost/pipeline.py --stage scores
@@ -32,4 +32,4 @@ python pipeline/ball_drive/catboost/pipeline.py --stage scores
 
 For a complete new estimation, use the `physical_splits.json` produced by the physical pipeline. Completed output directories are protected against overwriting. The benchmark uses CatBoost 1.2.10.
 
-`checks/verify_pipeline.py` checks TTI, features, sampling and metric replay. This does not replace a full search or verify native fitting when CatBoost is unavailable.
+`pipeline/checks/catboost_steps.py` checks TTI, features, sampling and metric replay. This does not replace a full search or verify native fitting when CatBoost is unavailable.

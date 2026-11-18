@@ -21,7 +21,7 @@ from scipy.optimize import minimize
 # Our code supplies the grouped categorical loss, g,h, and the CNL rho update.
 import xgboost as xgb
 
-from features import load_pass_tables, write_json
+from pipeline.pass_selection.features import load_pass_tables, write_json
 
 
 SEED = 20261019

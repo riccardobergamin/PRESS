@@ -23,8 +23,7 @@ def commands(input_root, output_root, raw_root, threads, tracking_root=None):
     def handoff(stage):
         return [py, str(REVIEW / "handoff.py"), stage, "--data-root", str(input_root),
                 "--output-root", str(output_root)]
-    released_pass = REVIEW / "released/pass_probability/pipeline.py"
-    pass_script = released_pass if released_pass.is_file() else REVIEW / "pass_probability/pipeline.py"
+    pass_script = REVIEW / "pass_probability/pipeline.py"
     return {
         "01": [script("preprocessing", "--raw-root", raw_root or "/path/to/opendata/data/matches",
                       "--output", output_root / "preprocessing"), handoff("protocols")],

@@ -4,13 +4,14 @@ import argparse
 from pathlib import Path
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
 import jax
 import pandas as pd
 
-from model import prepare_covariates
-from training import run_fold, collect_results, refit_production
+from pipeline.ball_drive.physical.model import prepare_covariates
+from pipeline.ball_drive.physical.training import run_fold, collect_results, refit_production
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from pipeline.frame_states import load_tracking_states
 
 

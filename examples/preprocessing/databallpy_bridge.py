@@ -11,6 +11,11 @@ from pathlib import Path
 
 import pandas as pd
 
+if __package__:
+    from .idsse_events import read_provider_events
+else:
+    from idsse_events import read_provider_events
+
 
 def convert(data_dir, match_id, output_dir):
     from databallpy import get_game
@@ -39,15 +44,25 @@ def convert(data_dir, match_id, output_dir):
         tracking_data_loc=files["tracking"], event_data_provider="sportec",
         event_metadata_loc=files["info"], event_data_loc=files["events"],
     )
-    # The synchronizer operates on actor events, not administrative messages.
-    events = game.event_data.loc[game.event_data.player_id.notna()].copy()
-    events.loc[events.original_event.isin(["Pass", "Cross"]), "databallpy_event"] = "pass"
-    events.loc[events.original_event.isin([
-        "SuccessfulShot", "SavedShot", "BlockedShot", "ShotWide", "ShotWoodWork",
-    ]), "databallpy_event"] = "shot"
-    events.loc[events.original_event.isin([
-        "ballClaimed", "ballcontactSucceeded", "BallClaiming",
-    ]), "databallpy_event"] = "tackle"
+    # One semantic reader is shared across both environments. In particular,
+    # a foul's actor is its victim, not the offender; handballs and duplicate
+    # referee-decision records are not separate synchronization candidates.
+    semantics = pd.DataFrame(read_provider_events(files['events'])).set_index('event_id')
+    events = game.event_data.copy()
+    identifiers = events.original_event_id.astype(str).str.replace(r'\.0$', '', regex=True)
+    for column in ['player_id', 'team_id', 'event_type', 'duplicate_of', 'excluded_reason']:
+        events[column] = identifiers.map(semantics[column]).to_numpy()
+    events = events.loc[
+        events.player_id.notna() & events.duplicate_of.isna() & events.excluded_reason.isna()
+    ].copy()
+    events.loc[events.event_type.eq('pass'), 'databallpy_event'] = 'pass'
+    events.loc[events.event_type.eq('shot'), 'databallpy_event'] = 'shot'
+    # DataBallPy's generic on-ball contact cost is named "tackle". Reuse that
+    # existing cost for the original tackle/recovery/fouled classes and for
+    # explicit clearances. Semantic event_type remains separate throughout.
+    events.loc[events.event_type.isin([
+        'tackle', 'recovery', 'interception', 'foul_suffered', 'clearance',
+    ]), 'databallpy_event'] = 'tackle'
     game.event_data = events
     print("Refining event–tracking alignment", flush=True)
     game.synchronise_tracking_and_event_data(n_batches="smart", offset=1.0, verbose=False)
@@ -75,6 +90,9 @@ def convert(data_dir, match_id, output_dir):
                                 ball_angle_threshold_degrees=10.0, min_frames_pz=0),
         n_tracking_frames=len(game.tracking_data), n_actor_events=len(events),
         n_aligned_events=int(events.frame.notna().sum()),
+        aligned_semantic_events=events.loc[events.frame.notna(), 'event_type'].value_counts().to_dict(),
+        n_duplicate_foul_decisions=int(semantics.duplicate_of.notna().sum()),
+        n_excluded_handballs=int(semantics.excluded_reason.eq('handball').sum()),
     )
     (output_dir / "alignment.json").write_text(json.dumps(report, indent=2))
     print(json.dumps(report, indent=2), flush=True)

@@ -6,7 +6,7 @@
 
 ## Objectives and motivation
 
-This is a portfolio research project to learn the main ideas behind expected possession value (EPV) (Fernández et al., 2019, 2021), work with player tracking data and explore some alternative modelling choices. The goal is to package the research code into reusable components with reproducible examples and results.
+This is a portfolio research project to learn the main ideas behind expected possession value (EPV) (Fernández et al., 2019, 2021), work with player tracking data and explore some alternative modelling choices. The goal is to package the research code into reusable components with reproducible examples and results. The choice of relatively simple models follows from the ten-match sample and the portfolio nature of the project, as described in [Modelling choices](pipeline.qmd#modelling-choices).
 
 The motivating question is: given the current game state and the player in possession, how difficult is it for the team to retain the ball? Pressure can constrain a carrier's options, raise interception risk and affect action choice. PRESS adapts building blocks from pitch control and EPV research to express that question as a team-possession hazard over canonical action opportunities (Spearman et al., 2017; Fernández et al., 2021; Bekkers, 2025; SkillCorner, 2026).
 

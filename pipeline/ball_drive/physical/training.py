@@ -24,7 +24,7 @@ import jax.numpy as jnp
 from scipy.optimize import minimize
 from sklearn.metrics import log_loss, roc_auc_score, average_precision_score
 
-from model import (
+from pipeline.ball_drive.physical.model import (
     PHYSICS, build_spline_basis, prepare_model_data, predict_survival,
     build_prior_precision, negative_log_posterior,
 )

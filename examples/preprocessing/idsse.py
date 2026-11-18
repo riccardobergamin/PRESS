@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 from PRESS.io import differentiate
+from .idsse_events import active_event_nodes, read_provider_events
 
 
 def match_files(data_dir, match_id):
@@ -51,84 +52,44 @@ def read_metadata(path, match_id):
 
 
 def read_event_attributes(path, players, teams):
-    """Read provider semantics, not estimated outcomes or receiver intentions."""
+    """Map explicit provider semantics to canonical IDs, retaining provenance.
+
+    Won tackles retain the winner and loser, independently of subsequent
+    control. BallClaiming starts are generic recoveries unless Type explicitly
+    says InterceptedBall. Duplicate foul decisions and handballs remain in the
+    event audit with exclusion markers; they cannot generate a second target.
+    """
     aliases = players.set_index('source_player_id').player_id.to_dict()
-    # Later revisions of the same event replace earlier ones; Delete removes
-    # the event identified by its enclosing EventId.
-    active = {}
-    for node in ET.parse(path).getroot().findall('Event'):
-        identifier = str(node.get('EventId'))
-        if node.find('Delete') is not None:
-            active.pop(identifier, None)
-        else:
-            active[identifier] = node
-    records, goals, kickoffs = [], [], []
-    for identifier, node in active.items():
+    records = pd.DataFrame(read_provider_events(path))
+    for column in ['player_id', 'receiver_player_id', 'winner_player_id',
+                   'loser_player_id', 'fouler_player_id']:
+        records[column] = records[column].map(aliases)
+    records['team_id'] = records.team_id.map(teams)
+    records['datetime'] = pd.to_datetime(records.datetime, utc=True)
+    records['is_successful'] = records.is_successful.astype('boolean')
+    goals, kickoffs = [], []
+    for node in active_event_nodes(path).values():
         timestamp = pd.to_datetime(node.get('EventTime'), utc=True)
-        play = node.find('.//Play')
-        shot = node.find('.//ShotAtGoal')
-        claim = node.find('.//BallClaiming')
-        tackle = node.find('.//TacklingGame')
-        foul = node.find('.//Foul')
-        restart = next((label for tag, label in [
-            ('ThrowIn', 'throw_in'), ('CornerKick', 'corner'),
-            ('FreeKick', 'free_kick'), ('GoalKick', 'goal_kick'),
-            ('KickOff', 'kick_off'),
-        ] if node.find('.//' + tag) is not None), None)
-        actor = team = receiver = None
-        outcome = pd.NA
-        kind = 'unknown'
-        if play is not None:
-            kind, actor, team = 'pass', play.get('Player'), play.get('Team')
-            receiver = play.get('Recipient')
-            outcome = {'successfullyCompleted': True, 'unsuccessful': False}.get(play.get('Evaluation'), pd.NA)
-            if restart is None and play.get('FromOpenPlay') == 'true':
-                restart = 'open_play'
-        elif shot is not None:
-            kind, actor, team = 'shot', shot.get('Player'), shot.get('Team')
-        elif claim is not None:
-            kind = 'interception' if claim.get('Type') == 'InterceptedBall' else 'recovery'
-            actor, team = claim.get('Player'), claim.get('Team')
-        elif tackle is not None:
-            # Contact alone is not an established recovery.
-            kind = 'recovery' if (tackle.get('WinnerResult') == 'ballClaimed'
-                    and tackle.get('PossessionChange') == 'true') else 'tackle'
-            actor, team = tackle.get('Winner'), tackle.get('WinnerTeam')
-        elif foul is not None:
-            kind, actor, team = 'foul_suffered', foul.get('Fouled'), foul.get('TeamFouled')
-        elif node.find('.//FinalWhistle') is not None:
-            kind = 'stoppage'
-        else:
-            contact = node.find('.//OtherBallAction')
-            if contact is not None:
-                actor, team = contact.get('Player'), contact.get('Team')
         goal = node.find('.//SuccessfulShot')
         if goal is not None:
             goals.append((timestamp, goal.get('CurrentResult')))
         if node.find('.//KickOff') is not None:
             kickoffs.append(timestamp)
-        records.append(dict(
-            event_id=identifier, event_type=kind, player_id=aliases.get(actor),
-            team_id=teams.get(team), receiver_player_id=aliases.get(receiver),
-            is_successful=outcome, datetime=timestamp, restart_type=restart or 'unknown',
-            original_event=next(iter(node)).tag,
-        ))
-    # A score becomes available to active play at its following restart;
-    # the shot state itself never receives its own future goal result.
+    # A confirmed goal enters score context only at the following restart.
     score_updates = []
     for timestamp, score in goals:
         restarts = [time for time in kickoffs if time > timestamp]
         if score and restarts:
             home, away = map(int, score.split(':'))
             score_updates.append((min(restarts), home-away))
-    return pd.DataFrame(records), sorted(score_updates)
+    return records, sorted(score_updates)
 
 
 def align_remaining_events(events, aligned, tracking, *, max_anchor_gap=10.0):
     """Retain DataBallPy links; interpolate only short bracketed clock gaps.
 
-    Unsupported event types are not passed off as spatially synchronized:
-    their clock-interpolated link is explicitly identified. No extrapolation
+    Contact events require a direct synchronizer link. Other event types
+    may receive an explicitly identified clock-interpolated link for audit. No extrapolation
     or interpolation across periods, missing frame ranges or >10 s gaps.
     sync_certainty is DataBallPy's score, not a calibrated probability.
     """
@@ -140,6 +101,13 @@ def align_remaining_events(events, aligned, tracking, *, max_anchor_gap=10.0):
     result['period'] = result.event_id.map(links.period_id)
     result['sync_certainty'] = result.event_id.map(links.sync_certainty)
     result['sync_method'] = np.where(result.frame.notna(), 'databallpy', 'unmatched')
+    eligible = result.get('duplicate_of', pd.Series(None, index=result.index)).isna() & result.get(
+        'excluded_reason', pd.Series(None, index=result.index)).isna()
+    result.loc[~eligible, 'frame'] = pd.NA
+    result.loc[~eligible, 'sync_method'] = 'excluded'
+    # Clock interpolation is audit information, not a verified contact frame.
+    contact_types = {'pass', 'shot', 'tackle', 'recovery', 'interception',
+                     'reception', 'foul_suffered', 'clearance'}
     frame_to_row = tracking.set_index('frame')
     for period, frames in tracking.groupby('period'):
         anchors = aligned.loc[aligned.period_id.eq(period) & aligned.frame.notna()].copy()
@@ -152,7 +120,8 @@ def align_remaining_events(events, aligned, tracking, *, max_anchor_gap=10.0):
             raise ValueError('Aligned event frames are not monotone within period.')
         lower = pd.to_datetime(frames.datetime, utc=True).min()
         upper = pd.to_datetime(frames.datetime, utc=True).max()
-        use = result.frame.isna() & result.datetime.between(lower, upper)
+        use = (eligible & result.frame.isna() & ~result.event_type.isin(contact_types)
+               & result.datetime.between(lower, upper))
         for index in result.index[use]:
             time = result.loc[index, 'datetime'].value / 1e9
             right = np.searchsorted(x, time, side='right')
@@ -162,7 +131,8 @@ def align_remaining_events(events, aligned, tracking, *, max_anchor_gap=10.0):
             if frame not in frame_to_row.index or frame_to_row.loc[frame, 'period'] != period:
                 continue
             result.loc[index, ['frame', 'period', 'sync_method']] = [frame, period, 'interpolated_clock']
-    result['outcome_verified'] = result.is_successful.notna()
+    result['outcome_verified'] = (eligible & result.frame.notna()
+        & (result.is_successful.notna() | result.event_type.isin(['foul_suffered', 'clearance'])))
     return result
 
 
@@ -228,6 +198,7 @@ def prepare_idsse(data_dir, match_id, output_dir, *, sync_python=None,
         restart = events.loc[events.datetime.eq(timestamp) & events.frame.notna()]
         if len(restart):
             score[tracking.frame.ge(int(restart.frame.iloc[0]))] = difference
+    tracking['home_score_difference_prefix'] = score
     tracking['score_difference_prefix'] = np.where(tracking.player_possession.str.startswith('home', na=False), score, -score)
     tracking['match_id'] = str(match_id)
     for key in ['pitch_length', 'pitch_width']:

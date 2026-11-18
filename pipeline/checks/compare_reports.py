@@ -15,8 +15,10 @@ from pipeline.io import read_table, write_json
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument("--input-root", type=Path, default=ROOT / "pipeline/inputs",
+                        help="Prepared input tables and accepted statistical references.")
     args = parser.parse_args()
-    output, inputs = args.output_root, ROOT / "pipeline/inputs"
+    output, inputs = args.output_root, args.input_root
     states = read_table(output / "composed_risk/features/held_out.parquet")
     assert len(states) == 15085 and int(states.h_loss.sum()) == 1465 and int(states.terminal_loss.sum()) == 2888
     assert int(states.band_eligible.sum()) == 14919
