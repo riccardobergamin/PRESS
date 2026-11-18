@@ -4,7 +4,7 @@ subtitle: "Possession Risk Estimate from Spatio-temporal State"
 toc: false
 ---
 
-PRESS is a work-in-progress, physics-informed framework for quantifying the risk of losing team possession in a given game situation. It combines physics-based models of passing and ball carrying with learned decision-making policies to assess possession vulnerability at different horizons, from the ball carrier's next action to the eventual outcome of the possession.
+PRESS is a work-in-progress, physics-informed framework for quantifying, in football, the risk of losing team possession in a given game situation. It combines physics-based models of passing and ball carrying with learned decision-making policies to assess possession vulnerability at different horizons, from the ball carrier's next action to the eventual outcome of the possession.
 
 ## Browse the project {#browse-the-project}
 

@@ -2,7 +2,7 @@
 
 <img src="branding/press-logo.svg" align="right" width="155" alt="PRESS logo" />
 
-**Possession Risk Estimate from Spatio-temporal State** (PRESS) is a work-in-progress, physics-informed framework for estimating the risk that a team loses possession. It combines physics-based pass and carry components with learned action and destination choices, and it evaluates possession vulnerability at two horizons: the next on-ball action of the ball carrier (the hazard h) and the eventual outcome of the carrier's individual possession (xLoss).
+**Possession Risk Estimate from Spatio-temporal State** (PRESS) is a work-in-progress, physics-informed framework for estimating the risk that a football team loses possession. It combines physics-based pass and carry components with learned action and destination choices, and it evaluates possession vulnerability at two horizons: the next on-ball action of the ball carrier (the hazard h) and the eventual outcome of the carrier's individual possession (xLoss).
 
 ## Objectives and motivation
 
