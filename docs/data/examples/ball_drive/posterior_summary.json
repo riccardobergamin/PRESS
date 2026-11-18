@@ -1,0 +1,69 @@
+{
+  "method": "Joint log-coordinate MAP with inverse-Hessian Laplace approximation",
+  "model_id": "skillcorner_outfield_ball_drive_obe_v2",
+  "model_sha256": "0a63465b8009d70d46167cbe91df724481e4b8890d03c7abdd423b0d2a3515e6",
+  "parameters": {
+    "lambda_0": {
+      "index": 0,
+      "log_mean": -1.0654794921496504,
+      "log_variance": 0.01457262605720135,
+      "transformed_joint_map": 0.34456260008941997,
+      "mean": 0.3470823597826589,
+      "standard_deviation": 0.042051895458169154,
+      "delta_method_sd": 0.04159460901839692,
+      "credible_interval_68": [
+        0.3055849115487957,
+        0.388511935287171
+      ],
+      "credible_interval_95": [
+        0.2719653191366462,
+        0.43653869455586813
+      ]
+    },
+    "s": {
+      "index": 3,
+      "log_mean": -1.2052005894844657,
+      "log_variance": 0.0033788858291551155,
+      "transformed_joint_map": 0.2996318904783872,
+      "mean": 0.30013852930091706,
+      "standard_deviation": 0.017461255615092104,
+      "delta_method_sd": 0.017417057801216242,
+      "credible_interval_68": [
+        0.28280246721387814,
+        0.3174628237021491
+      ],
+      "credible_interval_95": [
+        0.26736788098345543,
+        0.33578928576393846
+      ]
+    }
+  },
+  "priors": {
+    "log_lambda_0": {
+      "distribution": "Normal",
+      "mean": 0,
+      "sd": 1
+    },
+    "beta_v": {
+      "distribution": "Normal",
+      "mean": 0,
+      "sd": 1
+    },
+    "beta_B": {
+      "distribution": "Normal",
+      "mean": 0,
+      "sd": 1
+    },
+    "s": {
+      "distribution": "Gamma",
+      "shape": 2.5,
+      "rate": 5.0,
+      "mean": 0.5,
+      "sd": 0.31622776601683794
+    },
+    "spline": "Independent zero-mean Gaussian coefficients with fitted-basis curvature precision; main multiplier1, nonlinear-angle multiplier100, standardized linear angle precision1"
+  },
+  "source_prior_sha256": "50d43d2d4e6af78df42e375cc3aea2492cf89063abbac97d2db8f27ed6ceadb4",
+  "uncertainty_scope": "Conditional on the fixed selected specification and priors; no model-selection or between-match correction.",
+  "inference": "Uses joint MAP point parameters, not posterior predictive averaging."
+}

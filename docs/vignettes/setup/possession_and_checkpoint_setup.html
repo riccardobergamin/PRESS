@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - 2 · Possession segmentation and context</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../vignettes/00_match_workflow/00_match_workflow.html" rel="next">
+<link href="../../data.html" rel="prev">
+<link href="../../branding/favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../../index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="../../data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="../../vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="../../benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="../../api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../usage.html">User guide</a></li><li class="breadcrumb-item"><a href="../../vignettes/setup/possession_and_checkpoint_setup.html">2 · Possession segmentation and context</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../external-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#three-distinct-units" id="toc-three-distinct-units" class="nav-link active" data-scroll-target="#three-distinct-units">1. Three distinct units</a></li>
+  <li><a href="#canonical-checkpoints" id="toc-canonical-checkpoints" class="nav-link" data-scroll-target="#canonical-checkpoints">2. Canonical checkpoints</a>
+  <ul class="collapse">
+  <li><a href="#general-rule" id="toc-general-rule" class="nav-link" data-scroll-target="#general-rule">General rule</a></li>
+  <li><a href="#short-possessions" id="toc-short-possessions" class="nav-link" data-scroll-target="#short-possessions">Possessions shorter than one second</a></li>
+  <li><a href="#partial-tails" id="toc-partial-tails" class="nav-link" data-scroll-target="#partial-tails">A partial tail after full carries</a></li>
+  <li><a href="#initial-final-state" id="toc-initial-final-state" class="nav-link" data-scroll-target="#initial-final-state">Initial and final states</a></li>
+  </ul></li>
+  <li><a href="#previous-action" id="toc-previous-action" class="nav-link" data-scroll-target="#previous-action">3. Start type and previous action</a></li>
+  <li><a href="#context-labels" id="toc-context-labels" class="nav-link" data-scroll-target="#context-labels">4. Context labels and their origin</a></li>
+  <li><a href="#context-in-tasks" id="toc-context-in-tasks" class="nav-link" data-scroll-target="#context-in-tasks">5. Context in the learned tasks</a></li>
+  <li><a href="#observed-sequence" id="toc-observed-sequence" class="nav-link" data-scroll-target="#observed-sequence">6. An observed sequence</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/vignettes/setup/possession_and_checkpoint_setup.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../usage.html">User guide</a></li><li class="breadcrumb-item"><a href="../../vignettes/setup/possession_and_checkpoint_setup.html">2 · Possession segmentation and context</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">2 · Possession segmentation and context</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This is the second part of the <a href="../../usage.html">User guide</a>, between <a href="../../data.html">datasets, installation and preprocessing</a> and <a href="../../vignettes/00_match_workflow/00_match_workflow.html">use on a match</a>.</p>
+<section id="three-distinct-units" class="level2">
+<h2 class="anchored" data-anchor-id="three-distinct-units">1. Three distinct units</h2>
+<ul>
+<li><strong>Individual possession:</strong> one player’s control interval, identified by <code>(match_id, possession_id)</code>. Its observed start and end must be matched to tracking for the interval table used here.</li>
+<li><strong>Team possession:</strong> a chain of individual intervals connected by verified completed passes. A completed pass changes the carrier without ending this team interval. Unverified continuity starts a new reconstructed team interval.</li>
+<li><strong>Canonical action:</strong> a one-second carry attempt or an instantaneous pass release. Its start state is a checkpoint at which the hazard h, the probability that the team loses possession during the next action, is evaluated.</li>
+</ul>
+<p>A <em>checkpoint</em> is the start state of a canonical action. An <em>additional snapshot</em> is any other evaluated state; it lies outside the action sequence.</p>
+<p>Frame evaluation is more general than action segmentation. A usable frame can be evaluated even if it is not a checkpoint. Segmentation supplies the conventional discrete action sequence underlying h; extra evaluations leave that sequence unchanged <span class="citation" data-cites="fernandez2021">(<a href="#ref-fernandez2021" role="doc-biblioref">Fernandez, Bornn, and Cervone 2021</a>)</span>.</p>
+</section>
+<section id="canonical-checkpoints" class="level2">
+<h2 class="anchored" data-anchor-id="canonical-checkpoints">2. Canonical checkpoints</h2>
+<section id="general-rule" class="level3">
+<h3 class="anchored" data-anchor-id="general-rule">General rule</h3>
+<p>The checkpoints of an individual possession are the starts of its complete one-second carries, plus one terminal checkpoint that depends on how control ends: the release after a pass, the start of the final failed carry after a direct loss, and none after a foul suffered or a clearance.</p>
+<p>Carries are anchored to the <strong>start of the individual possession</strong>, in successive one-second blocks. Each full successful carry supplies one checkpoint at its start. If control ends in a direct possession loss, the final failed attempt is retained even when it lasts less than one second. If loss occurs exactly at a full-second boundary, the last full block is the failed attempt.</p>
+<p>A pass supplies a checkpoint <strong>at release</strong>, regardless of how much time has elapsed since the last full carry. A successful subsecond tail before a pass is an additional snapshot, left out of the final one-second carry benchmark and action-choice training.</p>
+<p>Fouls suffered and clearances preserve preceding complete carries and end without a terminal pass/carry action; their terminal frames and short tails can be retained as additional snapshots. Shots are outside the fitted pass–carry task. The <a href="../../benchmarks/06_composed_risk.html">composed-risk benchmark</a> separately defines the terminally covered cohort used for bands and reports.</p>
+<p><code>get_actions()</code> returns canonical actions; their <code>frame_start</code> values are the checkpoints. <code>valid_only=True</code> selects usable start states. <code>include_snapshots=True</code> also returns the annotated extras, marked by <code>is_canonical=False</code>. <code>compute_risk_player_possession(..., include_snapshots=False)</code> evaluates the canonical sequence only; <code>frame_ids</code> supports an explicitly chosen sampling. Extra overlapping forecasts stay out of a canonical survival curve.</p>
+</section>
+<section id="short-possessions" class="level3">
+<h3 class="anchored" data-anchor-id="short-possessions">Possessions shorter than one second</h3>
+<p>The way control ends decides which actions a short possession retains:</p>
+<ul>
+<li><strong>Pass before 1 s:</strong> only the release is a canonical checkpoint. The earlier control interval is shorter than a full carry, so it supplies no successful canonical carry. The start can be inspected as an additional snapshot.</li>
+<li><strong>Direct loss before 1 s:</strong> retain one failed carry attempt, with its checkpoint at the individual-possession start. It is a failure within the fixed one-second forecast horizon, even though the observed loss happens earlier. The loss endpoint closes the possession without starting another action.</li>
+<li><strong>Foul suffered or clearance before 1 s:</strong> no complete carry and no terminal pass/carry action are available, so there is no canonical checkpoint. Annotated snapshots remain available for inspection.</li>
+</ul>
+<p>The canonical profile of a short pass or a short failed carry therefore contains one point: the release for a pass, the start of the possession for a failed carry. Any further evaluation frame is an additional snapshot.</p>
+</section>
+<section id="partial-tails" class="level3">
+<h3 class="anchored" data-anchor-id="partial-tails">A partial tail after full carries</h3>
+<p>For a possession lasting <strong>2.4 s and ending in a pass</strong>, the successful canonical carries remain <strong>0–1 s and 1–2 s</strong>. The last <strong>2–2.4 s</strong> is a short control tail, shorter than a complete carry. Canonical checkpoints are <strong>0, 1 and 2.4 s</strong>; <strong>2 s</strong> is an optional snapshot.</p>
+<p>If the same 2.4 s duration ends in a <strong>direct carry loss</strong>, retain the failed <strong>2–2.4 s</strong> attempt. Canonical checkpoints are then <strong>0, 1 and 2 s</strong>. The terminal action is evaluated at 2 s, before execution fails, and 2.4 s is the loss endpoint.</p>
+<p>For a <strong>foul suffered or clearance at 2.4 s</strong>, only the carry starts at <strong>0 and 1 s</strong> are canonical. The tail start at 2 s and terminal frame at 2.4 s are additional snapshots. The possession ends without a terminal canonical action. These timings are constructed to illustrate the segmentation rule.</p>
+</section>
+<section id="initial-final-state" class="level3">
+<h3 class="anchored" data-anchor-id="initial-final-state">Initial and final states</h3>
+<p>The initial state of an individual possession is its first canonical checkpoint. The final state is its last canonical checkpoint when control ends with a pass or a direct loss: the release in the first case and the start of the final failed carry in the second. A foul suffered or a clearance supplies no terminal action, so the possession has no final state in this sense. A possession shorter than one second has a single checkpoint, which is both its initial and its final state.</p>
+<p>The table applies the checkpoint rules and these definitions to example durations: any duration below 1 s, and 2.0 s and 2.4 s as examples of a duration that is, or is not, a whole number of seconds. Other durations follow the same rules.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Ending</th>
+<th>Example duration</th>
+<th>Canonical checkpoints (s)</th>
+<th>Initial state</th>
+<th>Final state</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pass</td>
+<td>2.4 s</td>
+<td>0, 1, 2.4</td>
+<td>0 s</td>
+<td>Release at 2.4 s</td>
+</tr>
+<tr class="even">
+<td>Pass</td>
+<td>2.0 s</td>
+<td>0, 1, 2.0</td>
+<td>0 s</td>
+<td>Release at 2.0 s</td>
+</tr>
+<tr class="odd">
+<td>Pass</td>
+<td>below 1 s</td>
+<td>Release only</td>
+<td>Release</td>
+<td>Release</td>
+</tr>
+<tr class="even">
+<td>Direct loss</td>
+<td>2.4 s</td>
+<td>0, 1, 2</td>
+<td>0 s</td>
+<td>Carry start at 2 s</td>
+</tr>
+<tr class="odd">
+<td>Direct loss</td>
+<td>2.0 s</td>
+<td>0, 1</td>
+<td>0 s</td>
+<td>Carry start at 1 s</td>
+</tr>
+<tr class="even">
+<td>Direct loss</td>
+<td>below 1 s</td>
+<td>0</td>
+<td>Possession start</td>
+<td>Possession start</td>
+</tr>
+<tr class="odd">
+<td>Foul suffered or clearance</td>
+<td>2.4 s</td>
+<td>0, 1</td>
+<td>0 s</td>
+<td>None</td>
+</tr>
+<tr class="even">
+<td>Foul suffered or clearance</td>
+<td>below 1 s</td>
+<td>None</td>
+<td>None</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<p>The pressure patterns of the <a href="../../vignettes/07_case_studies/07_case_studies.html">case studies</a> and the band cohort of the <a href="../../benchmarks/06_composed_risk.html">composed-risk benchmark</a> use these definitions.</p>
+</section>
+</section>
+<section id="previous-action" class="level2">
+<h2 class="anchored" data-anchor-id="previous-action">3. Start type and previous action</h2>
+<p>The pass-selection, action-selection and residual-risk models use two possession-level context variables, <code>start_type</code> and <code>previous_action</code>. The <a href="#context-in-tasks">table of context variables by task</a> lists what each task reads. This section fixes the convention for both.</p>
+<p><strong>Start type</strong> describes how the player obtained control. It is taken without modification from the Dynamic Events of SkillCorner, which define the categories and their annotation <span class="citation" data-cites="skillcorner-opendata">(<a href="#ref-skillcorner-opendata" role="doc-biblioref">SkillCorner, n.d.</a>)</span>. The labels are listed <a href="#context-labels">below</a>.</p>
+<p><strong>Previous action</strong> follows the convention of <span class="citation" data-cites="stalpaert2022">(<a href="#ref-stalpaert2022" role="doc-biblioref">Stalpaert 2022</a>)</span>: when an action is preceded by a complete carry, the previous action is the carry, named <code>ball_drive</code> in the code. Otherwise the previous action is the start type. With the one-second carries of this segmentation, the rule is applied to the observed prefix of the individual possession:</p>
+<ul>
+<li>Before a complete second of control, <code>previous_action</code> equals <code>start_type</code>.</li>
+<li>From 1.0 s of control onwards, after at least one complete carry, <code>previous_action</code> is <code>ball_drive</code>; the checkpoint at 1 s already carries it.</li>
+<li>The same rule applies to a pass release or an arbitrary intermediate frame.</li>
+</ul>
+<p>Thus a quick pass after reception keeps the reception context, such as <code>pass_reception</code>, while a pass after several seconds of carrying has <code>previous_action="ball_drive"</code>. For example, a pass released at 2.4 s follows two complete carries and has <code>previous_action="ball_drive"</code>, whereas a pass released before 1 s keeps the start type. The field depends only on the observed prefix of the individual possession.</p>
+</section>
+<section id="context-labels" class="level2">
+<h2 class="anchored" data-anchor-id="context-labels">4. Context labels and their origin</h2>
+<p>The learned models use the granular <code>start_type</code> labels of the SkillCorner Dynamic Events without regrouping them. <code>previous_action</code> takes the same labels until a complete carry is observed, and then becomes <code>ball_drive</code>. In feature records these columns are named <code>start_type_raw</code> and <code>previous_action_raw</code>. SkillCorner defines the labels <span class="citation" data-cites="skillcorner-opendata">(<a href="#ref-skillcorner-opendata" role="doc-biblioref">SkillCorner, n.d.</a>)</span>; the table gives a short general reading of each, and the football concepts (reception, interception, recovery and restart context) are common to providers.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Label</th>
+<th>General meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pass_reception</code></td>
+<td>Receiving an open-play pass.</td>
+</tr>
+<tr class="even">
+<td><code>pass_interception</code></td>
+<td>Obtaining control by intercepting an opposing open-play pass.</td>
+</tr>
+<tr class="odd">
+<td><code>recovery</code></td>
+<td>Obtaining control of a loose or available ball.</td>
+</tr>
+<tr class="even">
+<td><code>keep_possession</code></td>
+<td>Retaining or re-establishing control, as distinguished from a new reception or interception by the source annotation.</td>
+</tr>
+<tr class="odd">
+<td><code>throw_in_reception</code>, <code>corner_reception</code>, <code>free_kick_reception</code>, <code>goal_kick_reception</code></td>
+<td>Receiving the ball from the named restart.</td>
+</tr>
+<tr class="even">
+<td><code>throw_in_interception</code>, <code>corner_interception</code>, <code>free_kick_interception</code>, <code>goal_kick_interception</code></td>
+<td>Gaining control from the opponent’s named restart.</td>
+</tr>
+<tr class="odd">
+<td><code>unknown</code></td>
+<td>The source explicitly leaves the start context unspecified.</td>
+</tr>
+<tr class="even">
+<td><code>ball_drive</code></td>
+<td>Carrying after at least one complete canonical carry; generated by PRESS for <code>previous_action</code> only.</td>
+</tr>
+</tbody>
+</table>
+<p>A possession may begin with a restart reception and continue in active play. Keeping that <strong>start context</strong> is a separate decision from admitting a dead-ball delivery into the open-play pass-execution cohort. Pass-link and outcome filters belong to the individual <a href="../../benchmark.html">task benchmarks</a>.</p>
+<p>The fitted encoders also contain <code>__missing__</code> and <code>__unseen__</code> buckets for an absent value or a category outside the fitted vocabulary. They are encoding markers. Legacy <code>_std</code> columns group the raw labels into open-play/set-piece reception, open-play/set-piece interception and continuation; the deployed choice and residual-risk models use the granular vocabulary instead.</p>
+<p>For another provider, map equivalent event meanings to these labels before using the pretrained models. Preserve genuinely unavailable context as missing. Action-choice context excludes future outcomes, intended recipients and remaining possession time.</p>
+</section>
+<section id="context-in-tasks" class="level2">
+<h2 class="anchored" data-anchor-id="context-in-tasks">5. Context in the learned tasks</h2>
+<p>Only the tree-based tasks use context variables. The physical models, ball-drive risk and pass probability, use the tracking state alone.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Task</th>
+<th>Context variables</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pass selection</td>
+<td>Start type, previous action, match minute and score difference</td>
+</tr>
+<tr class="even">
+<td>Action selection</td>
+<td>Start type, previous action, match minute, score difference and <code>completed_canonical_drives</code></td>
+</tr>
+<tr class="odd">
+<td>Residual risk</td>
+<td>Start type, previous action, match minute, score difference and elapsed individual-control time</td>
+</tr>
+</tbody>
+</table>
+<p>Match minute and score difference (carrier-team goals minus opponent goals) are read at the evaluated frame and do not depend on the segmentation. Start type and previous action are one-hot encoded, with buckets for missing and unseen values. The possession-level variables use only the observed prefix of the individual possession, before its eventual duration or outcome. Action selection uses the number of completed canonical carries. Carry checkpoints fall on whole seconds, whereas passes are released at arbitrary times, so the elapsed time would reveal which action follows. This follows from the segmentation choices and would be leakage. Residual risk predicts the terminal outcome of the possession, so it uses the elapsed time.</p>
+</section>
+<section id="observed-sequence" class="level2">
+<h2 class="anchored" data-anchor-id="observed-sequence">6. An observed sequence</h2>
+<p>Ivan Vujica’s possession <code>8_774</code> in <strong>Melbourne City FC–Macarthur FC</strong> lasts 2.9 s and ends with a completed pass to Luke Brattan. The table below is read from the processed match, including the noncanonical short-tail snapshot. It illustrates both the segmentation and the change in <code>previous_action</code>.</p>
+<div id="35eba4f3" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS <span class="im">import</span> PRESS</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>opendata <span class="op">=</span> Path(os.environ.get(<span class="st">"SKILLCORNER_OPENDATA"</span>, Path.cwd().parent <span class="op">/</span> <span class="st">"opendata"</span>))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>match_id <span class="op">=</span> <span class="st">"2006229"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>match_dir <span class="op">=</span> opendata <span class="op">/</span> <span class="st">"data/matches"</span> <span class="op">/</span> match_id</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>press <span class="op">=</span> PRESS.from_skillcorner(match_dir)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>individual_id <span class="op">=</span> <span class="st">"8_774"</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>individual <span class="op">=</span> press.get_player_possessions(individual_id)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>actions <span class="op">=</span> press.get_actions(</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    possession_id<span class="op">=</span>individual_id,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    valid_only<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    include_snapshots<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>actions[<span class="st">"elapsed_seconds"</span>] <span class="op">=</span> (</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    actions.frame_start <span class="op">-</span> individual.frame_start.item()</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>) <span class="op">/</span> press.fps</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actions[</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"frame_start"</span>, <span class="st">"elapsed_seconds"</span>, <span class="st">"action"</span>, <span class="st">"previous_action"</span>, <span class="st">"is_canonical"</span>]</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>].to_string(index<span class="op">=</span><span class="va">False</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> frame_start  elapsed_seconds     action previous_action  is_canonical
+       41434              0.0 ball_drive  pass_reception          True
+       41444              1.0 ball_drive      ball_drive          True
+       41454              2.0   snapshot      ball_drive         False
+       41463              2.9       pass      ball_drive          True</code></pre>
+</div>
+</div>
+<div id="7ee61131" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.lines <span class="im">import</span> Line2D</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> <span class="bu">int</span>(individual.frame_start.item())</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>end <span class="op">=</span> <span class="bu">int</span>(individual.frame_end.item())</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>duration <span class="op">=</span> (end <span class="op">-</span> start) <span class="op">/</span> press.fps</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">3.5</span>))</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>ax.hlines(<span class="dv">0</span>, <span class="dv">0</span>, duration, color<span class="op">=</span><span class="st">"#394b59"</span>, linewidth<span class="op">=</span><span class="dv">2</span>, zorder<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> row <span class="kw">in</span> actions.itertuples():</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    left <span class="op">=</span> (row.frame_start <span class="op">-</span> start) <span class="op">/</span> press.fps</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    right <span class="op">=</span> (row.frame_end <span class="op">-</span> start) <span class="op">/</span> press.fps</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> row.action <span class="op">==</span> <span class="st">"ball_drive"</span>:</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        ax.hlines(<span class="dv">0</span>, left, right, color<span class="op">=</span><span class="st">"#35759b"</span>, linewidth<span class="op">=</span><span class="dv">7</span>, zorder<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        ax.text((left <span class="op">+</span> right) <span class="op">/</span> <span class="dv">2</span>, <span class="fl">0.32</span>, <span class="st">"Successful carry · 1 s"</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"#245575"</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> row.action <span class="op">==</span> <span class="st">"snapshot"</span> <span class="kw">and</span> row.snapshot_reason <span class="op">==</span> <span class="st">"short_control_tail"</span>:</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        ax.hlines(<span class="dv">0</span>, left, right, color<span class="op">=</span><span class="st">"#8b969e"</span>, linewidth<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                  linestyles<span class="op">=</span><span class="st">"dashed"</span>, zorder<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        ax.text((left <span class="op">+</span> right) <span class="op">/</span> <span class="dv">2</span>, <span class="fl">0.32</span>, <span class="ss">f"Control tail · </span><span class="sc">{</span>right<span class="op">-</span>left<span class="sc">:.1f}</span><span class="ss"> s"</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"#59636b"</span>)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> row <span class="kw">in</span> actions.itertuples():</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    elapsed <span class="op">=</span> (row.frame_start <span class="op">-</span> start) <span class="op">/</span> press.fps</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> row.is_canonical:</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>        color <span class="op">=</span> <span class="st">"#b76e2b"</span> <span class="cf">if</span> row.action <span class="op">==</span> <span class="st">"pass"</span> <span class="cf">else</span> <span class="st">"#245575"</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        ax.scatter(elapsed, <span class="dv">0</span>, s<span class="op">=</span><span class="dv">130</span>, c<span class="op">=</span>color, edgecolors<span class="op">=</span><span class="st">"white"</span>, zorder<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>        label <span class="op">=</span> <span class="st">"Pass release"</span> <span class="cf">if</span> row.action <span class="op">==</span> <span class="st">"pass"</span> <span class="cf">else</span> <span class="st">"Carry start"</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>        ax.scatter(elapsed, <span class="dv">0</span>, s<span class="op">=</span><span class="dv">100</span>, facecolors<span class="op">=</span><span class="st">"white"</span>, edgecolors<span class="op">=</span><span class="st">"#59636b"</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>                   linewidths<span class="op">=</span><span class="fl">1.8</span>, zorder<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        label <span class="op">=</span> <span class="st">"Extra snapshot"</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    ax.annotate(label, (elapsed, <span class="dv">0</span>), xytext<span class="op">=</span>(<span class="dv">0</span>, <span class="op">-</span><span class="dv">24</span>), textcoords<span class="op">=</span><span class="st">"offset points"</span>,</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    ax.text(elapsed, <span class="op">-</span><span class="fl">0.55</span>, <span class="ss">f"Frame </span><span class="sc">{</span>row<span class="sc">.</span>frame_start<span class="sc">}</span><span class="ss">"</span>, ha<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="dv">9</span>,</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">"#66727a"</span>)</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlim<span class="op">=</span>(<span class="op">-</span><span class="fl">0.2</span>, duration <span class="op">+</span> <span class="fl">0.22</span>), ylim<span class="op">=</span>(<span class="op">-</span><span class="fl">0.85</span>, <span class="fl">0.72</span>), yticks<span class="op">=</span>[],</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>       xticks<span class="op">=</span>actions.elapsed_seconds,</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>       xlabel<span class="op">=</span><span class="st">"Seconds since the start of individual control"</span>,</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="ss">f"Ivan Vujica · </span><span class="sc">{</span>duration<span class="sc">:.1f}</span><span class="ss"> s of control · completed pass"</span>)</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>ax.spines[[<span class="st">"left"</span>, <span class="st">"right"</span>, <span class="st">"top"</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>ax.spines[<span class="st">"bottom"</span>].set_color(<span class="st">"#bfc7cd"</span>)</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>ax.legend(handles<span class="op">=</span>[</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    Line2D([], [], marker<span class="op">=</span><span class="st">"o"</span>, linestyle<span class="op">=</span><span class="st">"none"</span>, color<span class="op">=</span><span class="st">"#245575"</span>, label<span class="op">=</span><span class="st">"Canonical checkpoint"</span>),</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    Line2D([], [], marker<span class="op">=</span><span class="st">"o"</span>, linestyle<span class="op">=</span><span class="st">"none"</span>, markerfacecolor<span class="op">=</span><span class="st">"white"</span>,</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>           markeredgecolor<span class="op">=</span><span class="st">"#59636b"</span>, label<span class="op">=</span><span class="st">"Additional snapshot"</span>),</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>], loc<span class="op">=</span><span class="st">"upper center"</span>, bbox_to_anchor<span class="op">=</span>(<span class="fl">0.5</span>, <span class="fl">1.01</span>), ncol<span class="op">=</span><span class="dv">2</span>, frameon<span class="op">=</span><span class="va">False</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>fig.savefig(<span class="st">"figures/user_guide_possession_timeline.png"</span>, dpi<span class="op">=</span><span class="dv">170</span>)</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>fig.savefig(<span class="st">"figures/user_guide_possession_timeline.svg"</span>)</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>plt.close(fig)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../figures/user_guide_possession_timeline.png" class="img-fluid figure-img"></p>
+<figcaption>The line spans Vujica’s observed 2.9 s possession. Filled markers are canonical checkpoints; the open marker at 2 s is an additional snapshot at the start of the short tail.</figcaption>
+</figure>
+</div>
+<p>At 0 s and 1 s there are canonical carries. The frame at 2 s is the start of a 0.9 s tail and is an additional snapshot. The pass at 2.9 s supplies the last canonical checkpoint. Previous action is reception at the initial state and becomes carrying after the first complete second.</p>
+<div id="994a789a" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> frame_id <span class="kw">in</span> [<span class="dv">41434</span>, <span class="dv">41439</span>, <span class="dv">41444</span>, <span class="dv">41454</span>, <span class="dv">41463</span>]:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    context <span class="op">=</span> press.get_frame_context(frame_id)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(frame_id, context[<span class="st">"previous_action"</span>], context[<span class="st">"completed_canonical_drives"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>41434 pass_reception 0
+41439 pass_reception 0
+41444 ball_drive 1
+41454 ball_drive 2
+41463 ball_drive 2</code></pre>
+</div>
+</div>
+<p>The last column above counts completed canonical carries (0, 0, 1, 2, 2), which is what action selection reads. Residual risk reads the elapsed time instead, which is 0, 0.5, 1, 2 and 2.9 s at the same frames. The <a href="../../vignettes/00_match_workflow/00_match_workflow.html">complete usage example</a> plots these observed frames and calculates h and xLoss at the three canonical checkpoints and at an intermediate frame.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-fernandez2021" class="csl-entry" role="listitem">
+Fernandez, Javier, Luke Bornn, and Daniel Cervone. 2021. <span>“A Framework for the Fine-Grained Evaluation of the Instantaneous Expected Value of Soccer Possessions.”</span> <em>Machine Learning</em> 110: 1389–1427. <a href="https://doi.org/10.1007/s10994-021-05989-6">https://doi.org/10.1007/s10994-021-05989-6</a>.
+</div>
+<div id="ref-skillcorner-opendata" class="csl-entry" role="listitem">
+SkillCorner. n.d. <span>“Open Data Repository.”</span> <a href="https://github.com/SkillCorner/opendata/blob/master/LICENSE">https://github.com/SkillCorner/opendata/blob/master/LICENSE</a>.
+</div>
+<div id="ref-stalpaert2022" class="csl-entry" role="listitem">
+Stalpaert, Louis. 2022. <span>“CounterRisk: Predicting Counter-Attacks, Even If They Don’t Occur.”</span> Master’s thesis, KU Leuven. <a href="https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf">https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../data.html" class="pagination-link" aria-label="1 · Datasets, installation and preprocessing">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">1 · Datasets, installation and preprocessing</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../vignettes/00_match_workflow/00_match_workflow.html" class="pagination-link" aria-label="3 · Use on a match">
+        <span class="nav-page-text">3 · Use on a match</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="../../index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/vignettes/setup/possession_and_checkpoint_setup.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - BCOS: transport with killing and competing risks</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../branding/favicon.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="../data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="../vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="../benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="../api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">BCOS: transport with killing and competing risks</li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../external-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#reference-transport-model" id="toc-reference-transport-model" class="nav-link active" data-scroll-target="#reference-transport-model">1. Reference transport model</a></li>
+  <li><a href="#initial-conditioning" id="toc-initial-conditioning" class="nav-link" data-scroll-target="#initial-conditioning">2. Initial conditioning</a></li>
+  <li><a href="#transport-with-killing" id="toc-transport-with-killing" class="nav-link" data-scroll-target="#transport-with-killing">3. Transport with killing</a></li>
+  <li><a href="#solution-by-characteristics" id="toc-solution-by-characteristics" class="nav-link" data-scroll-target="#solution-by-characteristics">4. Solution by characteristics</a></li>
+  <li><a href="#competing-risks" id="toc-competing-risks" class="nav-link" data-scroll-target="#competing-risks">5. Competing risks</a>
+  <ul class="collapse">
+  <li><a href="#multiple-killing-causes" id="toc-multiple-killing-causes" class="nav-link" data-scroll-target="#multiple-killing-causes">Multiple killing causes</a></li>
+  </ul></li>
+  <li><a href="#terminal-probabilities" id="toc-terminal-probabilities" class="nav-link" data-scroll-target="#terminal-probabilities">6. Terminal probabilities</a></li>
+  <li><a href="#application-to-bcos-in-press" id="toc-application-to-bcos-in-press" class="nav-link" data-scroll-target="#application-to-bcos-in-press">7. Application to BCOS in PRESS</a>
+  <ul class="collapse">
+  <li><a href="#time-to-intercept-and-reference-law" id="toc-time-to-intercept-and-reference-law" class="nav-link" data-scroll-target="#time-to-intercept-and-reference-law">Time to intercept and reference law</a></li>
+  <li><a href="#transport-velocity" id="toc-transport-velocity" class="nav-link" data-scroll-target="#transport-velocity">Transport velocity</a></li>
+  <li><a href="#interception-intensities" id="toc-interception-intensities" class="nav-link" data-scroll-target="#interception-intensities">Interception intensities</a></li>
+  <li><a href="#accessibility-and-defender-specific-risks" id="toc-accessibility-and-defender-specific-risks" class="nav-link" data-scroll-target="#accessibility-and-defender-specific-risks">Accessibility and defender-specific risks</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/appendix/bcos-transport-with-killing.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">BCOS: transport with killing and competing risks</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This appendix develops a model of deterministic transport with interior killing and boundary absorption, and describes its application to BCOS in PRESS. The forward equation for diffusion with killing and absorption studied by Holcman, Marchewka and Schuss <span class="citation" data-cites="holcman2005">(<a href="#ref-holcman2005" role="doc-biblioref">Holcman, Marchewka, and Schuss 2005</a>)</span> motivates the mathematical structure. Here, deterministic transport is combined with a probabilistic reference law and competing terminal events.</p>
+<section id="reference-transport-model" class="level2">
+<h2 class="anchored" data-anchor-id="reference-transport-model">1. Reference transport model</h2>
+<p>Consider a particle on <span class="math inline">\((-\infty,L)\)</span>, with absorption at <span class="math inline">\(L&gt;0\)</span>. Conditional on its initial position, its motion is deterministic until killing or absorption. Let <span class="math inline">\(\tau:(-\infty,L]\to\mathbb R\)</span> be continuous, strictly increasing, locally absolutely continuous, with <span class="math inline">\(\tau'&gt;0\)</span> almost everywhere and <span class="math inline">\(\tau(\ell)\to-\infty\)</span> as <span class="math inline">\(\ell\to-\infty\)</span>. Define the transport velocity almost everywhere by</p>
+<p><span class="math display">\[
+\nu(\ell)=1/\tau'(\ell).
+\]</span></p>
+<p>For <span class="math inline">\(\kappa&gt;0\)</span>, introduce the logistic reference function</p>
+<p><span class="math display">\[
+F(\ell,t)=[1+\exp\{-\kappa[t-\tau(\ell)]\}]^{-1}.
+\]</span></p>
+<p>It is the probability that the particle has reached <span class="math inline">\(\ell\)</span> by time <span class="math inline">\(t\)</span> in the absence of killing; the particle reaches <span class="math inline">\(\ell\)</span> at time <span class="math inline">\(\tau(\ell)+T\)</span>, with <span class="math inline">\(T\)</span> a logistic delay common to all positions. The corresponding density of the particle’s position, <span class="math inline">\(p_0\)</span>, and its current are</p>
+<p><span class="math display">\[
+\begin{aligned}
+p_0(\ell,t)&amp;=-\partial_\ell F(\ell,t)=\kappa\tau'(\ell)F(\ell,t)[1-F(\ell,t)],\\
+\nu(\ell)p_0(\ell,t)&amp;=\partial_tF(\ell,t)=\kappa F(\ell,t)[1-F(\ell,t)].
+\end{aligned}
+\]</span></p>
+<p>Equality of the mixed derivatives, in the distributional sense, gives</p>
+<p><span class="math display">\[
+\partial_tp_0+\partial_\ell(\nu p_0)=0.
+\]</span></p>
+</section>
+<section id="initial-conditioning" class="level2">
+<h2 class="anchored" data-anchor-id="initial-conditioning">2. Initial conditioning</h2>
+<p>The initial condition is the reference density at time zero, conditioned on non-absorption. At <span class="math inline">\(t=0\)</span>, the reference law assigns mass <span class="math inline">\(F(L,0)\)</span> to the destination or beyond; removing it and retaining all mass on <span class="math inline">\((-\infty,L)\)</span> gives</p>
+<p><span class="math display">\[
+Z=1-F(L,0),\qquad p_k(\ell,0)=p_0(\ell,0)/Z,\quad -\infty&lt;\ell&lt;L.
+\]</span></p>
+<p>Since <span class="math inline">\(F(-\infty,0)=1\)</span>, the initial density integrates to one. The reference law has median at the point where <span class="math inline">\(\tau(\ell)=0\)</span>, when that point exists. In particular, if <span class="math inline">\(\tau(0)=0\)</span>, its unconditioned median is zero; truncation at <span class="math inline">\(L\)</span> shifts the conditioned median. The negative half-line can represent a latent waiting state, as in the BCOS application below.</p>
+</section>
+<section id="transport-with-killing" class="level2">
+<h2 class="anchored" data-anchor-id="transport-with-killing">3. Transport with killing</h2>
+<p>Let <span class="math inline">\(k(\ell,t)\ge0\)</span> be measurable and bounded on the domain over each finite time interval. The surviving density satisfies</p>
+<p><span class="math display">\[
+\boxed{\begin{aligned}
+\partial_tp_k+\partial_\ell(\nu p_k)&amp;=-kp_k, &amp;&amp;\ell&lt;L,\\
+p_k(\ell,0)&amp;=p_0(\ell,0)/Z.
+\end{aligned}}
+\]</span></p>
+<p>The absorbing outflow boundary <span class="math inline">\(L\)</span> is the only finite boundary of the domain, and the density there is determined by the transport. The current vanishes at <span class="math inline">\(-\infty\)</span>, as follows from the characteristic solution below.</p>
+</section>
+<section id="solution-by-characteristics" class="level2">
+<h2 class="anchored" data-anchor-id="solution-by-characteristics">4. Solution by characteristics</h2>
+<p>Use the transport-time coordinate <span class="math inline">\(\zeta=\tau(\ell)-\tau(0)\)</span>. The density in this coordinate is the current <span class="math inline">\(J_k=\nu p_k\)</span>, since <span class="math inline">\(\mathrm d\ell=\nu\,\mathrm d\zeta\)</span> almost everywhere. The conservative equation becomes</p>
+<p><span class="math display">\[
+\partial_tJ_k+\partial_\zeta J_k=-kJ_k,
+\]</span></p>
+<p>where <span class="math inline">\(k\)</span> is evaluated at <span class="math inline">\(\ell=\tau^{-1}(\zeta+\tau(0))\)</span>. The characteristic ending at <span class="math inline">\((\ell,t)\)</span> is</p>
+<p><span class="math display">\[
+X_\xi=\tau^{-1}(\tau(\ell)-t+\xi),\qquad 0\le\xi\le t.
+\]</span></p>
+<p>Every backward characteristic reaches the initial line because <span class="math inline">\(\tau\)</span> tends to <span class="math inline">\(-\infty\)</span> at the left end. This construction also specifies the passage through points where the spatial velocity vanishes: transport proceeds at unit speed in <span class="math inline">\(\zeta\)</span> through such points.</p>
+<p>Along a characteristic,</p>
+<p><span class="math display">\[
+\frac{\mathrm d}{\mathrm d\xi}J_k(X_\xi,\xi)=-k(X_\xi,\xi)J_k(X_\xi,\xi).
+\]</span></p>
+<p>The reference function and current are constant along characteristics because <span class="math inline">\(\xi-\tau(X_\xi)=t-\tau(\ell)\)</span>. The initial current is therefore <span class="math inline">\(\partial_tF(\ell,t)/Z\)</span>. Integration yields</p>
+<p><span class="math display">\[
+\boxed{p_k(\ell,t)=\frac{p_0(\ell,t)}{Z}w(\ell,t),\qquad w(\ell,t)=\exp\!\left[-\int_0^t k(X_\xi,\xi)\,\mathrm d\xi\right].}
+\]</span></p>
+<p>The weight <span class="math inline">\(w\)</span> is the probability of surviving killing along the entire characteristic since time zero. Since <span class="math inline">\(0\le w\le1\)</span>, the current <span class="math inline">\(J_k=\partial_tF\,w/Z\)</span> vanishes as <span class="math inline">\(\ell\to-\infty\)</span>. Without killing, <span class="math inline">\(p_k=p_0/Z\)</span>.</p>
+</section>
+<section id="competing-risks" class="level2">
+<h2 class="anchored" data-anchor-id="competing-risks">5. Competing risks</h2>
+<p>The terminal fluxes are</p>
+<p><span class="math display">\[
+\boxed{j_L(t)=\nu(L)p_k(L^-,t),\qquad j_k(t)=\int_{-\infty}^L k(\ell,t)p_k(\ell,t)\,\mathrm{d} \ell.}
+\]</span></p>
+<p>Integration of the transport equation over <span class="math inline">\((-\infty,L)\)</span> gives</p>
+<p><span class="math display">\[
+\frac{\mathrm d}{\mathrm dt}\int_{-\infty}^L p_k(\ell,t)\,\mathrm d\ell= -j_L(t)-j_k(t).
+\]</span></p>
+<p>The total at-risk probability is the surviving mass:</p>
+<p><span class="math display">\[
+\boxed{S(t)=\int_{-\infty}^L p_k(\ell,t)\,\mathrm d\ell.}
+\]</span></p>
+<p>With <span class="math inline">\(C_L\)</span> and <span class="math inline">\(C_k\)</span> denoting cumulative incidences of absorption and of killing, respectively,</p>
+<p><span class="math display">\[
+\boxed{\begin{aligned}
+S'&amp;=-j_L-j_k, &amp; S(0)&amp;=1,\\
+C_L'&amp;=j_L, &amp; C_L(0)&amp;=0,\\
+C_k'&amp;=j_k, &amp; C_k(0)&amp;=0.
+\end{aligned}}
+\]</span></p>
+<p>Adding the equations yields <span class="math inline">\(S(t)+C_L(t)+C_k(t)=1\)</span>. These balances hold almost everywhere in time under the stated assumptions.</p>
+<p>For <span class="math inline">\(S(t)&gt;0\)</span>, the cause-specific hazards are</p>
+<p><span class="math display">\[
+\boxed{h_L(t)=\frac{j_L(t)}{S(t)},\qquad h_k(t)=\frac{j_k(t)}{S(t)}.}
+\]</span></p>
+<p>The total hazard is <span class="math inline">\(h_L+h_k=-S'/S\)</span>, and</p>
+<p><span class="math display">\[
+\begin{aligned}
+S(t)&amp;=\exp\!\left[-\int_0^t [h_L(\xi)+h_k(\xi)]\,\mathrm{d}\xi\right],\\
+C_L(t)&amp;=\int_0^t h_L(\xi)S(\xi)\,\mathrm{d}\xi,\qquad C_k(t)=\int_0^t h_k(\xi)S(\xi)\,\mathrm{d}\xi.
+\end{aligned}
+\]</span></p>
+<p>Bounded killing on finite time intervals implies <span class="math inline">\(S(t)&gt;0\)</span> at every finite time.</p>
+<section id="multiple-killing-causes" class="level3">
+<h3 class="anchored" data-anchor-id="multiple-killing-causes">Multiple killing causes</h3>
+<p>Suppose killing can occur through several competing causes indexed by <span class="math inline">\(i\)</span>, with local intensities <span class="math inline">\(k_i(\ell,t)\)</span>. Conditional on the particle’s trajectory, assume independent killing processes, so that</p>
+<p><span class="math display">\[
+k(\ell,t)=\sum_i k_i(\ell,t).
+\]</span></p>
+<p>Along a characteristic, the survival weight factorizes as</p>
+<p><span class="math display">\[
+w(\ell,t)=\prod_{i}\exp\!\left[-\int_{0}^t k_i(X_\xi,\xi)\,\mathrm d\xi\right].
+\]</span></p>
+<p>The additive sink partitions the killing flux into mutually exclusive terminal causes:</p>
+<p><span class="math display">\[
+j_i(t)=\int_{-\infty}^L k_i(\ell,t)p_k(\ell,t)\,\mathrm{d}\ell,\qquad
+j_k(t)=\sum_i j_i(t).
+\]</span></p>
+<p>The cause-specific hazards and cumulative incidences are</p>
+<p><span class="math display">\[
+h_i(t)=\frac{j_i(t)}{S(t)},\qquad C_i(t)=\int_0^t S(\xi)h_i(\xi)\,\mathrm{d}\xi.
+\]</span></p>
+<p>Consequently <span class="math inline">\(S(t)+C_L(t)+\sum_i C_i(t)=1\)</span>. The individual fluxes depend on all killing intensities through the surviving density <span class="math inline">\(p_k\)</span>.</p>
+</section>
+</section>
+<section id="terminal-probabilities" class="level2">
+<h2 class="anchored" data-anchor-id="terminal-probabilities">6. Terminal probabilities</h2>
+<p>Since <span class="math inline">\(0\le w\le1\)</span>, we have <span class="math inline">\(0\le S(t)\le [1-F(L,t)]/Z\to0\)</span>. Consequently, the terminal probabilities satisfy</p>
+<p><span class="math display">\[
+C_L(\infty)=\int_0^\infty j_L(t)\,\mathrm{d} t,\qquad C_k(\infty)=\int_0^\infty j_k(t)\,\mathrm{d} t,\qquad C_L(\infty)+C_k(\infty)=1.
+\]</span></p>
+<p>Substituting the characteristic solution into the boundary current gives</p>
+<p><span class="math display">\[
+C_L(\infty)=\frac1Z\int_0^\infty \partial_tF(L,t)w(L,t)\,\mathrm{d}t.
+\]</span></p>
+<p>If <span class="math inline">\(k(\ell,t)=k(\ell)\)</span>, changing variables along each characteristic gives <span class="math inline">\(\mathrm d\xi=\mathrm d\eta/\nu(\eta)\)</span> almost everywhere. The terminal probability is</p>
+<p><span class="math display">\[
+C_L(\infty)=\int_{-\infty}^L \frac{p_0(y,0)}{Z}\exp\!\left[-\int_y^L\frac{k(\eta)}{\nu(\eta)}\,\mathrm d\eta\right]\,\mathrm dy.
+\]</span></p>
+<p>Without killing, <span class="math inline">\(w=1\)</span> and <span class="math inline">\(j_L(t)=\partial_tF(L,t)/Z\)</span>, so <span class="math inline">\(C_L(\infty)=[1-F(L,0)]/Z=1\)</span>.</p>
+<p>For multiple killing causes, <span class="math inline">\(C_L(\infty)+\sum_i C_i(\infty)=1\)</span>.</p>
+</section>
+<section id="application-to-bcos-in-press" class="level2">
+<h2 class="anchored" data-anchor-id="application-to-bcos-in-press">7. Application to BCOS in PRESS</h2>
+<section id="time-to-intercept-and-reference-law" class="level3">
+<h3 class="anchored" data-anchor-id="time-to-intercept-and-reference-law">Time to intercept and reference law</h3>
+<p>The function <span class="math inline">\(\tau(\ell)\)</span> of the transport model is the time to intercept (TTI) of the carrier along the candidate route, and the killing is the interception of the carrier by the defenders. For a player <span class="math inline">\(j\)</span> and a target location <span class="math inline">\(x\)</span> on the pitch, the nominal TTI is</p>
+<p><span class="math display">\[
+\tau_j(x)=t_{\mathrm{turn},j}(x)+t_{\mathrm{move},j}(x),
+\]</span></p>
+<p>the sum of the turning delay and the acceleration-limited travel time, both computed from the observed position and velocity of the player. The maximal speed and acceleration of the movement model are set separately for the carrier, who moves with the ball, and for the defenders. For a defender, <span class="math inline">\(\tau_j(x)\)</span> is the nominal time to reach a potential interception location; for the carrier, it is the nominal time to reach <span class="math inline">\(x\)</span>. Following Spearman <span class="citation" data-cites="spearman2017 spearman2018beyond">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>; <a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>, the uncertainty around the TTI is logistic, with arrival-time distribution and arrival hazard</p>
+<p><span class="math display">\[
+F_j(x,t)=\left[1+\exp\{-\kappa\,[t-\tau_j(x)]\}\right]^{-1},\qquad
+\lambda_j^{\mathrm{arr}}(t\mid x)=\frac{\partial_tF_j(x,t)}{1-F_j(x,t)}=\kappa F_j(x,t).
+\]</span></p>
+<p>Here <span class="math inline">\(\kappa=\pi/(\sqrt{3}\,s)\)</span>, where <span class="math inline">\(s\)</span> is the standard deviation of arrival-time uncertainty.</p>
+<p>For a carrier initially at <span class="math inline">\(x_{\mathrm{bc}}(0)\)</span>, the route is <span class="math inline">\(x(\ell;z)=x_{\mathrm{bc}}(0)+\ell(z-x_{\mathrm{bc}}(0))/L\)</span> for <span class="math inline">\(0\le\ell\le L\)</span>, with <span class="math inline">\(L=\|z-x_{\mathrm{bc}}(0)\|\)</span>. Along this route, <span class="math inline">\(\tau(\ell)\)</span> is the nominal TTI of the carrier at <span class="math inline">\(x(\ell;z)\)</span>, and <span class="math inline">\(F(\ell,t)\)</span> is its logistic arrival-time distribution. Time is measured from the observed instant: the carrier first turns and then moves along the route. The extension to negative transport coordinates represents waiting at the observed origin, as specified below.</p>
+</section>
+<section id="transport-velocity" class="level3">
+<h3 class="anchored" data-anchor-id="transport-velocity">Transport velocity</h3>
+<p>The TTI of the carrier along a straight ray follows from the acceleration-limited movement model of PRESS. Let <span class="math inline">\(\ell\)</span> denote distance along a straight ray from the carrier’s initial position. The observed speed is <span class="math inline">\(u\ge0\)</span>, and <span class="math inline">\(a&gt;0\)</span> and <span class="math inline">\(v_{\max}&gt;0\)</span> are the carrier’s acceleration and maximal speed. The angle <span class="math inline">\(\theta\)</span> is fixed along the ray. The turning contribution is the constant</p>
+<p><span class="math display">\[
+t_{\mathrm{turn}}=\frac{u\theta}{a_{\mathrm{turn}}},\qquad a_{\mathrm{turn}}&gt;0.
+\]</span></p>
+<p>For <span class="math inline">\(u&lt;v_{\max}\)</span>, set</p>
+<p><span class="math display">\[
+t_a=\frac{v_{\max}-u}{a},\qquad d_a=ut_a+\tfrac12at_a^2.
+\]</span></p>
+<p>The function defining the transport is</p>
+<p><span class="math display">\[
+\tau(\ell)=t_{\mathrm{turn}}+\begin{cases}
+(\sqrt{u^2+2a\ell}-u)/a,&amp;0\le \ell\le d_a,\\[3pt]
+t_a+(\ell-d_a)/v_{\max},&amp;\ell&gt;d_a.
+\end{cases}
+\]</span></p>
+<p>For <span class="math inline">\(u\ge v_{\max}\)</span>, use <span class="math inline">\(\tau(\ell)=t_{\mathrm{turn}}+\ell/u\)</span>: the observed speed is maintained, including when it exceeds <span class="math inline">\(v_{\max}\)</span>. For the accelerating case,</p>
+<p><span class="math display">\[
+\tau'(\ell)=\begin{cases}
+1/\sqrt{u^2+2a\ell},&amp;0&lt;\ell\le d_a,\\
+1/v_{\max},&amp;\ell&gt;d_a,
+\end{cases}
+\qquad
+\nu(\ell)=\begin{cases}
+\sqrt{u^2+2a\ell},&amp;0&lt;\ell\le d_a,\\
+v_{\max},&amp;\ell&gt;d_a.
+\end{cases}
+\]</span></p>
+<p>At <span class="math inline">\(d_a\)</span>, <span class="math inline">\(u^2+2ad_a=v_{\max}^2\)</span>, so <span class="math inline">\(\tau\)</span> is <span class="math inline">\(C^1\)</span>.</p>
+<p>Write <span class="math inline">\(t_{\mathrm{move}}(\ell)=\tau(\ell)-t_{\mathrm{turn}}\)</span> for <span class="math inline">\(\ell\ge0\)</span>. Extend the movement time antisymmetrically:</p>
+<p><span class="math display">\[
+\boxed{\tau(\ell)=t_{\mathrm{turn}}+\begin{cases}
+-t_{\mathrm{move}}(-\ell),&amp;\ell&lt;0,\\
+t_{\mathrm{move}}(\ell),&amp;\ell\ge0.
+\end{cases}}
+\]</span></p>
+<p>This extension is strictly increasing and tends to <span class="math inline">\(-\infty\)</span> at the left end. For <span class="math inline">\(u&gt;0\)</span>, it is <span class="math inline">\(C^1\)</span> at zero, with <span class="math inline">\(\tau'(0)=1/u\)</span>. For <span class="math inline">\(u=0\)</span>, the derivative has an integrable singularity at zero; the velocity tends to zero from both sides. The transport-time coordinate specifies passage through zero, as in the characteristic construction above. The extension uses only the movement parameters already defined.</p>
+<p>The inverse of the positive movement time is, for <span class="math inline">\(r\ge0\)</span> and <span class="math inline">\(u&lt;v_{\max}\)</span>,</p>
+<p><span class="math display">\[
+t_{\mathrm{move}}^{-1}(r)=\begin{cases}
+ur+\tfrac12ar^2,&amp;0\le r\le t_a,\\
+d_a+v_{\max}(r-t_a),&amp;r&gt;t_a.
+\end{cases}
+\]</span></p>
+<p>For <span class="math inline">\(u\ge v_{\max}\)</span>, <span class="math inline">\(t_{\mathrm{move}}^{-1}(r)=ur\)</span>. Thus the extended inverse is</p>
+<p><span class="math display">\[
+\tau^{-1}(t)=\operatorname{sgn}(t-t_{\mathrm{turn}})\,t_{\mathrm{move}}^{-1}(|t-t_{\mathrm{turn}}|).
+\]</span></p>
+<p>The constant turning delay cancels from the characteristic trajectories but affects the reference weights and initial conditioning. Negative coordinates are latent waiting states, whose physical location is the observed origin:</p>
+<p><span class="math display">\[
+x(\ell;z)=x_{\mathrm{bc}}(0)+\frac{\max(\ell,0)}{L}(z-x_{\mathrm{bc}}(0)),\qquad \ell\le L.
+\]</span></p>
+<p>Since all negative coordinates share this location, the form of the extension is a convention.</p>
+<p>For <span class="math inline">\(\tau(0)=t_{\mathrm{turn}}\ge0\)</span>, the initial physical position concentrates at the observed origin as <span class="math inline">\(\kappa\to\infty\)</span>: for <span class="math inline">\(0&lt;\epsilon&lt;L\)</span>, the conditioned probability of being beyond <span class="math inline">\(\epsilon\)</span> is <span class="math inline">\([F(\epsilon,0)-F(L,0)]/Z\to0\)</span>. When the turning delay is positive, the latent reference median lies on the negative half-line, which maps to the origin.</p>
+</section>
+<section id="interception-intensities" class="level3">
+<h3 class="anchored" data-anchor-id="interception-intensities">Interception intensities</h3>
+<p>Interception occurs when a defender reaches the location occupied by the carrier while the carrier is still in possession. In pitch control, the arrival of each player is evaluated at every point of the ball trajectory, and each point represents an opportunity for interception. Here the arrival of each defender is evaluated in the same way at every point of the carrier’s route, and we model the local interception intensity by the defender’s arrival hazard at that location. Conditional on the carrier’s characteristic and the observed tracking state, the defenders’ interception processes are assumed independent; their intensities therefore add. For the route <span class="math inline">\(x(\ell;z)\)</span>, PRESS specifies the local killing intensity as</p>
+<p><span class="math display">\[
+k(\ell,t)=\sum_{i\in\mathrm{opp}} k_i(\ell,t),\qquad
+k_i(\ell,t)=\lambda_i^{\mathrm{arr}}\big(t\mid x(\ell;z)\big)=\kappa F_i(x(\ell;z),t).
+\]</span></p>
+<p>On the negative half-line, the same intensity is evaluated at <span class="math inline">\(x_{\mathrm{bc}}(0)\)</span>, so interception can occur during waiting and turning. For a finite number of defenders, <span class="math inline">\(0\le k\le n_{\mathrm{opp}}\kappa\)</span>, satisfying the boundedness assumption above.</p>
+</section>
+<section id="accessibility-and-defender-specific-risks" class="level3">
+<h3 class="anchored" data-anchor-id="accessibility-and-defender-specific-risks">Accessibility and defender-specific risks</h3>
+<p>The accessibility probability is <span class="math inline">\(p_{\mathrm{bc}}(z)=C_L(\infty)\)</span>. The terminal incidence <span class="math inline">\(C_i(\infty)\)</span> is the probability that defender <span class="math inline">\(i\)</span> causes the first interception. Hence</p>
+<p><span class="math display">\[
+p_{\mathrm{bc}}(z)+\sum_{i\in\mathrm{opp}} C_i(\infty)=1.
+\]</span></p>
+<p>These incidences quantify the contributions of individual defenders under the joint model. Evaluating <span class="math inline">\(p_{\mathrm{bc}}(z)\)</span> across candidate destinations produces the BCOS accessibility surface.</p>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-holcman2005" class="csl-entry" role="listitem">
+Holcman, D., A. Marchewka, and Z. Schuss. 2005. <span>“The Survival Probability of Diffusion with Killing.”</span> <a href="https://doi.org/10.48550/arXiv.math-ph/0502035">https://doi.org/10.48550/arXiv.math-ph/0502035</a>.
+</div>
+<div id="ref-spearman2018beyond" class="csl-entry" role="listitem">
+Spearman, William. 2018. <span>“Beyond Expected Goals.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://static.hudl.com/craft/downloads/SSAC2018_Beyond_Expected_Goals.pdf">https://static.hudl.com/craft/downloads/SSAC2018_Beyond_Expected_Goals.pdf</a>.
+</div>
+<div id="ref-spearman2017" class="csl-entry" role="listitem">
+Spearman, William, Austin Basye, Greg Dick, Ryan Hotovy, and Paul Pop. 2017. <span>“Physics-Based Modeling of Pass Probabilities in Soccer.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://static.hudl.com/craft/downloads/SSAC17-Physics-Based-Modeling-of-Pass-Probabilities-in-Soccer.pdf">https://static.hudl.com/craft/downloads/SSAC17-Physics-Based-Modeling-of-Pass-Probabilities-in-Soccer.pdf</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="../index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/appendix/bcos-transport-with-killing.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

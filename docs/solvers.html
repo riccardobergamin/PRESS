@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - Reference: solvers</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./reference/getters.html" rel="next">
+<link href="./api.html" rel="prev">
+<link href="./branding/favicon.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <img src="./branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="./data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="./vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="./benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="./api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./api.html">Reference</a></li><li class="breadcrumb-item"><a href="./solvers.html">2 · Solvers</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./external-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./solvers.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#complete-frame-and-possession-calculations" id="toc-complete-frame-and-possession-calculations" class="nav-link active" data-scroll-target="#complete-frame-and-possession-calculations">Complete frame and possession calculations</a></li>
+  <li><a href="#individual-component-methods" id="toc-individual-component-methods" class="nav-link" data-scroll-target="#individual-component-methods">Individual component methods</a>
+  <ul class="collapse">
+  <li><a href="#reusing-calculations-within-inference" id="toc-reusing-calculations-within-inference" class="nav-link" data-scroll-target="#reusing-calculations-within-inference">Reusing calculations within inference</a></li>
+  <li><a href="#frame-inspection-and-many-possession-analysis" id="toc-frame-inspection-and-many-possession-analysis" class="nav-link" data-scroll-target="#frame-inspection-and-many-possession-analysis">Frame inspection and many-possession analysis</a></li>
+  <li><a href="#example-change-the-model-or-the-configuration" id="toc-example-change-the-model-or-the-configuration" class="nav-link" data-scroll-target="#example-change-the-model-or-the-configuration">Example: change the model or the configuration</a></li>
+  <li><a href="#fitted-model-settings" id="toc-fitted-model-settings" class="nav-link" data-scroll-target="#fitted-model-settings">Fitted-model settings</a></li>
+  <li><a href="#composition" id="toc-composition" class="nav-link" data-scroll-target="#composition">Composition</a></li>
+  </ul></li>
+  <li><a href="#numerical-functions" id="toc-numerical-functions" class="nav-link" data-scroll-target="#numerical-functions">Numerical functions</a>
+  <ul class="collapse">
+  <li><a href="#pitch-control" id="toc-pitch-control" class="nav-link" data-scroll-target="#pitch-control">Pitch control</a></li>
+  <li><a href="#pass-probability-along-a-trajectory" id="toc-pass-probability-along-a-trajectory" class="nav-link" data-scroll-target="#pass-probability-along-a-trajectory">Pass probability along a trajectory</a></li>
+  <li><a href="#drive-loss-integration" id="toc-drive-loss-integration" class="nav-link" data-scroll-target="#drive-loss-integration">Drive-loss integration</a></li>
+  <li><a href="#ball-flight-and-receiver-arrival" id="toc-ball-flight-and-receiver-arrival" class="nav-link" data-scroll-target="#ball-flight-and-receiver-arrival">Ball flight and receiver arrival</a></li>
+  <li><a href="#fitted-pass-settings-for-the-low-level-solvers" id="toc-fitted-pass-settings-for-the-low-level-solvers" class="nav-link" data-scroll-target="#fitted-pass-settings-for-the-low-level-solvers">Fitted pass settings for the low-level solvers</a></li>
+  </ul></li>
+  <li><a href="#bcos-formulations" id="toc-bcos-formulations" class="nav-link" data-scroll-target="#bcos-formulations">BCOS formulations</a></li>
+  <li><a href="#physical-parameter-inputs" id="toc-physical-parameter-inputs" class="nav-link" data-scroll-target="#physical-parameter-inputs">Physical parameter inputs</a>
+  <ul class="collapse">
+  <li><a href="#named-model-parameters" id="toc-named-model-parameters" class="nav-link" data-scroll-target="#named-model-parameters">Named model parameters</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/solvers.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./api.html">Reference</a></li><li class="breadcrumb-item"><a href="./solvers.html">2 · Solvers</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Reference: solvers</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><a href="./api.html">1 · Initialization and classes</a> · <strong>2 · Solvers</strong> · <a href="./reference/getters.html">3 · Getters and saved results</a> · <a href="./reference/plots.html">4 · Plot functions</a>.</p>
+<p>The match-level methods extract the current frame and store results; the numerical functions below operate directly on arrays. Positions are centred metres, velocities m/s and time seconds. Input frame frequency and numerical integration step are independent.</p>
+<section id="complete-frame-and-possession-calculations" class="level2">
+<h2 class="anchored" data-anchor-id="complete-frame-and-possession-calculations">Complete frame and possession calculations</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>outputs <span class="op">=</span> press.compute_risk_frame(frame_id, include_residual<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> outputs[<span class="st">"HAZARD"</span>][<span class="st">"Hazard"</span>]</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>band <span class="op">=</span> outputs[<span class="st">"HAZARD"</span>][<span class="st">"band"</span>]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>xloss <span class="op">=</span> outputs[<span class="st">"XLOSS"</span>][<span class="st">"xLoss"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>compute_risk_frame(frame_id, xT_grid=None, *, start_type=None, previous_action=None, bcos_value=None, ppcf_kwargs=None, ball_drive_kwargs=None, bcos_kwargs=None, pass_selection_kwargs=None, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None, include_residual=False, time_since_start=None, keep_details=False)</code> computes prerequisites in order. It evaluates any usable frame, not only training checkpoints. Current context is read from annotations unless supplied explicitly. xT uses the frame argument when supplied, then the object map, then the fitted production surface. The resolved map is passed to both choice-model feature builders; residual risk reuses their feature record. Separately called action selection reuses the map stored by pass selection and rejects a conflicting map.</p>
+<p>It always recomputes the requested frame and returns copied <code>PPCF</code>, <code>BALL_DRIVE_RISK</code>, <code>ACTION_SELECTION</code> and <code>HAZARD</code> results. With <code>include_residual=True</code>, it also returns <code>RESIDUAL_RISK</code> and <code>XLOSS</code>. Elapsed individual-possession time must be observed or explicitly supplied in seconds; a missing value raises an error and is never replaced by zero. A custom <code>bcos_value</code> reuses an already computed area in m²; otherwise only the preliminary effective-hazard BCOS required by the fitted trees is calculated. The standalone <code>compute_bcos()</code> default remains final transport. BCOS can be the expensive part of a full-frame calculation.</p>
+<p><code>compute_possession(possession_id, xT_grid=None, *, frame_ids=None, include_snapshots=True, **frame_kwargs)</code> evaluates a <strong>team</strong> interval. <code>compute_risk_player_possession(player_possession_id, ...)</code> evaluates an <strong>individual</strong> interval. Both return a chronological DataFrame with frame IDs, canonical/snapshot kind, P(pass), h and its automatically assigned <code>band</code>; xLoss is included when requested. Default frames come from the canonical actions constructed by PRESS from individual possessions, or from an explicitly supplied action table. Explicit <code>frame_ids</code> must be nonempty, unique integer usable frames within the chosen interval. No new segmentation or observed outcome is inferred.</p>
+<p>The <code>band</code> field in each <code>HAZARD</code> result classifies h as <code>None</code>, <code>Low</code>, <code>Medium</code> or <code>High</code>, using the existing half-life cutoffs. It is assigned during risk calculation and returned by <code>get_hazard_result</code>; no additional band calculation is required. These are h bands, not classifications of xLoss.</p>
+<p>Complete risk calculations use <code>keep_details=False</code> by default. Every dependency is evaluated before discarding spatial fields, integration curves and feature records. Scalar component probabilities, BCOS area, h, its band and optional xLoss remain in <code>press.results</code>. <code>keep_details=True</code> additionally retains the arrays needed for spatial plots and feature inspection. Both modes produce the same numerical predictions. The possession methods accept the same option through their frame keywords.</p>
+<p><code>press.result_configurations</code> stores physical/numerical settings and the xT input once per distinct configuration. Results refer to them through <code>configuration_id</code>. <code>press.result_models</code> holds fitted model instances once per distinct artifact, including custom per-call physical parameters. Inspect them with <code>get_result_configuration(frame_id, component=None)</code> and <code>get_result_model(component, frame_id)</code>. The latter returns the shared model; use <code>.to_dict()</code> for an editable copy. Coefficients and spline transformations are not copied into each frame’s result.</p>
+<p>Individual component calls retain their detailed outputs for step-by-step computation, but physical/numerical settings are still stored in shared configurations. No match-level component result repeats fitted coefficients, spline design, <code>lambda_control</code>, <code>s</code> or calibration; retrieve the fitted quantities from its model. BCOS dispersion is an explicit physical input in its configuration. Spatial plots never trigger model calculation: when a map was discarded, rerun the complete calculation with <code>keep_details=True</code>, or calculate the required component explicitly. <code>plot_risk</code> works with compact outputs.</p>
+<p>Additional snapshot forecasts can overlap canonical actions. They are useful for plotting, but must not be multiplied blindly into a survival sequence. Frame sampling never changes the modeled one-second carry action.</p>
+</section>
+<section id="individual-component-methods" class="level2">
+<h2 class="anchored" data-anchor-id="individual-component-methods">Individual component methods</h2>
+<p>Call these methods in dependency order when only some outputs are needed.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Prerequisites and output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>compute_ppcf(frame_id, r_max=150, step=1.0, physics_kwargs=None, model=None)</code></td>
+<td>Current physical state → raw player/attacking control and isotonic pass completion on a candidate grid. Stores <code>PPCF</code>; returns <code>None</code>.</td>
+</tr>
+<tr class="even">
+<td><code>compute_ball_drive_risk(frame_id, t_press=1.0, physics_kwargs=None, model=None)</code></td>
+<td>Current physical state → total and cause-specific drive loss over <code>t_press</code> seconds. Stores <code>BALL_DRIVE_RISK</code>; returns <code>None</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>compute_pass_selection(frame_id, xT_grid=None, *, start_type_raw=None, previous_action_raw=None, match_clock_min=None, score_difference_prefix=None)</code></td>
+<td>Requires PPCF and one-second drive loss. Uses <strong>raw</strong> control for destination choice, stores <code>Pass selection probabilities</code> inside PPCF, and returns that normalized vector.</td>
+</tr>
+<tr class="even">
+<td><code>compute_bcos(frame_id, r_max=40.0, step=1.0, physics_args=None, *, formulation="transport")</code></td>
+<td>Current state and physical drive dispersion → spatial field and area. Stores <code>BCOS</code> and returns its copied mapping.</td>
+</tr>
+<tr class="odd">
+<td><code>compute_action_selection_probability(frame_id, xT_grid=None, start_type=None, previous_action=None, bcos_value=None, *, match_clock_min=None, score_difference_prefix=None, completed_canonical_drives=None)</code></td>
+<td>Requires PPCF, destination choice, one-second drive loss and a BCOS area. The builder converts the stored loss d to <strong><code>drive_success_1s = 1 - d</code></strong> and uses <strong>calibrated</strong> pass completion. Stores <code>ACTION_SELECTION</code>; returns native P(pass).</td>
+</tr>
+<tr class="even">
+<td><code>compute_hazard(frame_id)</code></td>
+<td>Requires the preceding pass/drive/choice/policy results. Returns and stores raw marginal next-action loss; no post-hoc h calibrator.</td>
+</tr>
+<tr class="odd">
+<td><code>compute_residual_risk(frame_id, *, time_since_start=None, model=None)</code></td>
+<td>Requires the current action feature record and its matching action model. Reuses the record plus native P(carry) and the observed elapsed time. Returns/stores terminal individual loss conditional on a successful carry.</td>
+</tr>
+<tr class="even">
+<td><code>compute_xloss(frame_id, *, time_since_start=None, model=None)</code></td>
+<td>Requires pass/drive/choice/policy results. Computes residual risk if needed and composes the terminal individual loss. Returns/stores xLoss.</td>
+</tr>
+</tbody>
+</table>
+<section id="reusing-calculations-within-inference" class="level3">
+<h3 class="anchored" data-anchor-id="reusing-calculations-within-inference">Reusing calculations within inference</h3>
+<p>A complete frame call extracts the physical state and context once and shares the pressure-line centres. The pass solver reuses player TTI for receiver-based flight selection and control, without changing the nearest-receiver convention. Candidate ball trajectories are reused across frames only when their launch and ball-physics settings match; this numerical cache is bounded to eight configurations. Frame-dependent flight times, control fields and predictions are recalculated.</p>
+<p>Residual risk reuses the native P(carry) already returned by the matching production action model, retaining its model-dependency check. xLoss reuses the current h; changing an upstream component invalidates its dependent results. Frame-state reuse ends when the call returns or raises, so later calls see tracking/annotation edits. These are computational reuse rules; training and cross-fitting procedures are unchanged.</p>
+<p>The autonomous final BCOS solver reuses defender TTI at the physical origin during waiting and omits zero-duration integration segments. Quadrature nodes, weights, precision, spatial grid and model equations are unchanged. Complete risk calls compute only the preliminary BCOS needed by the fitted tree models.</p>
+</section>
+<section id="frame-inspection-and-many-possession-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="frame-inspection-and-many-possession-analysis">Frame inspection and many-possession analysis</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Purpose</th>
+<th>Call/storage setting</th>
+<th>Available afterwards</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Inspect one component at one frame</td>
+<td>Call its <code>compute_*</code> method directly.</td>
+<td>Detailed component outputs; model and physical/numerical configuration are referenced separately.</td>
+</tr>
+<tr class="even">
+<td>Inspect a complete frame</td>
+<td><code>compute_risk_frame(..., keep_details=True, include_residual=True)</code></td>
+<td>Scalar predictions, spatial maps, defender contributions, survival curve and action-selection feature record.</td>
+</tr>
+<tr class="odd">
+<td>Process many possessions</td>
+<td><code>compute_risk_player_possession(..., include_snapshots=False, keep_details=False, include_residual=True)</code></td>
+<td>Scalar predictions and h bands for canonical checkpoints, shared models/settings; maps and feature records are discarded after calculation.</td>
+</tr>
+</tbody>
+</table>
+<p>Both retention levels use the same model inputs and produce identical predictions. <code>plot_risk</code> and <code>plot_action_selection</code> work with compact predictions. Spatial maps and defender-risk coloring require details; plotting never starts a new model calculation.</p>
+<p>The tree feature <strong>schema</strong> (names, order, categories and encoding) belongs to the fitted model. The feature <strong>values</strong> at a frame are calculation inputs: pass-selection’s destination-wise matrix and the encoded residual matrix are temporary; action selection retains its named <code>Features</code> record for residual risk and detailed inspection. Compact complete calls discard that record only after all requested predictions finish. These frame values are neither fitted model parameters nor predicted outcomes.</p>
+</section>
+<section id="example-change-the-model-or-the-configuration" class="level3">
+<h3 class="anchored" data-anchor-id="example-change-the-model-or-the-configuration">Example: change the model or the configuration</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Configuration change: same fitted coefficients/bases, different defender motion.</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>press.compute_ball_drive_risk(frame_id, physics_kwargs<span class="op">=</span>{<span class="st">"v_max"</span>: <span class="fl">6.5</span>})</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Model change: custom coefficients/dispersion, with omitted bases inherited.</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>press.compute_ball_drive_risk(frame_id, model<span class="op">=</span>{<span class="st">"s"</span>: <span class="fl">0.35</span>, <span class="st">"gamma_v"</span>: [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>]})</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>fitted_model_used <span class="op">=</span> press.get_result_model(<span class="st">"BALL_DRIVE_RISK"</span>, frame_id)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>parameters_used <span class="op">=</span> fitted_model_used.parameters</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>physical_settings_used <span class="op">=</span> press.get_result_configuration(frame_id, <span class="st">"BALL_DRIVE_RISK"</span>)[<span class="st">"BALL_DRIVE_RISK"</span>]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Complete calculation: scalar results, shared configuration and automatic h band.</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>outputs <span class="op">=</span> press.compute_risk_frame(frame_id, include_residual<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>settings_used <span class="op">=</span> press.get_result_configuration(frame_id)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> outputs[<span class="st">"HAZARD"</span>][<span class="st">"Hazard"</span>]</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>band <span class="op">=</span> outputs[<span class="st">"HAZARD"</span>][<span class="st">"band"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The first two calls replace the stored ball-drive result and invalidate its dependants; they do not change the default model. The final call omits overrides and recomputes the complete analysis with the object’s default models/settings. Model parameters and spline bases remain in the shared model, physical/numerical inputs in the shared configuration, and frame predictions in the results. <a href="./api.html#model-configuration-result">The three levels, with movement-setting examples</a>.</p>
+</section>
+<section id="fitted-model-settings" class="level3">
+<h3 class="anchored" data-anchor-id="fitted-model-settings">Fitted-model settings</h3>
+<p>The default pass-risk artifact uses <code>v_max=5.5</code>, <code>a_max=a_turn=7</code>, overspeed-preserving TTI, <code>dt_ball=0.04</code>, <code>t_max_flight=10</code>, <code>dt_pc=0.01</code>, <code>t_max_pc=15</code>, exact target distances and exponential integration. Launch candidates span 5–25 m/s and 0–45 degrees, 30 values on each axis; drag settings are <code>rho=1.22</code>, <code>Cd=0.25</code>, <code>A=0.038</code>, <code>m=0.42</code>, <code>g=9.81</code>, controllable height <code>z_max=2</code>. The full-data parameters are <code>lambda_control=5.437830</code>, <code>s=0.294560</code>; isotonic knots are separate from those physical estimates. Export provenance.</p>
+<p>The default drive artifact uses the verified additive splines and angle term, <code>v_max=7</code>, independent linear/turning acceleration settings, preserved initial overspeed, signed boundary distance, constant carrier velocity and exponential integration with partial final steps. The wrapper supplies native pitch dimensions. Physical overrides and named fitted-parameter dictionaries are supported; omitted settings retain their model defaults. <a href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html">Model and spline definitions</a>.</p>
+<p>The operational pass-selection model is the verified flat refit, with its saved vocabulary, xT surface and temperature. Candidate cells use the native one-metre grid at the default settings. Coarse/restricted grids are supported as explicit sensitivities and recorded as differing from the benchmark. Action selection and residual risk retain their native probabilities without scaling. No training occurs in these methods.</p>
+</section>
+<section id="composition" class="level3">
+<h3 class="anchored" data-anchor-id="composition">Composition</h3>
+<p>For stored native P(pass) = p, drive loss d, destination-weighted pass failure f and conditional residual loss r:</p>
+<p><span class="math display">\[h=(1-p)d+pf,\]</span></p>
+<p><span class="math display">\[xLoss=pf+(1-p)\{d+(1-d)r\}.\]</span></p>
+<p>A completed pass terminates the <strong>individual</strong> possession without loss; h describes the <strong>current action</strong>, not the outcome of the whole individual possession. <code>PRESS.model.compose_individual_xloss(*, p_pass, drive_loss, pass_failure, residual_loss)</code> exposes the same probability-only composition for scalar/broadcastable array inputs. It loads no model. <a href="./vignettes/05_residual_risk/05_residual_risk.html">Residual risk and xLoss</a>.</p>
+</section>
+</section>
+<section id="numerical-functions" class="level2">
+<h2 class="anchored" data-anchor-id="numerical-functions">Numerical functions</h2>
+<p>Low-level defaults can differ from fitted model settings. Use explicit parameters when reproducing an integration and prefer the match/model wrappers for pretrained inference. These functions expect valid, compatible arrays and physical parameters; they do not validate canonical match tables or manage dependency caches.</p>
+<section id="pitch-control" class="level3">
+<h3 class="anchored" data-anchor-id="pitch-control">Pitch control</h3>
+<p>Import <code>integrate_pitch_control</code> from <code>PRESS.model</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>integrate_pitch_control(r_grid, p_pos, p_vel, ball_carrier_idx, T_ball,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    lambda_control<span class="op">=</span><span class="fl">4.3</span>, s<span class="op">=</span><span class="fl">0.45</span>, v_max<span class="op">=</span><span class="fl">5.0</span>, a_max<span class="op">=</span><span class="fl">5.0</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    t_max_pc<span class="op">=</span><span class="fl">8.0</span>, dt_pc<span class="op">=</span><span class="fl">0.01</span>, tol<span class="op">=</span><span class="fl">1e-6</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    integration_method<span class="op">=</span><span class="st">"exponential"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>r_grid</code> is <code>(N,2)</code> candidate positions; <code>p_pos</code> and <code>p_vel</code> are <code>(M,2)</code> players; <code>ball_carrier_idx</code> identifies the excluded carrier; <code>T_ball</code> is <code>(N,)</code> ball-arrival time. <code>lambda_control</code> is a rate in inverse seconds, <code>s</code> arrival dispersion in seconds, and <code>v_max</code>/<code>a_max</code> the motion settings. Returns player-by-target control <strong><code>(M,N)</code></strong>. Control begins when the ball arrives <span class="citation" data-cites="spearman2017 spearman2018beyond">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>; <a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>. Exponential Euler allocates the available uncontrolled mass exactly for rates frozen over each step, preserving total control at most one; it is first order for time-varying rates. The full configured horizon is used, including partial final steps. <code>tol</code> is a compatibility argument and no longer changes the integration schedule. Sum attacking rows, then use the saved isotonic map through <code>PassRiskModel</code>. <code>integration_method="euler"</code> is an explicit numerical sensitivity; archived sources preserve the original clipped solver. <a href="./vignettes/02_pass_probability/02_pass_probability.html">Mathematics and frame example</a>.</p>
+</section>
+<section id="pass-probability-along-a-trajectory" class="level3">
+<h3 class="anchored" data-anchor-id="pass-probability-along-a-trajectory">Pass probability along a trajectory</h3>
+<p>Import from <code>PRESS.model.solver_pitch_control</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>integrate_pass_prob(p_pos, p_vel, attacker_idx, ball_carrier_idx,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    ball_trajectory, lambda_control<span class="op">=</span><span class="fl">4.3</span>, s<span class="op">=</span><span class="fl">0.45</span>, v_max<span class="op">=</span><span class="fl">5.0</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    a_max<span class="op">=</span><span class="fl">5.0</span>, dt<span class="op">=</span><span class="fl">0.04</span>, z_max<span class="op">=</span><span class="fl">2.0</span>, tol<span class="op">=</span><span class="fl">1e-6</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    integration_method<span class="op">=</span><span class="st">"exponential"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>p_pos</code>, <code>p_vel</code> are <code>(M,2)</code>; <code>attacker_idx</code> selects attacking rows; <code>ball_trajectory</code> is <code>(T,3)</code> with x, y and height sampled every <code>dt</code>. Control accumulates at or below <code>z_max</code> metres; the carrier is excluded before sharing mass. Returns scalar attacking success. Each supplied sample starts one integration interval: the benchmark’s 251 samples at 0..10 s use a 10.04 s left-step schedule. There is no parameter-dependent cutoff. This reconstructed-path likelihood estimates parameters; candidate-field inference uses target PPCF and its separately fitted isotonic map. <a href="./vignettes/02_pass_probability/02_pass_probability.html">Pass vignette</a>.</p>
+</section>
+<section id="drive-loss-integration" class="level3">
+<h3 class="anchored" data-anchor-id="drive-loss-integration">Drive-loss integration</h3>
+<p>The final ball-drive solver is <code>BallDriveModel</code>, imported from <code>PRESS.model</code>. It evaluates the saved penalized spline model, including the approach-angle term. The frame API calls the same solver.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS.model <span class="im">import</span> BallDriveModel</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> BallDriveModel.pretrained()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> model.predict(r_defs, v_defs, x_bc, v_bc, horizon<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> result[<span class="st">"loss_probability"</span>]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>causes <span class="op">=</span> result[<span class="st">"cause_probabilities"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Defender positions and velocities are <code>(D, 2)</code> arrays; carrier position and velocity are <code>(2,)</code>. Positions are centred metres and velocities m/s. <code>predict_batch</code> adds a leading state dimension. <code>physics_kwargs</code> permits explicit physical sensitivities; spline coefficients, knots, normalization and arrival dispersion are loaded from the fitted artifact. <code>horizon</code> accepts any finite nonnegative duration in seconds, using those same fitted parameters. The calibrated benchmark target remains one second; other horizons are model-implied forecasts.</p>
+<p>At each left integration endpoint, the carrier is projected as <span class="math inline">\(x(t)=x_0+v_0t\)</span>. The solver evaluates the signed distance to the nearest boundary, each defender’s arrival probability <span class="math inline">\(F_j(t)\)</span> and approach angle <span class="math inline">\(\phi_j(t)\)</span>. The tackle rate is</p>
+<p><span class="math display">\[\lambda_j(t)=\exp\{\log\lambda_0+g_v(\|v_0\|)+g_B(B(t))+g_\phi(\phi_j(t))\},\]</span></p>
+<p>where the saved spline functions include their fitted linear and nonlinear components. The angular contribution is set to zero when the carrier’s speed is below 1 m/s or the approach direction is undefined. The competing hazard is <span class="math inline">\(q_j(t)=F_j(t)\lambda_j(t)\)</span> and <span class="math inline">\(H(t)=\sum_jq_j(t)\)</span>. Over a step of width <span class="math inline">\(\Delta t\)</span>, the solver holds these hazards fixed and updates</p>
+<p><span class="math display">\[\Delta P_j=S\{1-\exp(-H\Delta t)\}\frac{q_j}{H},\qquad S_{\mathrm{new}}=S\exp(-H\Delta t).\]</span></p>
+<p>A zero total hazard gives zero loss increment. Rates are reevaluated at every step; the default step is 0.04 s, with a partial final step when needed. Returned cause probabilities sum to total loss, and <code>survival_curve</code> includes the initial survival of one. This exponential update preserves the shared remaining probability mass; timestep convergence is a separate numerical question. See <a href="https://doi.org/10.1017/S0962492910000048">exponential integrators</a>.</p>
+<p>The <a href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html">drive vignette</a> defines the spline model and uses this final solver. The superseded log-linear solver is retained only in <code>archive/legacy_package/model/solver_intensity.py</code> for research history; it is neither exported nor called by the package.</p>
+</section>
+<section id="ball-flight-and-receiver-arrival" class="level3">
+<h3 class="anchored" data-anchor-id="ball-flight-and-receiver-arrival">Ball flight and receiver arrival</h3>
+<p>Import <code>time_flight</code> from <code>PRESS.physics</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>time_flight(r_bc, r_target, p_attackers, v_attackers,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    v0_candidates<span class="op">=</span>linspace(<span class="dv">10</span>,<span class="dv">30</span>,<span class="dv">20</span>),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    theta_candidates<span class="op">=</span>linspace(<span class="dv">0</span>,pi<span class="op">/</span><span class="dv">3</span>,<span class="dv">20</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    t_max_flight<span class="op">=</span><span class="fl">10.0</span>, dt_ball<span class="op">=</span><span class="fl">0.04</span>, grid_step<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    v_max<span class="op">=</span><span class="fl">5.0</span>, a_max<span class="op">=</span><span class="fl">5.0</span>, z_max<span class="op">=</span><span class="fl">2.0</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    rho<span class="op">=</span><span class="fl">1.2</span>, Cd<span class="op">=</span><span class="fl">0.25</span>, A<span class="op">=</span><span class="fl">0.038</span>, m<span class="op">=</span><span class="fl">0.43</span>, g<span class="op">=</span><span class="fl">9.81</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    distance_mode<span class="op">=</span><span class="st">"exact"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The <code>linspace</code> notation describes default JAX arrays. Carrier position is <code>(2,)</code>; targets <code>(N,2)</code>; receivers <code>(M,2)</code>. The receiver nearest in initial position to each target supplies the desired arrival time. A candidate flight is selected by matching that time, subject to reachability and controllable height. Exact target distances are the default; <code>distance_mode="lookup"</code> enables the corrected regular radial grid as an approximation. <code>grid_step</code> affects that approximation only. Drag parameters are air density <code>rho</code>, drag coefficient <code>Cd</code>, cross-section <code>A</code>, mass <code>m</code>, and gravity <code>g</code>, in SI units. Returns <code>(N,)</code> flight times. No receiver or reachable candidate gives infinite time and zero control. The class uses its saved flight configuration; see <a href="./solvers.html#fitted-model-settings">its defaults</a>.</p>
+<p>The flight ODE includes gravity and constant-coefficient aerodynamic drag. Below 5 cm while descending, height is held and horizontal aerodynamic drag continues; there is no bounce, fitted rolling friction or Magnus force. The latent vertical velocity is not reset by this ODE and is not interpreted as a post-impact velocity. The model consumes simulated positions and height. <a href="./vignettes/02_pass_probability/02_pass_probability.html">Flight equations and assumptions</a>.</p>
+</section>
+<section id="fitted-pass-settings-for-the-low-level-solvers" class="level3">
+<h3 class="anchored" data-anchor-id="fitted-pass-settings-for-the-low-level-solvers">Fitted pass settings for the low-level solvers</h3>
+<p>The fitted pass model uses <code>v_max=5.5</code>, <code>a_max=7</code>, <code>a_turn=7</code> and <code>preserve_initial_overspeed=True</code> consistently. The lower-level trajectory and target-control solvers accept the same <code>a_turn</code> and <code>preserve_initial_overspeed</code> keyword arguments. Their compatibility defaults remain unchanged; pass the fitted artifact settings to reproduce it. Physical λ,s are MLE estimates along reconstructed paths; isotonic knots are learned separately on cross-fitted hypothetical PPCF scores.</p>
+</section>
+</section>
+<section id="bcos-formulations" class="level2">
+<h2 class="anchored" data-anchor-id="bcos-formulations">BCOS formulations</h2>
+<p><code>compute_bcos</code> defaults to the <a href="./appendix/bcos-transport-with-killing.html">final transport-with-killing model</a>. It returns destination accessibility, per-defender interception incidences, unresolved/reservoir/interior mass at a finite <code>time</code>, and the probability-weighted area. The default evaluates terminal probabilities (<code>time=np.inf</code>). The square-cell area is <code>step**2</code>; the 40 m disc is clipped to the physical pitch without rescaling its area.</p>
+<p>Interception acts both while the carrier waits at the observed origin and while it moves along the route. <code>Reservoir probability</code> is the surviving mass still waiting at the origin, not a protected probability component. Use <code>formulation="transport_reservoir"</code> for the retained alternative with no interception before route entry; its model is <code>PRESS.model.ReservoirBCOSModel</code> in <code>model/bcos_reservoir.py</code>.</p>
+<p>Use <code>formulation="effective_hazard"</code> to reproduce the preliminary BCOS field used in the existing benchmarks. Complete risk calculations evaluate only that preliminary feature once and store its area/map under <code>BCOS</code>; no final transport descriptor is computed in addition. To inspect final transport, call <code>compute_bcos()</code> explicitly. When final transport was explicitly calculated before standalone action selection, the classifier helper derives its required preliminary feature from the same physical settings. An explicit <code>bcos_value</code> remains a caller override. The configuration records the BCOS formulation and the action result records the classifier feature’s formulation. A different <code>formulation</code> in complete-call <code>bcos_kwargs</code> is rejected; use the standalone descriptor call instead. Changing that feature requires retraining; see the <a href="./roadmap.html">roadmap</a>.</p>
+<p>The final solver integrates the appendix’s characteristic solution. A positive quadrature over conditioned no-killing exit times includes both initial interior trajectories and later boundary inflow. Integrated killing determines survival along each trajectory. Ordered exponential competing-risk updates keep all cause incidences nonnegative and conserve probability. The implementation is checked against independent characteristic/density integrals, no-killing and constant-killing limits, finite-time reservoir balances and numerical refinement. <code>arrival_order</code> and <code>path_order</code> are numerical quadrature settings, not fitted coefficients.</p>
+</section>
+<section id="physical-parameter-inputs" class="level2">
+<h2 class="anchored" data-anchor-id="physical-parameter-inputs">Physical parameter inputs</h2>
+<p><code>compute_ball_drive_risk(..., physics_kwargs=...)</code> accepts <code>v_max</code>, <code>a_linear</code>, <code>a_turn</code> and the supported solver/pitch settings. <code>compute_ppcf(..., physics_kwargs=...)</code> accepts the pass model’s physical settings, including <code>v_max</code>, <code>a_max</code>, <code>a_turn</code> and ball-flight constants. Flight-time and pitch-control calculations use the same resolved pass settings.</p>
+<p><code>compute_bcos(..., physics_args=...)</code> accepts <code>v_bc_max</code>, <code>v_def_max</code>, <code>a_bc_max</code>, <code>a_def_max</code>, <code>a_turn_bc</code>, <code>a_turn_def</code> and <code>s</code>, plus numerical quadrature settings for final transport. Omitting settings uses the deployed physical conventions and ball-drive dispersion.</p>
+<p>In a complete <code>compute_risk_frame</code> call these dictionaries are nested under <code>ball_drive_kwargs</code>, <code>ppcf_kwargs</code> and <code>bcos_kwargs</code>, respectively. Fitted parameters such as pass-control lambda, ball-drive spline coefficients and fitted dispersion are supplied through a named <code>model</code> dictionary, model object or manifest. Constructor inputs <code>ball_drive_model</code> and <code>pass_risk_model</code> accept the same named dictionaries. Changing inputs does not refit coefficients or calibration maps.</p>
+<section id="named-model-parameters" class="level3">
+<h3 class="anchored" data-anchor-id="named-model-parameters">Named model parameters</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>press.compute_ball_drive_risk(frame_id, model<span class="op">=</span>{</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"s"</span>: <span class="fl">0.35</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"gamma_v"</span>: [<span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>],</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>press.compute_ppcf(frame_id, model<span class="op">=</span>{</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lambda_control"</span>: <span class="fl">5.0</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"s"</span>: <span class="fl">0.30</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>These are explicit sensitivity inputs. Omitted entries inherit the model supplied at initialization, or the production fit otherwise. A dictionary is resolved for that call; omitting <code>model</code> on a later call restores the base model. Each call replaces its cached component result and invalidates dependent outputs. Motion settings can be supplied together through <code>physics_kwargs</code>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Ball-drive key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>lambda_0</code>, <code>s</code></td>
+<td>Positive baseline tackle rate and arrival-time dispersion, both in their natural scales.</td>
+</tr>
+<tr class="even">
+<td><code>beta_v</code>, <code>beta_B</code></td>
+<td>Linear effects of speed and boundary distance in their original units.</td>
+</tr>
+<tr class="odd">
+<td><code>gamma_v</code>, <code>gamma_B</code></td>
+<td>Three nonlinear coefficients for each saved spline basis.</td>
+</tr>
+<tr class="even">
+<td><code>beta_angle</code></td>
+<td>Linear coefficient for the saved standardized angle.</td>
+</tr>
+<tr class="odd">
+<td><code>gamma_angle</code></td>
+<td>Two nonlinear angle coefficients.</td>
+</tr>
+<tr class="even">
+<td><code>speed_basis</code>, <code>boundary_basis</code>, <code>angle_basis</code></td>
+<td>Optional fitted basis dictionaries for another fit, including normalization, knots, projection and transformation. Supplying a basis also requires its corresponding coefficients.</td>
+</tr>
+</tbody>
+</table>
+<p>Unspecified bases are reused without refitting. <code>BallDriveModel.pretrained().parameters</code> shows the production coefficients with these names. Full exported artifacts remain accepted as <code>model</code> dictionaries.</p>
+<p>For pitch control/pass probability, named keys are <code>lambda_control</code>, <code>s</code> and optional <code>calibration</code> (<code>method</code>, <code>x</code>, <code>y</code> for an isotonic map). <code>PassRiskModel.pretrained().parameters</code> shows the physical-control parameters. Changing lambda or s changes the raw control field. If no new calibration is supplied, the saved map is still applied, and <code>params["calibration_matches_parameters"]</code> records whether the physical-control parameters match its reference. <code>calibration_matches_model</code> additionally requires matching movement/flight settings. These flags describe correspondence with the saved map, not a new validation of its performance.</p>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-spearman2018beyond" class="csl-entry" role="listitem">
+Spearman, William. 2018. <span>“Beyond Expected Goals.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://static.hudl.com/craft/downloads/SSAC2018_Beyond_Expected_Goals.pdf">https://static.hudl.com/craft/downloads/SSAC2018_Beyond_Expected_Goals.pdf</a>.
+</div>
+<div id="ref-spearman2017" class="csl-entry" role="listitem">
+Spearman, William, Austin Basye, Greg Dick, Ryan Hotovy, and Paul Pop. 2017. <span>“Physics-Based Modeling of Pass Probabilities in Soccer.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://static.hudl.com/craft/downloads/SSAC17-Physics-Based-Modeling-of-Pass-Probabilities-in-Soccer.pdf">https://static.hudl.com/craft/downloads/SSAC17-Physics-Based-Modeling-of-Pass-Probabilities-in-Soccer.pdf</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./api.html" class="pagination-link" aria-label="1 · Initialization and classes">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">1 · Initialization and classes</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./reference/getters.html" class="pagination-link" aria-label="3 · Getters and saved results">
+        <span class="nav-page-text">3 · Getters and saved results</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="./index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/solvers.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

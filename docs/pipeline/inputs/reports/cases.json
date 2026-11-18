@@ -1,0 +1,20 @@
+[
+  {
+    "case": "A",
+    "match_id": "2006229",
+    "possession_id": "8_774",
+    "pattern_flag": "pressure_escape"
+  },
+  {
+    "case": "B",
+    "match_id": "1996435",
+    "possession_id": "8_352",
+    "pattern_flag": "drawing_pressure"
+  },
+  {
+    "case": "C",
+    "match_id": "2013725",
+    "possession_id": "8_553",
+    "pattern_flag": "sustained_successful_carrying"
+  }
+]

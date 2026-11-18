@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - Residual risk benchmark</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../benchmarks/06_composed_risk.html" rel="next">
+<link href="../benchmarks/04_action_selection.html" rel="prev">
+<link href="../branding/favicon.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="../data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="../vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="../benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="../api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../benchmark.html">Benchmarks</a></li><li class="breadcrumb-item"><a href="../benchmarks/05_residual_risk.html">Residual risk</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../external-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#evaluation-cohort" id="toc-evaluation-cohort" class="nav-link active" data-scroll-target="#evaluation-cohort">1. Evaluation cohort</a>
+  <ul class="collapse">
+  <li><a href="#effective-task-specific-exclusions" id="toc-effective-task-specific-exclusions" class="nav-link" data-scroll-target="#effective-task-specific-exclusions">Effective task-specific exclusions</a></li>
+  </ul></li>
+  <li><a href="#features" id="toc-features" class="nav-link" data-scroll-target="#features">2. Model specification and features</a></li>
+  <li><a href="#model-selection-and-validation" id="toc-model-selection-and-validation" class="nav-link" data-scroll-target="#model-selection-and-validation">3. Model selection and validation</a>
+  <ul class="collapse">
+  <li><a href="#cross-fitted-pcarry" id="toc-cross-fitted-pcarry" class="nav-link" data-scroll-target="#cross-fitted-pcarry">Cross-fitted P(carry)</a></li>
+  </ul></li>
+  <li><a href="#predictive-performance" id="toc-predictive-performance" class="nav-link" data-scroll-target="#predictive-performance">4. Predictive performance</a>
+  <ul class="collapse">
+  <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration">Calibration</a></li>
+  <li><a href="#feature-importance" id="toc-feature-importance" class="nav-link" data-scroll-target="#feature-importance">Feature importance</a></li>
+  </ul></li>
+  <li><a href="#related-published-work" id="toc-related-published-work" class="nav-link" data-scroll-target="#related-published-work">5. Comparison with published results</a></li>
+  <li><a href="#final-fitted-model" id="toc-final-fitted-model" class="nav-link" data-scroll-target="#final-fitted-model">6. Production model</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">7. Discussion and limitations</a></li>
+  <li><a href="#supplementary-resources" id="toc-supplementary-resources" class="nav-link" data-scroll-target="#supplementary-resources">8. Supplementary resources</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/benchmarks/05_residual_risk.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../benchmark.html">Benchmarks</a></li><li class="breadcrumb-item"><a href="../benchmarks/05_residual_risk.html">Residual risk</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Residual risk benchmark</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><a href="../vignettes/05_residual_risk/05_residual_risk.html">Model and example</a> · <a href="../benchmark.html">All benchmarks</a></p>
+<p>The residual-risk model estimates, for a successful one-second carry, the probability that the individual possession ends in a terminal loss. A failed terminal pass, a direct possession loss or a clearance is labeled loss, and a completed terminal pass or a foul suffered is labeled no loss; the verification conventions are given in the <a href="#evaluation-cohort">evaluation cohort</a>. The <a href="../vignettes/05_residual_risk/05_residual_risk.html">model vignette</a> introduces the conditional terminal-outcome task, its likelihood, the relationship to the action-selection features, feature importance and an executable example. This benchmark documents the outcome conventions, the cohort, the training protocol, the predictive evaluation and the final fit. The classifier is a native XGBoost model with a binary logistic objective <span class="citation" data-cites="chen2016xgboost">(<a href="#ref-chen2016xgboost" role="doc-biblioref">Chen and Guestrin 2016</a>)</span>.</p>
+<section id="evaluation-cohort" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation-cohort">1. Evaluation cohort</h2>
+<p>Successful canonical one-second carries are identified as described in <a href="../vignettes/setup/possession_and_checkpoint_setup.html">Possession segmentation and context</a>. Each eligible state is a completed one-second carry within an outfield player’s individual possession, and shorter interrupted tails are excluded. The target is the terminal outcome of that individual possession.</p>
+<p>Terminal outcomes are verified with the same conventions as Pass Selection and Ball Drive: terminal passes require verified continuous direct reception, and direct possession losses follow the OBE verification of the physical carry model. Terminal passes are retained irrespective of duration, curvature or unknown context. A failed terminal pass or a direct <code>possession_loss</code> is labeled loss (<span class="math inline">\(Y=1\)</span>), and a completed terminal pass is labeled no loss (<span class="math inline">\(Y=0\)</span>). Individual possessions ending in a clearance (<span class="math inline">\(Y=1\)</span>) or a foul suffered (<span class="math inline">\(Y=0\)</span>) are also included, while those ending in a shot are excluded. Clearances are treated as terminal losses under the assumption that they are induced by defensive pressure.</p>
+<p>The cohort contains 7,820 successful one-second carry states, of which 1,423 end in a terminal individual loss (18.20%), across ten matches and 3,975 individual possessions. A possession can contribute more than one state.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Terminal individual outcome</th>
+<th style="text-align: right;">States</th>
+<th style="text-align: right;">Individual possessions</th>
+<th style="text-align: right;">Loss label</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Completed pass</td>
+<td style="text-align: right;">6,258</td>
+<td style="text-align: right;">3,214</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td>Failed pass</td>
+<td style="text-align: right;">742</td>
+<td style="text-align: right;">397</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td>Direct possession loss</td>
+<td style="text-align: right;">654</td>
+<td style="text-align: right;">286</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td>Clearance</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td>Foul suffered</td>
+<td style="text-align: right;">139</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<section id="effective-task-specific-exclusions" class="level3">
+<h3 class="anchored" data-anchor-id="effective-task-specific-exclusions">Effective task-specific exclusions</h3>
+<p>The conditional target starts from 8,672 successful canonical one-second carry states in the broad action cohort. Terminal-outcome verification removes 14 states from 10 loss-ending parents without a valid associated OBE, and 838 states from 452 parents whose terminal pass is absent from the verified continuous direct-receipt cohort. All eligible states belonging to an affected parent are removed together. The two groups are disjoint, leaving 7,820 states from 3,975 individual possessions.</p>
+<p>This target requires an observed successful full second, so the conditional training set consists of successful canonical carries. Completed passes, failed passes, clearances and fouls retain the labels shown above, with terminal passes of any flight duration or curvature. Effective exclusion counts.</p>
+</section>
+</section>
+<section id="features" class="level2">
+<h2 class="anchored" data-anchor-id="features">2. Model specification and features</h2>
+<p>The model uses 31 features: the action-selection feature family with two changes. The number of completed carries is replaced by the elapsed time since individual control began, and the carry probability <span class="math inline">\(P(\mathrm{carry})=1-q(s)\)</span>, with <span class="math inline">\(q(s)=P(A=\mathrm{pass}\mid s)\)</span> the pass-choice probability of action selection, is added. The shared feature definitions are in the <a href="../vignettes/04_action_selection/04_action_selection.html">action-selection vignette</a>. For this task <span class="math inline">\(P(\mathrm{carry})\)</span> is cross-fitted, so that every state is scored by an action-selection model that did not see its match. The procedure is described in the next section.</p>
+</section>
+<section id="model-selection-and-validation" class="level2">
+<h2 class="anchored" data-anchor-id="model-selection-and-validation">3. Model selection and validation</h2>
+<p>The evaluation uses five match-disjoint outer folds with 6 fitting + 2 validation + 2 test matches. The two validation matches remain fixed throughout each outer fold. They support upstream calibration and downstream grid/early-stopping selection, and the test matches are used only for evaluation. The six-match fit is evaluated directly on the test matches.</p>
+<p>The XGBoost grid covers maximum depth (3, 4, 6, 8), minimum child weight (1, 5, 20), L2 regularization (0.1, 1, 3, 10) and learning rate (0.03, 0.05, 0.10), giving 720 fits for the reported 31-feature model, which includes <span class="math inline">\(P(\mathrm{carry})\)</span>. Row and column subsampling are 0.8, training allows at most 2,000 trees, and early-stopping patience is 100. Validation cross-entropy selects the configuration and the tree prefix before testing. Training uses the standard logistic objective on the original class frequencies, and the retained model returns native probabilities.</p>
+<section id="cross-fitted-pcarry" class="level3">
+<h3 class="anchored" data-anchor-id="cross-fitted-pcarry">Cross-fitted P(carry)</h3>
+<p>Action selection learns the observed pass/carry labels on many of the same carry checkpoints that enter residual-risk training. It is also a flexible tree model. Using its in-sample predictions could therefore make <span class="math inline">\(P(\mathrm{carry})\)</span> artificially confident on those observations; omitting their match reduces this source of bias in the learned feature. The physical ball-drive model shares carry checkpoints but has a more constrained parameterization. The pass-probability and pass-selection models are fitted on pass observations, with less direct overlap with residual-risk carry checkpoints. This makes <span class="math inline">\(P(\mathrm{carry})\)</span> the priority for an additional cross-fitting step.</p>
+<p>Cross-fitting is applied at the action-classifier layer: the action classifier that scores a fitting state omitted its match. Within each outer fold, training states are scored by three action-selection refits, each fitted on four of the six training matches with the XGBoost parameters of the fold and omitting the other two, and validation and test states are scored by the action-selection model of the same outer fold. These inner refits change the action-classifier weights only. Their physical, pass-choice, xT and BCOS inputs remain frozen from the outer six-match feature stack. The upstream features keep their outer-fold fits at this stage, so training-row predictions from those components can still be in-sample with respect to their own fits.</p>
+</section>
+</section>
+<section id="predictive-performance" class="level2">
+<h2 class="anchored" data-anchor-id="predictive-performance">4. Predictive performance</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th style="text-align: right;">CE</th>
+<th style="text-align: right;">Null CE</th>
+<th style="text-align: right;">Gain over null</th>
+<th style="text-align: right;">Brier</th>
+<th style="text-align: right;">AUC</th>
+<th style="text-align: right;">ECE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>XGBoost, native</td>
+<td style="text-align: right;">0.419506</td>
+<td style="text-align: right;">0.475594</td>
+<td style="text-align: right;">11.793%</td>
+<td style="text-align: right;">0.131390</td>
+<td style="text-align: right;">0.73950</td>
+<td style="text-align: right;">1.053%</td>
+</tr>
+</tbody>
+</table>
+<section id="calibration" class="level3">
+<h3 class="anchored" data-anchor-id="calibration">Calibration</h3>
+<p>All reported scores refer to the retained model, using its native probabilities. In each fold the null model predicts the terminal-loss frequency of the fitting matches. Metrics pool the held-out states, and ECE uses ten equal-count pooled bins weighted by their counts.</p>
+<div id="fig-residual-risk-calibration" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-residual-risk-calibration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../figures/residual_risk_pooled_calibration.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-residual-risk-calibration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Five-fold pooled calibration of the native residual-risk model. Points represent ten quantile bins.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="feature-importance" class="level3">
+<h3 class="anchored" data-anchor-id="feature-importance">Feature importance</h3>
+<p>Feature importance is the total XGBoost split gain, normalized within each ensemble, with one-hot levels grouped under their original feature. The figure shows the production model and the five outer-fold models, and fold ranges describe variation in the fitted rankings.</p>
+<div id="fig-residual-risk-importance" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-residual-risk-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../figures/feature_importance_residual_risk.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-residual-risk-importance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Feature importance of the residual-risk model.
+</figcaption>
+</figure>
+</div>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th style="text-align: right;">Production gain share</th>
+<th style="text-align: right;">Rank across outer folds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BCOS</td>
+<td style="text-align: right;">14.21%</td>
+<td style="text-align: right;">1–4</td>
+</tr>
+<tr class="even">
+<td>Opponents ahead, success-weighted</td>
+<td style="text-align: right;">10.30%</td>
+<td style="text-align: right;">1–2</td>
+</tr>
+<tr class="odd">
+<td>One-second carry success</td>
+<td style="text-align: right;">8.83%</td>
+<td style="text-align: right;">2–4</td>
+</tr>
+<tr class="even">
+<td>Expected pass success</td>
+<td style="text-align: right;">8.01%</td>
+<td style="text-align: right;">4–25</td>
+</tr>
+<tr class="odd">
+<td>Team line on pass failure</td>
+<td style="text-align: right;">5.60%</td>
+<td style="text-align: right;">10–19</td>
+</tr>
+<tr class="even">
+<td>Team xT on pass success</td>
+<td style="text-align: right;">5.24%</td>
+<td style="text-align: right;">5–12</td>
+</tr>
+</tbody>
+</table>
+<p>Accessible space and the spatial configuration of the passing options lead the ranking. BCOS accounts for 14.21% of the total split gain and ranks between first and fourth across folds, and the opponents ahead of likely completed passes contribute 10.30% and rank first or second. The rank of expected pass success varies widely across folds (4–25), so its production share carries a less stable ordering. Importance measures describe predictive use.</p>
+</section>
+</section>
+<section id="related-published-work" class="level2">
+<h2 class="anchored" data-anchor-id="related-published-work">5. Comparison with published results</h2>
+<p>A targeted literature search on 29 October 2026 found no published cross-entropy, null-gain or ECE result for this conditional terminal individual-possession target.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Work</th>
+<th>Published target and result</th>
+<th>Difference from this task</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://arxiv.org/abs/2401.16235">Gu et al., <em>Player Pressure Map</em></a></td>
+<td>Team outcome at 4 s; accuracy 55.8% (tracking), 75.2% (2D PPM), 78.7% (3D PPM)</td>
+<td>Team-level horizon, sequence inputs and accuracy as the metric</td>
+</tr>
+<tr class="even">
+<td><a href="https://doi.org/10.1007/s10182-022-00435-x">Dick and Brefeld, <em>Action rate models for predicting actions in soccer</em></a></td>
+<td>Next-action rate and turnover before a pass; 75% top-1 turnover hit rate at 1 s before the observed loss</td>
+<td>Different labels and metric</td>
+</tr>
+<tr class="odd">
+<td><a href="https://doi.org/10.1038/s41598-026-52938-1">Le Coz et al., <em>A semi-Markov framework for modeling football possessions and temporal expected threat</em></a></td>
+<td>Team goal probability within a time budget, from event sequences</td>
+<td>Different outcome, state and horizon</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="final-fitted-model" class="level2">
+<h2 class="anchored" data-anchor-id="final-fitted-model">6. Production model</h2>
+<p>The production model is a native 118-tree refit on all 7,820 eligible states. Depth 4, minimum child weight 5, L2 1 and learning rate 0.03 minimize the mean validation cross-entropy across the five grids. The best tree prefixes of this configuration in the five folds are 118, 133, 251, 87 and 92, and their median, 118, fixes the refit length.</p>
+<p>The production residual-risk model is trained on out-of-fold values of <span class="math inline">\(P(\mathrm{carry})\)</span>, obtained as follows. The action-selection model is trained on eight of the ten matches, with the hyperparameters and number of trees selected for production action selection, and predicts <span class="math inline">\(P(\mathrm{carry})\)</span> for the two remaining matches. Repeating this five times, so that every pair of matches is predicted once, gives a <span class="math inline">\(P(\mathrm{carry})\)</span> value for every training state of residual risk. The residual-risk model is then fitted on all ten matches using these values. At inference on new data, <span class="math inline">\(P(\mathrm{carry})\)</span> comes from the production action-selection model, trained on all ten matches.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">7. Discussion and limitations</h2>
+<p>Body orientation and posture are unavailable in this 2D tracking dataset, and the features use velocity direction in place of a measured body orientation (see Gu et al.&nbsp;above). The features summarize current carrier motion, tactical configuration and passing opportunities; full recent trajectories and explicit pairwise histories, as used by recurrent and graph-based action-rate models (Dick and Brefeld, above), are outside the feature set.</p>
+</section>
+<section id="supplementary-resources" class="level2">
+<h2 class="anchored" data-anchor-id="supplementary-resources">8. Supplementary resources</h2>
+<p>For reproducibility, the <a href="../data/benchmarks/residual_risk/primary_pooled_metrics.csv">metrics</a>, selected configurations, <a href="../data/benchmarks/residual_risk/primary_metrics_by_fold.csv">fold scores</a>, <a href="../data/benchmarks/residual_risk/primary_metrics_by_match.csv">per-match scores</a>, <a href="../data/benchmarks/residual_risk/primary_remaining_time_sensitivity.csv">remaining-time diagnostic</a>, literature locators, <a href="../data/benchmarks/feature_importance/README.md">feature-importance analysis</a> and refit provenance are provided as supplementary resources.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-chen2016xgboost" class="csl-entry" role="listitem">
+Chen, Tianqi, and Carlos Guestrin. 2016. <span>“<span>XGBoost</span>: A Scalable Tree Boosting System.”</span> In <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>. <a href="https://doi.org/10.1145/2939672.2939785">https://doi.org/10.1145/2939672.2939785</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../benchmarks/04_action_selection.html" class="pagination-link" aria-label="Action selection">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Action selection</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../benchmarks/06_composed_risk.html" class="pagination-link" aria-label="Composed h and xLoss">
+        <span class="nav-page-text">Composed h and xLoss</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="../index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/benchmarks/05_residual_risk.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

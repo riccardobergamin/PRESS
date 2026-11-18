@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - Benchmarks</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./benchmarks/01_ball_drive_risk.html" rel="next">
+<link href="./vignettes/07_case_studies/07_case_studies.html" rel="prev">
+<link href="./branding/favicon.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <img src="./branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="./data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="./vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="./benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="./api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./benchmark.html">Benchmarks</a></li><li class="breadcrumb-item"><a href="./benchmark.html">Benchmark index</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./external-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmark.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#dataset-overview" id="toc-dataset-overview" class="nav-link active" data-scroll-target="#dataset-overview">1. Dataset overview</a>
+  <ul class="collapse">
+  <li><a href="#verified-pass-links" id="toc-verified-pass-links" class="nav-link" data-scroll-target="#verified-pass-links">Verified pass links</a></li>
+  </ul></li>
+  <li><a href="#model-families" id="toc-model-families" class="nav-link" data-scroll-target="#model-families">2. Model families</a>
+  <ul class="collapse">
+  <li><a href="#component-notation" id="toc-component-notation" class="nav-link" data-scroll-target="#component-notation">Component notation</a></li>
+  </ul></li>
+  <li><a href="#common-evaluation-protocol" id="toc-common-evaluation-protocol" class="nav-link" data-scroll-target="#common-evaluation-protocol">3. Common evaluation protocol</a>
+  <ul class="collapse">
+  <li><a href="#shared-outer-match-folds" id="toc-shared-outer-match-folds" class="nav-link" data-scroll-target="#shared-outer-match-folds">Shared outer match folds</a></li>
+  <li><a href="#hyperparameters-early-stopping-and-probability-calibration" id="toc-hyperparameters-early-stopping-and-probability-calibration" class="nav-link" data-scroll-target="#hyperparameters-early-stopping-and-probability-calibration">Hyperparameters, early stopping and probability calibration</a></li>
+  <li><a href="#features-and-dependent-models" id="toc-features-and-dependent-models" class="nav-link" data-scroll-target="#features-and-dependent-models">Features and dependent models</a></li>
+  <li><a href="#aggregation-and-performance-metrics" id="toc-aggregation-and-performance-metrics" class="nav-link" data-scroll-target="#aggregation-and-performance-metrics">Aggregation and performance metrics</a></li>
+  <li><a href="#model-stability-and-final-refitting" id="toc-model-stability-and-final-refitting" class="nav-link" data-scroll-target="#model-stability-and-final-refitting">Model stability and final refitting</a></li>
+  <li><a href="#scope-of-the-development-benchmark" id="toc-scope-of-the-development-benchmark" class="nav-link" data-scroll-target="#scope-of-the-development-benchmark">Scope of the development benchmark</a></li>
+  </ul></li>
+  <li><a href="#task-benchmarks" id="toc-task-benchmarks" class="nav-link" data-scroll-target="#task-benchmarks">4. Task benchmarks</a></li>
+  <li><a href="#reproducibility-and-planned-work" id="toc-reproducibility-and-planned-work" class="nav-link" data-scroll-target="#reproducibility-and-planned-work">5. Reproducibility and planned work</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/benchmark.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./benchmark.html">Benchmarks</a></li><li class="breadcrumb-item"><a href="./benchmark.html">Benchmark index</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Benchmarks</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>The PRESS benchmarks evaluate five modeling tasks, and the predictions composed from them, under a common match-level cross-validation protocol. This page describes the dataset, the two model families, the shared evaluation design and the performance metrics. Each task-specific benchmark reports its cohort, its model-specific training and calibration choices and its predictive results.</p>
+<p><a href="./pipeline.html">Research pipeline and source download</a> · <a href="./roadmap.html">Project roadmap</a></p>
+<section id="dataset-overview" class="level2">
+<h2 class="anchored" data-anchor-id="dataset-overview">1. Dataset overview</h2>
+<p>The benchmarks use ten A-League 2024/25 matches from SkillCorner Open Data <span class="citation" data-cites="skillcorner-opendata">(<a href="#ref-skillcorner-opendata" role="doc-biblioref">SkillCorner, n.d.</a>)</span>. All component benchmarks concern outfield ball carriers. Reliability is checked at the temporal boundaries needed for the target. Two data-preparation branches share these principles: possession-based tasks use matched individual-control intervals, whereas pass tasks use matched release and the immediate next reception/recovery start. The matching with tracking data relies on the SkillCorner event labels, as described in <a href="./data.html">Dataset and preprocessing</a>.</p>
+<p>For the possession branch used by ball-drive, action-selection and residual-risk training, the frozen preparation audit starts from <strong>9,566 raw individual possessions</strong>. A possession is kept when its individual-control interval is matched with tracking data at both boundaries, its terminal event and outcome supply a supported component label, its carrier is an outfield player and it does not end in a shot. These criteria leave <strong>8,451 possessions</strong>.</p>
+<p>These are parent-possession counts before task segmentation (see <a href="./vignettes/setup/possession_and_checkpoint_setup.html">Possessions and checkpoints</a>). Individual tasks then select the actions and verified outcomes required by their target, and their benchmark pages give the task-specific criteria and the resulting cohort sizes. Features and predictions can still be computed for states outside these training populations. Effective exclusion counts and source-audit provenance.</p>
+<section id="verified-pass-links" class="level3">
+<h3 class="anchored" data-anchor-id="verified-pass-links">Verified pass links</h3>
+<p>Pass-outcome verification links the matched release to the matched start of the immediate next individual possession, in the same match and period. The next control must follow release, with no intervening annotated interruption and complete observed ball XY over the interval. A completion requires the identified recipient to be the next carrier of the same team, with a matched reception; a failure requires an accepted opponent interception or recovery. The recovery location supplies the destination proxy for a failed pass. Only the matched release and the matched start of the next possession are required.</p>
+<p>These checks establish the outcome and endpoint needed by the pass models. Flight-duration limits and the observations needed for trajectory fitting are task-specific and are stated in the corresponding benchmarks. Possession-based tasks additionally specify whether a failed verification excludes an entire parent possession or only an observation. Definitions of actions, checkpoints and contextual labels are centralized in <a href="./vignettes/setup/possession_and_checkpoint_setup.html">Possession segmentation and context</a>.</p>
+</section>
+</section>
+<section id="model-families" class="level2">
+<h2 class="anchored" data-anchor-id="model-families">2. Model families</h2>
+<p>The tasks use two model architectures, which are developed and evaluated differently.</p>
+<p><strong>Physical models with estimated parameters.</strong> Ball-drive risk and pass probability have an explicit physical structure, and only a small number of parameters is learned from data by maximizing a likelihood. Model-selection choices, such as the strength of spline regularization, are few and are made on inner validation splits. The model produces probabilities directly, and any post-hoc calibration step is described in the task benchmark.</p>
+<p><strong>Gradient-boosted tree models.</strong> Pass selection, action selection and residual risk are XGBoost models trained on feature sets that include the outputs of upstream models. Their hyperparameters and number of trees are selected on a validation pair of matches by early stopping, and a probability calibration can be fitted afterwards.</p>
+<p>The composed risk (h and xLoss) combines the predictions of the components.</p>
+<section id="component-notation" class="level3">
+<h3 class="anchored" data-anchor-id="component-notation">Component notation</h3>
+<p>The model pages use the same component symbols when passing predictions between tasks. All quantities below are conditioned on the current state <span class="math inline">\(s\)</span>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(q(s)\)</span></td>
+<td>Probability of choosing a pass; <span class="math inline">\(1-q(s)\)</span> is the carry-choice probability</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\pi_j(s)\)</span></td>
+<td>Probability of destination <span class="math inline">\(j\)</span>, given a pass attempt</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(C_{\mathrm{att}}\)</span></td>
+<td>Raw attacking-team pitch control, before pass-probability calibration</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(p_j(s)\)</span></td>
+<td>Probability of completing a pass to destination <span class="math inline">\(j\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(d(s)\)</span></td>
+<td>Loss probability during a canonical one-second carry</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(r(s)\)</span></td>
+<td>Terminal individual-possession loss probability conditional on a successful current carry</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(h(s)\)</span></td>
+<td>Current canonical-action loss probability, marginalized over choice and pass destination</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\mathrm{xLoss}(s)\)</span></td>
+<td>Terminal individual-possession loss probability, including the residual continuation</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="common-evaluation-protocol" class="level2">
+<h2 class="anchored" data-anchor-id="common-evaluation-protocol">3. Common evaluation protocol</h2>
+<section id="shared-outer-match-folds" class="level3">
+<h3 class="anchored" data-anchor-id="shared-outer-match-folds">Shared outer match folds</h3>
+<p>All five tasks use the same partition of the ten matches into five outer folds. Each fold holds out two complete matches and uses the remaining eight for development. The five test pairs are disjoint: every match, and every eligible observation for a task, contributes to the pooled test evaluation once. Task cohorts differ according to the target and the reliability checks required to observe it.</p>
+<p>6 + 2 + 2 describes match roles. The two model families follow different development procedures within each outer fold:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model family</th>
+<th>Development procedure within each outer fold</th>
+<th>Model evaluated on the two test matches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Physical models</td>
+<td>Four disjoint 6-fitting + 2-validation rotations within the eight development matches, used to select regularization or to produce cross-fitted scores for calibration</td>
+<td>Parameters refitted on all eight development matches</td>
+</tr>
+<tr class="even">
+<td>Tree models</td>
+<td>One fixed 6-fitting + 2-validation split, used for hyperparameter selection, early stopping and any calibration</td>
+<td>The six-match tree fit at the selected checkpoint</td>
+</tr>
+</tbody>
+</table>
+<p>For the tree models, the two validation matches remain fixed throughout that fold’s search, early stopping and any calibration. The pair can change between outer folds because test matches must be excluded. The task benchmarks give the exact procedure of each task.</p>
+</section>
+<section id="hyperparameters-early-stopping-and-probability-calibration" class="level3">
+<h3 class="anchored" data-anchor-id="hyperparameters-early-stopping-and-probability-calibration">Hyperparameters, early stopping and probability calibration</h3>
+<p>For XGBoost, a hyperparameter configuration is trained on the six fitting matches, and its uncalibrated validation cross-entropy selects the tree prefix by early stopping. Where a grid is used, the best configuration is selected by this same native validation criterion. Numerical XGBoost predictors are used without standardization, and the categorical vocabulary and encoding are learned from fitting matches only.</p>
+<p>Any temperature scaling is fitted after configuration/checkpoint selection. It minimizes validation choice or binary negative log-likelihood, with trees, selected hyperparameters and stopping point held fixed. The same two validation matches are reused for this calibration, so selection and calibration share the validation pair. Only after these choices are frozen is the corresponding outer-test score computed.</p>
+</section>
+<section id="features-and-dependent-models" class="level3">
+<h3 class="anchored" data-anchor-id="features-and-dependent-models">Features and dependent models</h3>
+<p>Some tasks use the outputs of upstream models as features. For a given outer fold, the upstream models are fitted on that fold’s fitting matches only, and the full-ten-match versions are used only for deployment. Snapshot quantities that require no learned parameters can be shared across folds, while model-dependent features have a separate version for each fold. Verified caches are reused with their fold-specific predictions, and full-data deployment weights enter only the deployment.</p>
+<p>The validation pair supports both upstream calibration and downstream selection where those components are required. Fitting-row features can therefore be in-sample with respect to upstream models, so cross-fitting and independent validation apply layer by layer. Each task benchmark states which layers are refitted and which remain frozen.</p>
+</section>
+<section id="aggregation-and-performance-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="aggregation-and-performance-metrics">Aggregation and performance metrics</h3>
+<p>Cross-validated performance is computed on the concatenation of the five outer-fold held-out prediction sets. Each observation contributes once to the pooled evaluation. Fold-level results serve to inspect stability, and the pooled estimates are the reported ones.</p>
+<p>For the binary-outcome tasks, with observed labels <span class="math inline">\(y_i\in\{0,1\}\)</span> and predicted probabilities <span class="math inline">\(p_i\)</span>, the primary probabilistic metric is binary cross-entropy (CE), also called log loss:</p>
+<p><span class="math display">\[
+\mathrm{CE}=-\frac{1}{N}\sum_{i=1}^{N}\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right].
+\]</span></p>
+<p>A task-specific null model supplies a reference cross-entropy <span class="math inline">\(\mathrm{CE}_{\mathrm{null}}\)</span>, estimated without the outer test labels and defined in each benchmark where needed. The relative improvement over the reference is</p>
+<p><span class="math display">\[
+\mathrm{Gain}=1-\frac{\mathrm{CE}_{\mathrm{model}}}{\mathrm{CE}_{\mathrm{null}}},
+\]</span></p>
+<p>and a positive gain indicates lower cross-entropy than the null model.</p>
+<p>The Brier score is the mean squared probabilistic error:</p>
+<p><span class="math display">\[
+\mathrm{Brier}=\frac{1}{N}\sum_{i=1}^{N}(p_i-y_i)^2.
+\]</span></p>
+<p>Calibration is summarized with the expected calibration error (ECE). Held-out predictions are divided into ten approximately equal-count quantile bins. For bin <span class="math inline">\(b\)</span>, let <span class="math inline">\(n_b\)</span> be its number of observations, <span class="math inline">\(\bar p_b\)</span> its mean prediction and <span class="math inline">\(\bar y_b\)</span> its observed event frequency. Then</p>
+<p><span class="math display">\[
+\mathrm{ECE}=\sum_{b=1}^{10}\frac{n_b}{N}\left|\bar p_b-\bar y_b\right|.
+\]</span></p>
+<p>Calibration plots compare observed event frequencies with mean predicted probabilities in these bins, and ECE and the bins are recomputed on the pooled outer-test predictions. Where relevant, ROC AUC assesses ranking across classes, and precision–recall AUC (PR AUC) summarizes discrimination for the positive class, particularly when outcomes are uncommon. Not every metric applies to or is reported for every task. Task-specific numerical conventions, including any probability clipping used for log loss, are recorded alongside the corresponding results.</p>
+<p>Multiple-choice tasks are evaluated with the likelihood assigned to the observed choice among the available alternatives, and the improvement over a task-specific null choice model is summarized by McFadden’s pseudo-<span class="math inline">\(R^2\)</span>:</p>
+<p><span class="math display">\[
+R^2_{\mathrm{McFadden}}=1-\frac{\log L_{\mathrm{model}}}{\log L_{\mathrm{null}}},
+\]</span></p>
+<p>where <span class="math inline">\(L_{\mathrm{model}}\)</span> and <span class="math inline">\(L_{\mathrm{null}}\)</span> are the likelihoods of the observed choices under the fitted and null models, evaluated on the held-out observations. The task benchmark specifies its choice set and null model, and the nested cross-validation and the pooling of held-out predictions are unchanged.</p>
+</section>
+<section id="model-stability-and-final-refitting" class="level3">
+<h3 class="anchored" data-anchor-id="model-stability-and-final-refitting">Model stability and final refitting</h3>
+<p>The cross-validation results evaluate predictive performance and stability across the outer folds before a specification is accepted. The accepted specification is then refitted on all ten matches to obtain the parameters distributed with the PRESS package. The reported held-out estimates come exclusively from the cross-validation.</p>
+<p>Deployment calibration may use labels paired with frozen cross-fitted predictions from all ten matches, after evaluation is complete. The saved benchmark predictions remain the reported held-out results. Final tree counts and configurations are chosen from validation records; the exact aggregation rule is task-specific.</p>
+</section>
+<section id="scope-of-the-development-benchmark" class="level3">
+<h3 class="anchored" data-anchor-id="scope-of-the-development-benchmark">Scope of the development benchmark</h3>
+<p>Outer-test labels are excluded from that fold’s model fitting, stopping rule and calibrator estimation. The ten matches were repeatedly examined during model development, so the complete development process serves as a development benchmark, and generalization to other competitions and annotation conventions remains open. The task benchmarks describe any development choice shared across folds and distinguish this scope from the match-disjoint fitting of the reported fold models.</p>
+<p>The benchmark uses ten matches, with two held out in each outer fold. Observations within a match are dependent, so the number of independent units is the number of matches. Differences between models and between folds should be read with that uncertainty in mind. The same sample size motivates the choice of simple models with few parameters, as described in <a href="./pipeline.html#modelling-choices">Modelling choices</a>.</p>
+</section>
+</section>
+<section id="task-benchmarks" class="level2">
+<h2 class="anchored" data-anchor-id="task-benchmarks">4. Task benchmarks</h2>
+<p>Choose a model to read its cohort, task-specific training procedure, results and calibration.</p>
+<div class="page-directory">
+<section id="ball-drive-benchmark" class="level3 directory-section">
+<h3 class="anchored" data-anchor-id="ball-drive-benchmark">Ball-drive risk</h3>
+<p><a href="./benchmarks/01_ball_drive_risk.html">Open benchmark</a></p>
+</section>
+<section id="pass-risk-benchmark" class="level3 directory-section">
+<h3 class="anchored" data-anchor-id="pass-risk-benchmark">Pass-probability</h3>
+<p><a href="./benchmarks/02_pass_probability.html">Open benchmark</a></p>
+</section>
+<section id="pass-selection-benchmark" class="level3 directory-section">
+<h3 class="anchored" data-anchor-id="pass-selection-benchmark">Pass-selection</h3>
+<p><a href="./benchmarks/03_pass_selection.html">Open benchmark</a></p>
+</section>
+<section id="action-selection-benchmark" class="level3 directory-section">
+<h3 class="anchored" data-anchor-id="action-selection-benchmark">Action-selection</h3>
+<p><a href="./benchmarks/04_action_selection.html">Open benchmark</a></p>
+</section>
+<section id="residual-risk-benchmark" class="level3 directory-section">
+<h3 class="anchored" data-anchor-id="residual-risk-benchmark">Residual-risk</h3>
+<p><a href="./benchmarks/05_residual_risk.html">Open benchmark</a></p>
+</section>
+<section id="composed-risk-benchmark" class="level3 directory-section">
+<h3 class="anchored" data-anchor-id="composed-risk-benchmark">Composed risk (h and xLoss)</h3>
+<p><a href="./benchmarks/06_composed_risk.html">Open benchmark</a></p>
+</section>
+</div>
+</section>
+<section id="reproducibility-and-planned-work" class="level2">
+<h2 class="anchored" data-anchor-id="reproducibility-and-planned-work">5. Reproducibility and planned work</h2>
+<ul>
+<li><a href="./pipeline.html">Research pipeline</a>: ordered stages, source-code download, input/output organization and local checks.</li>
+<li><a href="./roadmap.html">Project roadmap</a>: current status, limitations and possible extensions.</li>
+<li><a href="data/README.md">Distributed objects</a>: production models, published summaries and the input and output files required for reproduction.</li>
+</ul>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-skillcorner-opendata" class="csl-entry" role="listitem">
+SkillCorner. n.d. <span>“Open Data Repository.”</span> <a href="https://github.com/SkillCorner/opendata/blob/master/LICENSE">https://github.com/SkillCorner/opendata/blob/master/LICENSE</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./vignettes/07_case_studies/07_case_studies.html" class="pagination-link" aria-label="Case studies and reports">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Case studies and reports</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./benchmarks/01_ball_drive_risk.html" class="pagination-link" aria-label="Ball-drive risk">
+        <span class="nav-page-text">Ball-drive risk</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="./index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/benchmark.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

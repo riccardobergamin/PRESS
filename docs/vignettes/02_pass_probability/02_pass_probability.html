@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - Pass probability</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../vignettes/03_pass_selection/03_pass_selection.html" rel="next">
+<link href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html" rel="prev">
+<link href="../../branding/favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../../index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="../../data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="../../vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="../../benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="../../api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">Models</a></li><li class="breadcrumb-item"><a href="../../vignettes/02_pass_probability/02_pass_probability.html">2 · Pass probability</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../external-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#motivation-and-model-overview" id="toc-motivation-and-model-overview" class="nav-link active" data-scroll-target="#motivation-and-model-overview">1. Motivation and model overview</a></li>
+  <li><a href="#player-motion-and-interception-time" id="toc-player-motion-and-interception-time" class="nav-link" data-scroll-target="#player-motion-and-interception-time">2. Player motion and interception time</a>
+  <ul class="collapse">
+  <li><a href="#travel-and-turning-time" id="toc-travel-and-turning-time" class="nav-link" data-scroll-target="#travel-and-turning-time">Travel and turning time</a></li>
+  </ul></li>
+  <li><a href="#probabilistic-player-reachability" id="toc-probabilistic-player-reachability" class="nav-link" data-scroll-target="#probabilistic-player-reachability">3. Probabilistic player reachability</a>
+  <ul class="collapse">
+  <li><a href="#motion-parameters" id="toc-motion-parameters" class="nav-link" data-scroll-target="#motion-parameters">Motion parameters</a></li>
+  </ul></li>
+  <li><a href="#shared-ball-flight-dynamics" id="toc-shared-ball-flight-dynamics" class="nav-link" data-scroll-target="#shared-ball-flight-dynamics">4. Shared ball-flight dynamics</a>
+  <ul class="collapse">
+  <li><a href="#ball-flight-parameters" id="toc-ball-flight-parameters" class="nav-link" data-scroll-target="#ball-flight-parameters">Ball-flight parameters</a></li>
+  </ul></li>
+  <li><a href="#pass-probability-model-observed-trajectories" id="toc-pass-probability-model-observed-trajectories" class="nav-link" data-scroll-target="#pass-probability-model-observed-trajectories">5. Pass probability model: observed trajectories</a>
+  <ul class="collapse">
+  <li><a href="#reconstructing-the-observed-ball-trajectory" id="toc-reconstructing-the-observed-ball-trajectory" class="nav-link" data-scroll-target="#reconstructing-the-observed-ball-trajectory">Reconstructing the observed ball trajectory</a></li>
+  <li><a href="#control-along-the-moving-trajectory" id="toc-control-along-the-moving-trajectory" class="nav-link" data-scroll-target="#control-along-the-moving-trajectory">Control along the moving trajectory</a></li>
+  </ul></li>
+  <li><a href="#pitch-control-model-hypothetical-destinations" id="toc-pitch-control-model-hypothetical-destinations" class="nav-link" data-scroll-target="#pitch-control-model-hypothetical-destinations">6. Pitch control model: hypothetical destinations</a>
+  <ul class="collapse">
+  <li><a href="#selecting-a-hypothetical-ball-flight" id="toc-selecting-a-hypothetical-ball-flight" class="nav-link" data-scroll-target="#selecting-a-hypothetical-ball-flight">Selecting a hypothetical ball flight</a></li>
+  <li><a href="#control-at-the-fixed-destination" id="toc-control-at-the-fixed-destination" class="nav-link" data-scroll-target="#control-at-the-fixed-destination">Control at the fixed destination</a></li>
+  </ul></li>
+  <li><a href="#parameter-estimation-from-the-pass-probability-model" id="toc-parameter-estimation-from-the-pass-probability-model" class="nav-link" data-scroll-target="#parameter-estimation-from-the-pass-probability-model">7. Parameter estimation from the pass probability model</a>
+  <ul class="collapse">
+  <li><a href="#likelihood-of-observed-pass-outcomes" id="toc-likelihood-of-observed-pass-outcomes" class="nav-link" data-scroll-target="#likelihood-of-observed-pass-outcomes">Likelihood of observed pass outcomes</a></li>
+  <li><a href="#maximum-likelihood-estimation" id="toc-maximum-likelihood-estimation" class="nav-link" data-scroll-target="#maximum-likelihood-estimation">Maximum-likelihood estimation</a></li>
+  </ul></li>
+  <li><a href="#calibration-of-the-pitch-control-model" id="toc-calibration-of-the-pitch-control-model" class="nav-link" data-scroll-target="#calibration-of-the-pitch-control-model">8. Calibration of the pitch control model</a></li>
+  <li><a href="#fitted-parameters-and-deployed-model" id="toc-fitted-parameters-and-deployed-model" class="nav-link" data-scroll-target="#fitted-parameters-and-deployed-model">9. Fitted parameters and deployed model</a>
+  <ul class="collapse">
+  <li><a href="#arrival-dispersion-compared-with-ball-drive" id="toc-arrival-dispersion-compared-with-ball-drive" class="nav-link" data-scroll-target="#arrival-dispersion-compared-with-ball-drive">Arrival dispersion compared with ball drive</a></li>
+  </ul></li>
+  <li><a href="#application-to-real-tracking-data" id="toc-application-to-real-tracking-data" class="nav-link" data-scroll-target="#application-to-real-tracking-data">10. Application to real tracking data</a>
+  <ul class="collapse">
+  <li><a href="#brisbane-roar-fcperth-glory-frame-54295" id="toc-brisbane-roar-fcperth-glory-frame-54295" class="nav-link" data-scroll-target="#brisbane-roar-fcperth-glory-frame-54295">Brisbane Roar FC–Perth Glory, frame 54295</a></li>
+  </ul></li>
+  <li><a href="#scope-and-limitations" id="toc-scope-and-limitations" class="nav-link" data-scroll-target="#scope-and-limitations">11. Scope and limitations</a></li>
+  <li><a href="#references-and-next-steps" id="toc-references-and-next-steps" class="nav-link" data-scroll-target="#references-and-next-steps">12. References and next steps</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/vignettes/02_pass_probability/02_pass_probability.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">Models</a></li><li class="breadcrumb-item"><a href="../../vignettes/02_pass_probability/02_pass_probability.html">2 · Pass probability</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Pass probability</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="motivation-and-model-overview" class="level2">
+<h2 class="anchored" data-anchor-id="motivation-and-model-overview">1. Motivation and model overview</h2>
+<p>The <strong>pass probability</strong> component estimates the probability that the attacking team completes a pass to a candidate destination. It supplies the pass-success component of PRESS; its complement is the pass-failure probability. Destination choice is modelled separately.</p>
+<p>The formulation follows two related contributions by Spearman. <em>Physics-Based Modeling of Pass Probabilities in Soccer</em> develops a physics-based pass model in which player interception times, uncertainty in arrival and competing control determine completion probabilities, with parameters estimated from observed passes <span class="citation" data-cites="spearman2017">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>)</span>. <em>Beyond Expected Goals</em> extends the use of probabilistic player control to potential pitch control and hypothetical ball delivery <span class="citation" data-cites="spearman2018beyond">(<a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>.</p>
+<p>PRESS implements <strong>two uses of the same physical control mechanism</strong>. First, it evaluates the competition for control along reconstructed trajectories of <strong>observed passes</strong> and estimates the control rate <span class="math inline">\(\lambda_{\mathrm{control}}\)</span> and arrival dispersion <span class="math inline">\(s\)</span> by maximum likelihood. Second, it generates hypothetical ball flights to candidate destinations and evaluates a <strong>potential pitch control field (PPCF)</strong> by initiating competition for control at the destination only after the selected flight time. Player reachability, however, is measured from ball release throughout. Because the second calculation differs from the trajectory-based fitting task, a subsequent <strong>isotonic calibration</strong> maps raw PPCF scores to observed pass-completion frequencies. Calibration leaves the fitted physical parameters unchanged.</p>
+<p>The distinction is methodological. An observed trajectory specifies a sequence of possible interception locations, whereas a hypothetical destination defines a single location and a selected delivery time. Consequently, the two calculations can produce different scores even with identical player states and identical physical parameters. The observed-trajectory model supplies the <strong>estimation likelihood</strong>; the endpoint model supplies the <strong>raw score used for deployed destination-level inference</strong>.</p>
+<p>The model is physics-informed: ball flight and player motion use explicit approximations, while control intensity and arrival uncertainty are learned from observed outcomes. The passer is excluded from the eligible receiving and competing control populations.</p>
+</section>
+<section id="player-motion-and-interception-time" class="level2">
+<h2 class="anchored" data-anchor-id="player-motion-and-interception-time">2. Player motion and interception time</h2>
+<section id="travel-and-turning-time" class="level3">
+<h3 class="anchored" data-anchor-id="travel-and-turning-time">Travel and turning time</h3>
+<p>Let <span class="math inline">\(\mathbf p_j\)</span> and <span class="math inline">\(\mathbf v_j\)</span> be the observed position and velocity of player <span class="math inline">\(j\)</span>, and let <span class="math inline">\(\mathbf r\)</span> be a candidate interception position. Define <span class="math inline">\(d_j(\mathbf r)=\|\mathbf r-\mathbf p_j\|\)</span> and <span class="math inline">\(u_j=\|\mathbf v_j\|\)</span>. Following the arrival-time modelling approach of Spearman <span class="citation" data-cites="spearman2017 spearman2018beyond">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>; <a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>, PRESS approximates motion as a turning delay followed by linear acceleration and, if needed, travel at constant effective speed.</p>
+<p>For <span class="math inline">\(u_j\le v_{\max}\)</span>, with linear acceleration <span class="math inline">\(a\)</span>, define</p>
+<p><span class="math display">\[
+t_{a,j}=\max\left\{\frac{v_{\max}-u_j}{a},0\right\},
+\qquad d_{a,j}=u_jt_{a,j}+\frac12at_{a,j}^2.
+\]</span></p>
+<p>The estimated movement time is</p>
+<p><span class="math display">\[
+t_{\mathrm{move},j}(\mathbf r)=
+\begin{cases}
+\dfrac{\sqrt{u_j^2+2ad_j(\mathbf r)}-u_j}{a},
+&amp;d_j(\mathbf r)\le d_{a,j},\\[6pt]
+t_{a,j}+\dfrac{d_j(\mathbf r)-d_{a,j}}{v_{\max}},
+&amp;d_j(\mathbf r)&gt;d_{a,j}.
+\end{cases}
+\]</span></p>
+<p>If the observed initial speed exceeds <span class="math inline">\(v_{\max}\)</span>, the implementation retains that speed without further acceleration and sets <span class="math inline">\(t_{\mathrm{move},j}=d_j/u_j\)</span>. Thus <span class="math inline">\(v_{\max}\)</span> is an effective acceleration target.</p>
+<p>Following Pleuler’s heading-dependent turning penalty <span class="citation" data-cites="pleuler2020handbook">(<a href="#ref-pleuler2020handbook" role="doc-biblioref">Pleuler 2020</a>)</span>, let <span class="math inline">\(\theta_j(\mathbf r)\)</span> be the angle between the player’s current velocity and the target direction. PRESS adds</p>
+<p><span class="math display">\[
+t_{\mathrm{turn},j}(\mathbf r)=\frac{u_j\theta_j(\mathbf r)}{a_{\mathrm{turn}}}.
+\]</span></p>
+<p>This follows from the geometric turning radius <span class="math inline">\(R=u_j^2/a_{\mathrm{turn}}\)</span> and arc traversal time <span class="math inline">\(R\theta_j/u_j\)</span>. It is a delay approximation of the turning manoeuvre. The total arrival time is</p>
+<p><span class="math display">\[
+\boxed{\tau_j(\mathbf r)=t_{\mathrm{move},j}(\mathbf r)+t_{\mathrm{turn},j}(\mathbf r).}
+\]</span></p>
+<p>At rest, the turning term vanishes. When <span class="math inline">\(d_j(\mathbf r)\le0.1\)</span> m, the implementation sets <span class="math inline">\(\tau_j(\mathbf r)=0\)</span>.</p>
+</section>
+</section>
+<section id="probabilistic-player-reachability" class="level2">
+<h2 class="anchored" data-anchor-id="probabilistic-player-reachability">3. Probabilistic player reachability</h2>
+<p>As in Spearman’s pitch-control model, uncertainty around the estimated arrival time is represented by a logistic distribution <span class="citation" data-cites="spearman2017">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>)</span>. At time <span class="math inline">\(t\)</span>, the reachability of player <span class="math inline">\(j\)</span> at position <span class="math inline">\(\mathbf r\)</span> is</p>
+<p><span class="math display">\[
+\boxed{
+F_j(t,\mathbf r)=
+\left[1+\exp\left\{-\frac{\pi[t-\tau_j(\mathbf r)]}{\sqrt3\,s}\right\}\right]^{-1}.
+}
+\]</span></p>
+<p>Here <span class="math inline">\(s&gt;0\)</span> is the <strong>standard deviation</strong> of logistic arrival-time uncertainty; its logistic scale parameter is <span class="math inline">\(\sqrt3s/\pi\)</span>. Reachability equals <span class="math inline">\(0.5\)</span> at <span class="math inline">\(t=\tau_j(\mathbf r)\)</span>. It is a player-specific arrival gate, and each <span class="math inline">\(F_j\)</span> ranges over <span class="math inline">\([0,1]\)</span> independently of the other players.</p>
+<section id="motion-parameters" class="level3">
+<h3 class="anchored" data-anchor-id="motion-parameters">Motion parameters</h3>
+<p>The model uses <span class="math inline">\(v_{\max}=5.5\)</span> m/s and <span class="math inline">\(a=a_{\mathrm{turn}}=7\)</span> m/s<span class="math inline">\(^2\)</span>. These are effective common movement capabilities, motivated by published player-motion models and checked against the tracking distribution.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Literature rationale</th>
+<th>Tracking consistency check</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Player speed <span class="math inline">\(v_{\max}=5.5\)</span> m/s</td>
+<td>The speed scale is informed by Spearman’s player-motion framework <span class="citation" data-cites="spearman2018beyond">(<a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>.</td>
+<td>Off-ball player-frame speeds <span class="math inline">\(&gt;2\)</span> m/s: Q95 = <strong>5.745 m/s</strong> (or <strong>5.656 m/s</strong> excluding annotated ball-carrier frames).</td>
+</tr>
+<tr class="even">
+<td>Linear acceleration <span class="math inline">\(a=7\)</span> m/s<span class="math inline">\(^2\)</span></td>
+<td>The acceleration scale used in Spearman’s movement model <span class="citation" data-cites="spearman2018beyond">(<a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>.</td>
+<td>Off-ball acceleration magnitudes <span class="math inline">\(&gt;3\)</span> m/s<span class="math inline">\(^2\)</span>: Q99 = <strong>7.013 m/s<span class="math inline">\(^2\)</span></strong>.</td>
+</tr>
+<tr class="odd">
+<td>Turning acceleration <span class="math inline">\(a_{\mathrm{turn}}=7\)</span> m/s<span class="math inline">\(^2\)</span></td>
+<td>PRESS sets the turning-delay scale equal to the linear-acceleration parameter.</td>
+<td>This equality is a modelling convention that sets the turning parameter from the linear-acceleration value.</td>
+</tr>
+</tbody>
+</table>
+<p>The speed filter excludes stationary and walking observations for this descriptive check. These conditional quantiles assess the consistency of rounded model scales with observed movement. Observed positions and velocities are the movement inputs of the model.</p>
+</section>
+</section>
+<section id="shared-ball-flight-dynamics" class="level2">
+<h2 class="anchored" data-anchor-id="shared-ball-flight-dynamics">4. Shared ball-flight dynamics</h2>
+<p>Following the gravity-and-aerodynamic-drag formulation in Spearman <span class="citation" data-cites="spearman2017">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>)</span>, let <span class="math inline">\(\mathbf R(t)\in\mathbb R^3\)</span> and <span class="math inline">\(\mathbf V(t)\in\mathbb R^3\)</span> denote ball position and velocity. The airborne trajectory satisfies</p>
+<p><span class="math display">\[
+\dot{\mathbf R}(t)=\mathbf V(t),\qquad
+\dot{\mathbf V}(t)=-g\mathbf e_z-
+\frac{\rho C_D A}{2m}\|\mathbf V(t)\|\mathbf V(t).
+\]</span></p>
+<section id="ball-flight-parameters" class="level3">
+<h3 class="anchored" data-anchor-id="ball-flight-parameters">Ball-flight parameters</h3>
+<p>The ball-flight model uses fixed physical constants. The values follow the gravity-and-quadratic-drag approximation adopted from Spearman <span class="citation" data-cites="spearman2017">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>)</span>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 40%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Quantity</th>
+<th style="text-align: right;">Value</th>
+<th>Role in the flight model</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Air density <span class="math inline">\(\rho\)</span></td>
+<td style="text-align: right;">1.22 kg/m<span class="math inline">\(^3\)</span></td>
+<td>Determines the aerodynamic drag force.</td>
+</tr>
+<tr class="even">
+<td>Drag coefficient <span class="math inline">\(C_D\)</span></td>
+<td style="text-align: right;">0.25</td>
+<td>Dimensionless coefficient controlling drag magnitude.</td>
+</tr>
+<tr class="odd">
+<td>Ball cross-sectional area <span class="math inline">\(A\)</span></td>
+<td style="text-align: right;">0.038 m<span class="math inline">\(^2\)</span></td>
+<td>Sets the area exposed to airflow.</td>
+</tr>
+<tr class="even">
+<td>Ball mass <span class="math inline">\(m\)</span></td>
+<td style="text-align: right;">0.42 kg</td>
+<td>Converts aerodynamic force into acceleration.</td>
+</tr>
+<tr class="odd">
+<td>Gravitational acceleration <span class="math inline">\(g\)</span></td>
+<td style="text-align: right;">9.81 m/s<span class="math inline">\(^2\)</span></td>
+<td>Governs vertical acceleration.</td>
+</tr>
+</tbody>
+</table>
+<p>The approximation neglects spin and Magnus forces, so the horizontal path is a straight line. Once the descending ball reaches 0.05 m, its height is held fixed while horizontal aerodynamic drag continues; bounce and rolling friction are omitted.</p>
+</section>
+</section>
+<section id="pass-probability-model-observed-trajectories" class="level2">
+<h2 class="anchored" data-anchor-id="pass-probability-model-observed-trajectories">5. Pass probability model: observed trajectories</h2>
+<p>The first model assigns a completion probability to an <strong>observed pass</strong>. The ball is reconstructed as a moving three-dimensional trajectory, and every eligible player competes to intercept it at successive positions along its path.</p>
+<section id="reconstructing-the-observed-ball-trajectory" class="level3">
+<h3 class="anchored" data-anchor-id="reconstructing-the-observed-ball-trajectory">Reconstructing the observed ball trajectory</h3>
+<p>For parameter estimation, PRESS reconstructs each observed pass from its measured release position and initial ball observations. Launch speed and direction are estimated from the early observed ball positions, with release position fixed. The annotated target is not imposed as an endpoint constraint. The <a href="../../benchmarks/02_pass_probability.html">benchmark</a> documents the initial-condition estimators and their selection.</p>
+<p>The fitted initial conditions are propagated through the flight model to obtain <span class="math inline">\(\mathbf R_k(t)\)</span> for observed pass <span class="math inline">\(k\)</span>. This reconstruction is an <strong>offline estimation procedure</strong>: it can use observations after release and is not presented as an online forecast available at the release instant.</p>
+<p>For each reconstructed pass, the ball follows a time-indexed sequence of horizontal positions and heights. At every time step, each player’s arrival gate is evaluated at the ball’s <strong>current</strong> horizontal location. Thus a defender can contribute control probability at an intermediate point, before the ball reaches its annotated destination. The observed binary outcome is used only after these time-dependent contributions have been combined into a team-level completion probability.</p>
+</section>
+<section id="control-along-the-moving-trajectory" class="level3">
+<h3 class="anchored" data-anchor-id="control-along-the-moving-trajectory">Control along the moving trajectory</h3>
+<p>Let <span class="math inline">\(\mathbf r_k(t)=\mathbf R_{k,xy}(t)\)</span> and <span class="math inline">\(z_k(t)=R_{k,z}(t)\)</span> denote the horizontal location and height of the reconstructed ball for pass <span class="math inline">\(k\)</span>. Define <span class="math inline">\(P_{jk}^{\mathrm{traj}}(t)\)</span> as the probability that player <span class="math inline">\(j\)</span> has obtained first control by time <span class="math inline">\(t\)</span>, and</p>
+<p><span class="math display">\[
+U_k^{\mathrm{traj}}(t)=1-\sum_j P_{jk}^{\mathrm{traj}}(t)
+\]</span></p>
+<p>as the probability that nobody has yet obtained control. A player contributes only when the ball is at controllable height (at most 2 m). The instantaneous control intensity is</p>
+<p><span class="math display">\[
+h_{jk}^{\mathrm{traj}}(t)=\lambda_{\mathrm{control}} F_j(t,\mathbf r_k(t))\,\mathbb 1\{z_k(t)\le 2\,\mathrm m\}.
+\]</span></p>
+<p>The coupled competition equations are</p>
+<p><span class="math display">\[
+\boxed{\frac{dP_{jk}^{\mathrm{traj}}(t)}{dt}=U_k^{\mathrm{traj}}(t)h_{jk}^{\mathrm{traj}}(t),\qquad P_{jk}^{\mathrm{traj}}(0)=0.}
+\]</span></p>
+<p>Equivalently, writing <span class="math inline">\(H_k^{\mathrm{traj}}(t)=\sum_j h_{jk}^{\mathrm{traj}}(t)\)</span>,</p>
+<p><span class="math display">\[
+U_k^{\mathrm{traj}}(t)=\exp\!\left[-\int_0^t H_k^{\mathrm{traj}}(u)\,du\right],
+\qquad
+P_{jk}^{\mathrm{traj}}(T_{\max})=\int_0^{T_{\max}} U_k^{\mathrm{traj}}(t)h_{jk}^{\mathrm{traj}}(t)\,dt.
+\]</span></p>
+<p>The horizon <span class="math inline">\(T_{\max}\)</span> is a time large enough for the ball to be controlled by someone; formally, <span class="math inline">\(T_{\max}\to\infty\)</span>.</p>
+<p>The model’s <strong>observed-pass completion probability</strong> is the total first-control probability of eligible attacking teammates <span class="math inline">\(\mathcal A_k\)</span> (excluding the passer):</p>
+<p><span class="math display">\[
+\boxed{p_k^{\mathrm{traj}}(\lambda_{\mathrm{control}},s)=\sum_{j\in\mathcal A_k}P_{jk}^{\mathrm{traj}}(T_{\max}).}
+\]</span></p>
+<p>Because the target position changes with <span class="math inline">\(t\)</span>, the model accounts for interception opportunities <strong>before</strong> the ball reaches its intended destination. The resulting <span class="math inline">\(p_k^{\mathrm{traj}}\)</span> is the quantity subsequently used in the Bernoulli likelihood.</p>
+</section>
+</section>
+<section id="pitch-control-model-hypothetical-destinations" class="level2">
+<h2 class="anchored" data-anchor-id="pitch-control-model-hypothetical-destinations">6. Pitch control model: hypothetical destinations</h2>
+<p>The second model evaluates the probability that the attacking team would obtain first control <strong>at a chosen destination</strong> <span class="math inline">\(\mathbf r\)</span>. It constructs a hypothetical ball delivery and uses its arrival time to determine when competition at that fixed target may begin.</p>
+<section id="selecting-a-hypothetical-ball-flight" class="level3">
+<h3 class="anchored" data-anchor-id="selecting-a-hypothetical-ball-flight">Selecting a hypothetical ball flight</h3>
+<p>For inference, PRESS chooses a feasible hypothetical flight to destination <span class="math inline">\(\mathbf r\)</span>. It evaluates a grid of <strong>900</strong> launch combinations: 30 speeds between 5 and 25 m/s and 30 elevation angles between 0 and 45 degrees. Among flights reaching the destination at controllable height, it selects the ball-arrival time closest to the estimated arrival time of the eligible teammate <strong>nearest in initial position</strong> to <span class="math inline">\(\mathbf r\)</span>.</p>
+<p>This receiver-friendly timing convention follows the potential-pitch-control construction of <em>Beyond Expected Goals</em>, §3.1.2 <span class="citation" data-cites="spearman2018beyond">(<a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>. It models a hypothetical delivery, independently of the launch actually chosen by the passer.</p>
+<p>In this use, the selected trajectory determines <strong>when</strong> the ball becomes available at the candidate destination. The competing-control calculation then uses that fixed point and begins accumulating control only after the selected arrival time. The selected flight provides the time <span class="math inline">\(T_{\mathrm{flight}}(\mathbf r)\)</span> at which the ball becomes available for control at the target. Players may have reached that target earlier, but control competition at the endpoint begins only at this time.</p>
+</section>
+<section id="control-at-the-fixed-destination" class="level3">
+<h3 class="anchored" data-anchor-id="control-at-the-fixed-destination">Control at the fixed destination</h3>
+<p>Let <span class="math inline">\(T_{\mathrm{flight}}(\mathbf r)\)</span> be the selected arrival time. Although a player can reach <span class="math inline">\(\mathbf r\)</span> before the ball, first control <strong>at that location</strong> occurs only after ball arrival. Therefore, explicitly for <span class="math inline">\(t&lt;T_{\mathrm{flight}}(\mathbf r)\)</span>,</p>
+<p><span class="math display">\[
+P_j^{\mathrm{PPCF}}(t;\mathbf r)=0,\qquad U^{\mathrm{PPCF}}(t;\mathbf r)=1,\qquad t&lt;T_{\mathrm{flight}}(\mathbf r).
+\]</span></p>
+<p>At <span class="math inline">\(t=T_{\mathrm{flight}}(\mathbf r)\)</span>, control starts from <span class="math inline">\(P_j^{\mathrm{PPCF}}=0\)</span> and <span class="math inline">\(U^{\mathrm{PPCF}}=1\)</span>. From ball arrival onward, the target stays fixed and the competing-control equations are</p>
+<p><span class="math display">\[
+\boxed{\frac{dP_j^{\mathrm{PPCF}}(t;\mathbf r)}{dt}=U^{\mathrm{PPCF}}(t;\mathbf r)\lambda_{\mathrm{control}}F_j(t,\mathbf r),\qquad t\ge T_{\mathrm{flight}}(\mathbf r),}
+\]</span></p>
+<p>with <span class="math inline">\(P_j^{\mathrm{PPCF}}(T_{\mathrm{flight}};\mathbf r)=0\)</span> and <span class="math inline">\(U^{\mathrm{PPCF}}(T_{\mathrm{flight}};\mathbf r)=1\)</span>. Crucially, the time <span class="math inline">\(t\)</span> in <span class="math inline">\(F_j(t,\mathbf r)\)</span> is measured <strong>from pass release</strong>. Players who could have reached the destination earlier already have high reachability when the competition begins.</p>
+<p>Setting <span class="math inline">\(H^{\mathrm{PPCF}}(t;\mathbf r)=\lambda_{\mathrm{control}}\sum_j F_j(t,\mathbf r)\)</span> gives</p>
+<p><span class="math display">\[
+U^{\mathrm{PPCF}}(t;\mathbf r)=\exp\!\left[-\int_{T_{\mathrm{flight}}(\mathbf r)}^t H^{\mathrm{PPCF}}(u;\mathbf r)\,du\right].
+\]</span></p>
+<p>The <strong>raw attacking-team pitch control score</strong> is</p>
+<p><span class="math display">\[
+\boxed{C_{\mathrm{att}}(\mathbf r;\lambda_{\mathrm{control}},s)=\sum_{j\in\mathcal A}\int_{T_{\mathrm{flight}}(\mathbf r)}^{T_{\max}}U^{\mathrm{PPCF}}(t;\mathbf r)\lambda_{\mathrm{control}}F_j(t,\mathbf r)\,dt.}
+\]</span></p>
+<p>The difference from the observed-trajectory model is structural: control is evaluated <strong>only at the destination after the hypothetical ball arrives</strong>, so early interception opportunities along the flight are not explicitly integrated. Both models use the same player-reachability function and physical parameters.</p>
+</section>
+</section>
+<section id="parameter-estimation-from-the-pass-probability-model" class="level2">
+<h2 class="anchored" data-anchor-id="parameter-estimation-from-the-pass-probability-model">7. Parameter estimation from the pass probability model</h2>
+<section id="likelihood-of-observed-pass-outcomes" class="level3">
+<h3 class="anchored" data-anchor-id="likelihood-of-observed-pass-outcomes">Likelihood of observed pass outcomes</h3>
+<p>For observed pass <span class="math inline">\(k\)</span>, let <span class="math inline">\(Y_k=1\)</span> indicate successful completion by the attacking team and <span class="math inline">\(Y_k=0\)</span> indicate failure. Given the reconstructed ball path, the observed player state and physical parameters</p>
+<p><span class="math display">\[
+\psi=(\lambda_{\mathrm{control}},s),
+\]</span></p>
+<p>the competing-control model produces a trajectory-based team completion probability <span class="math inline">\(p_k^{\mathrm{traj}}(\psi)\)</span> by summing the attacking players’ control probabilities along that reconstructed path.</p>
+<p>Following the trajectory-likelihood approach of Spearman <span class="citation" data-cites="spearman2017">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>)</span>, PRESS estimates the two parameters using the natural binary pass outcomes:</p>
+<p><span class="math display">\[
+\boxed{
+\mathcal L(\psi;D)=
+\prod_{k=1}^N
+[p_k^{\mathrm{traj}}(\psi)]^{Y_k}
+[1-p_k^{\mathrm{traj}}(\psi)]^{1-Y_k}.
+}
+\]</span></p>
+<p>Equivalently, the log likelihood is</p>
+<p><span class="math display">\[
+\log\mathcal L(\psi;D)=
+\sum_{k=1}^N
+\left\{
+Y_k\log p_k^{\mathrm{traj}}(\psi)
++(1-Y_k)\log[1-p_k^{\mathrm{traj}}(\psi)]
+\right\}.
+\]</span></p>
+<p>A completed pass contributes the attacking team’s probability of obtaining control; an incomplete pass contributes its complement. The likelihood is evaluated on the reconstructed trajectories and uses only the pass outcome, regardless of the receiver’s identity or the time of first control.</p>
+<p>The two fitted parameters influence the likelihood differently. Increasing <span class="math inline">\(\lambda_{\mathrm{control}}\)</span> accelerates the transfer of remaining uncontrolled probability to players who are already reachable. Changing <span class="math inline">\(s\)</span> changes how sharply each player’s reachability rises around the expected arrival time; it can therefore affect <strong>which team</strong> is likely to control the moving ball and <strong>when</strong>. The observed success/failure labels constrain these effects through their joint predictions across many different spatial and temporal configurations.</p>
+</section>
+<section id="maximum-likelihood-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="maximum-likelihood-estimation">Maximum-likelihood estimation</h3>
+<p>PRESS estimates <span class="math inline">\(\lambda_{\mathrm{control}}\)</span> and <span class="math inline">\(s\)</span> jointly by minimizing the negative log likelihood. Positivity is enforced through logarithmic coordinates,</p>
+<p><span class="math display">\[
+(\eta_\lambda,\eta_s)=(\log\lambda_{\mathrm{control}},\log s),
+\qquad
+\hat\psi=\arg\max_{\lambda_{\mathrm{control}}&gt;0,\,s&gt;0}
+\log\mathcal L(\psi;D).
+\]</span></p>
+<p>These are maximum-likelihood point estimates, fitted without parameter priors. Optimization procedures, initial-condition estimator selection, data splits and held-out results are documented in the <a href="../../benchmarks/02_pass_probability.html">pass-probability benchmark</a>.</p>
+</section>
+</section>
+<section id="calibration-of-the-pitch-control-model" class="level2">
+<h2 class="anchored" data-anchor-id="calibration-of-the-pitch-control-model">8. Calibration of the pitch control model</h2>
+<p>The parameters fitted on observed trajectories are transferred unchanged to the endpoint PPCF calculation. However, the likelihood uses competition along a <strong>moving observed ball path</strong>, whereas the PPCF evaluates competition at a <strong>fixed hypothetical destination</strong> after its selected flight time. Thus, a raw PPCF score <span class="math inline">\(C_{\mathrm{att}}(\mathbf r;\hat\psi)\)</span> need not equal the empirical probability of completing a pass to that destination.</p>
+<p>PRESS estimates a nondecreasing isotonic mapping <span class="math inline">\(c:[0,1]\to[0,1]\)</span> from raw PPCF predictions and observed pass outcomes:</p>
+<p><span class="math display">\[
+\boxed{
+p_{\mathrm{pass}}(\mathbf r)=c\!\left(C_{\mathrm{att}}(\mathbf r;\hat\psi)\right),
+\qquad
+p_{\mathrm{fail}}(\mathbf r)=1-p_{\mathrm{pass}}(\mathbf r).
+}
+\]</span></p>
+<p>The mapping adjusts the empirical relationship between raw PPCF scores and completion frequencies. Its estimation, cross-fitting procedure and held-out assessment are documented in the <a href="../../benchmarks/02_pass_probability.html">pass-probability benchmark</a>.</p>
+</section>
+<section id="fitted-parameters-and-deployed-model" class="level2">
+<h2 class="anchored" data-anchor-id="fitted-parameters-and-deployed-model">9. Fitted parameters and deployed model</h2>
+<p>The deployed physical estimates are</p>
+<p><span class="math display">\[
+\boxed{
+\hat\lambda_{\mathrm{control}}=5.437830\ \mathrm{s}^{-1},
+\qquad
+\hat s=0.294560\ \mathrm{s}.
+}
+\]</span></p>
+<p>These are full-data refit estimates. Spearman <span class="citation" data-cites="spearman2017">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>)</span> reports a reference control rate of 4.30 s<span class="math inline">\(^{-1}\)</span> and arrival dispersion of 0.45 s; <em>Beyond Expected Goals</em> reports a different fitted dispersion under its later specification <span class="citation" data-cites="spearman2018beyond">(<a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span>. Such values depend on the movement, flight and control assumptions and the estimation dataset.</p>
+<section id="arrival-dispersion-compared-with-ball-drive" class="level3">
+<h3 class="anchored" data-anchor-id="arrival-dispersion-compared-with-ball-drive">Arrival dispersion compared with ball drive</h3>
+<p>The full-data pass estimate <span class="math inline">\(s=0.294560\)</span> s is close to the ball-drive estimate <span class="math inline">\(s=0.299632\)</span> s. Both describe arrival-time uncertainty on a scale of approximately 0.3 s, but arise from different movement settings, likelihoods and estimation procedures (MLE for passes and MAP for ball drives). This is a descriptive comparison of the two scales. Parameter stability and uncertainty assessments belong to the respective benchmarks.</p>
+</section>
+</section>
+<section id="application-to-real-tracking-data" class="level2">
+<h2 class="anchored" data-anchor-id="application-to-real-tracking-data">10. Application to real tracking data</h2>
+<p>The package supports both physical calculations: the probability of attacking-team control along a <strong>reconstructed observed pass</strong>, and the calibrated PPCF for a <strong>hypothetical pass destination</strong>. The second calculation can be evaluated across a pitch grid to visualize the pass-success field from a given player state.</p>
+<p>The two outputs are interpreted separately and need not agree for the same annotated endpoint, since their ball-control opportunities differ.</p>
+<section id="brisbane-roar-fcperth-glory-frame-54295" class="level3">
+<h3 class="anchored" data-anchor-id="brisbane-roar-fcperth-glory-frame-54295">Brisbane Roar FC–Perth Glory, frame 54295</h3>
+<p>N. Acosta completes a pass to J. Hingert; the dashed line marks its observed destination. Set <code>SKILLCORNER_OPENDATA</code> to your local open-data repository.</p>
+<div id="0d59356a" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS <span class="im">import</span> PRESS</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>opendata <span class="op">=</span> Path(os.environ.get(<span class="st">"SKILLCORNER_OPENDATA"</span>, Path.cwd().parent <span class="op">/</span> <span class="st">"opendata"</span>))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>match_dir <span class="op">=</span> opendata <span class="op">/</span> <span class="st">"data/matches/1925299"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>press <span class="op">=</span> PRESS.from_skillcorner(match_dir)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>frame_id <span class="op">=</span> <span class="dv">54295</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS.visualization <span class="im">import</span> plot_pass_map</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>press.compute_ppcf(frame_id)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>plot_pass_map(press, frame_id, field<span class="op">=</span><span class="st">"pass_success"</span>, pass_target<span class="op">=</span>(<span class="op">-</span><span class="fl">12.15</span>, <span class="op">-</span><span class="fl">28.05</span>))</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"figures/vignette_02_pass_real_field.png"</span>, dpi<span class="op">=</span><span class="dv">170</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"figures/vignette_02_pass_real_field.svg"</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>plt.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../figures/vignette_02_pass_real_field.png" class="img-fluid figure-img"></p>
+<figcaption>Calibrated pass-success field and the observed pass, drawn by the package.</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="scope-and-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="scope-and-limitations">11. Scope and limitations</h2>
+<p>The model assumes a fixed initial player state, common effective movement parameters, sequential turning and acceleration, logistic arrival uncertainty, and a shared control rate. Reconstructed ball trajectories omit spin and use a simplified ground-contact rule. The hypothetical-pass calculation optimizes a receiver-friendly arrival time and evaluates control at the target, without explicitly integrating all possible early interceptions along the flight. Its isotonic calibration corrects empirical score-to-outcome correspondence but cannot recover missing physical mechanisms or establish causal interpretation.</p>
+</section>
+<section id="references-and-next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="references-and-next-steps">12. References and next steps</h2>
+<p>Spearman’s pass-probability model <span class="citation" data-cites="spearman2017">(<a href="#ref-spearman2017" role="doc-biblioref">Spearman et al. 2017</a>)</span> motivates the observed-trajectory likelihood, uncertain player arrival, flight physics and competing control. <em>Beyond Expected Goals</em> <span class="citation" data-cites="spearman2018beyond">(<a href="#ref-spearman2018beyond" role="doc-biblioref">Spearman 2018</a>)</span> motivates hypothetical flight selection and potential pitch control. Pleuler <span class="citation" data-cites="pleuler2020handbook">(<a href="#ref-pleuler2020handbook" role="doc-biblioref">Pleuler 2020</a>)</span> motivates the turning-delay approximation. Fernández, Bornn and Cervone <span class="citation" data-cites="fernandez2019 fernandez2021">(<a href="#ref-fernandez2019" role="doc-biblioref">Fernandez, Bornn, and Cervone 2019</a>; <a href="#ref-fernandez2021" role="doc-biblioref">Fernandez, Bornn, and Cervone 2021</a>)</span> provide the wider action-value context in which pass completion is a distinct component.</p>
+<p>The equations describe the <strong>PRESS implementation</strong> of these two formulations. The separate <a href="../../benchmarks/02_pass_probability.html">pass-probability benchmark</a> documents data selection, nested evaluation, calibration performance and numerical sensitivity. The complementary <a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">ball-drive vignette</a> describes the possession-loss model for continued carrying.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-fernandez2019" class="csl-entry" role="listitem">
+Fernandez, Javier, Luke Bornn, and Dan Cervone. 2019. <span>“Decomposing the Immeasurable Sport: A Deep Learning Expected Possession Value Framework for Soccer.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://www.sloansportsconference.com/research-papers/decomposing-the-immeasurable-sport-a-deep-learning-expected-possession-value-framework-for-soccer">https://www.sloansportsconference.com/research-papers/decomposing-the-immeasurable-sport-a-deep-learning-expected-possession-value-framework-for-soccer</a>.
+</div>
+<div id="ref-fernandez2021" class="csl-entry" role="listitem">
+Fernandez, Javier, Luke Bornn, and Daniel Cervone. 2021. <span>“A Framework for the Fine-Grained Evaluation of the Instantaneous Expected Value of Soccer Possessions.”</span> <em>Machine Learning</em> 110: 1389–1427. <a href="https://doi.org/10.1007/s10994-021-05989-6">https://doi.org/10.1007/s10994-021-05989-6</a>.
+</div>
+<div id="ref-pleuler2020handbook" class="csl-entry" role="listitem">
+Pleuler, Devin. 2020. <span>“Soccer Analytics Handbook.”</span> <a href="https://github.com/devinpleuler/analytics-handbook">https://github.com/devinpleuler/analytics-handbook</a>.
+</div>
+<div id="ref-spearman2018beyond" class="csl-entry" role="listitem">
+Spearman, William. 2018. <span>“Beyond Expected Goals.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://static.hudl.com/craft/downloads/SSAC2018_Beyond_Expected_Goals.pdf">https://static.hudl.com/craft/downloads/SSAC2018_Beyond_Expected_Goals.pdf</a>.
+</div>
+<div id="ref-spearman2017" class="csl-entry" role="listitem">
+Spearman, William, Austin Basye, Greg Dick, Ryan Hotovy, and Paul Pop. 2017. <span>“Physics-Based Modeling of Pass Probabilities in Soccer.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://static.hudl.com/craft/downloads/SSAC17-Physics-Based-Modeling-of-Pass-Probabilities-in-Soccer.pdf">https://static.hudl.com/craft/downloads/SSAC17-Physics-Based-Modeling-of-Pass-Probabilities-in-Soccer.pdf</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="pagination-link" aria-label="1 · Ball-drive risk">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">1 · Ball-drive risk</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../vignettes/03_pass_selection/03_pass_selection.html" class="pagination-link" aria-label="3 · Pass selection">
+        <span class="nav-page-text">3 · Pass selection</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="../../index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/vignettes/02_pass_probability/02_pass_probability.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

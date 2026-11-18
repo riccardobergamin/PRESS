@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - 4.1 · Use with other providers: data and preparation</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./vignettes/00_external_data/idsse.html" rel="next">
+<link href="./vignettes/00_match_workflow/00_match_workflow.html" rel="prev">
+<link href="./branding/favicon.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <img src="./branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="./data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="./vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="./benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="./api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./usage.html">User guide</a></li><li class="breadcrumb-item"><a href="./external-data.html">4 · Use with other providers</a></li><li class="breadcrumb-item"><a href="./external-data.html">4.1 · Data requirements and preparation</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./external-data.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#tracking-and-match-metadata" id="toc-tracking-and-match-metadata" class="nav-link active" data-scroll-target="#tracking-and-match-metadata">Tracking and match metadata</a></li>
+  <li><a href="#event-information" id="toc-event-information" class="nav-link" data-scroll-target="#event-information">Event information</a></li>
+  <li><a href="#synchronization-and-segmentation" id="toc-synchronization-and-segmentation" class="nav-link" data-scroll-target="#synchronization-and-segmentation">Synchronization and segmentation</a></li>
+  <li><a href="#requirements-by-model" id="toc-requirements-by-model" class="nav-link" data-scroll-target="#requirements-by-model">Requirements by model</a></li>
+  <li><a href="#idsse-preprocessing" id="toc-idsse-preprocessing" class="nav-link" data-scroll-target="#idsse-preprocessing">IDSSE preprocessing</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/external-data.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./usage.html">User guide</a></li><li class="breadcrumb-item"><a href="./external-data.html">4 · Use with other providers</a></li><li class="breadcrumb-item"><a href="./external-data.html">4.1 · Data requirements and preparation</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">4.1 · Use with other providers: data and preparation</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This is part 4.1 of the <a href="./usage.html">User guide</a>. PRESS evaluates a match in a provider-independent representation. Original SkillCorner files can be loaded directly with <code>PRESS.from_skillcorner(...)</code>. For another provider, map identifiers and coordinates explicitly, align events to tracking, then supply or reconstruct individual possessions. PRESS constructs canonical actions and checkpoints from those intervals. See the <a href="./vignettes/00_external_data/idsse.html">Köln–Bayern example</a>.</p>
+<section id="tracking-and-match-metadata" class="level2">
+<h2 class="anchored" data-anchor-id="tracking-and-match-metadata">Tracking and match metadata</h2>
+<p>Positions use metres, centred at the pitch centre: x is longitudinal and y lateral. Velocities use m/s in those same axes. PRESS keeps the supplied direction, so state the ball carrier’s attacking direction at each frame. <code>fps</code> is the input sampling frequency; the models’ numerical integration steps remain fixed.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Information</th>
+<th>Canonical fields</th>
+<th>Requirement and consequence of absence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Match and sampling</td>
+<td><code>match_id</code> (string), <code>fps</code> (positive float)</td>
+<td>Match identifier is optional for isolated inference. Correct fps is mandatory for segmentation, elapsed time and checkpoint spacing.</td>
+</tr>
+<tr class="even">
+<td>Pitch</td>
+<td><code>pitch_length</code>, <code>pitch_width</code> (positive metres)</td>
+<td>Supply actual dimensions; the constructor retains its 105 × 68 m default when omitted.</td>
+</tr>
+<tr class="odd">
+<td>Frame key</td>
+<td><code>frame</code> (unique integer)</td>
+<td>Mandatory. Consecutive IDs must represent consecutive samples; gaps must retain their missing IDs.</td>
+</tr>
+<tr class="even">
+<td>Period</td>
+<td><code>period</code> (integer/string identifier)</td>
+<td>Mandatory for segmentation and period-relative synchronization. Period means a half or an extra-time period.</td>
+</tr>
+<tr class="odd">
+<td>Player identity</td>
+<td><code>home_&lt;integer&gt;</code> or <code>away_&lt;integer&gt;</code></td>
+<td>Mandatory, stable within match. Numbers are aliases that may differ from shirt numbers. Preserve provider IDs in player metadata.</td>
+</tr>
+<tr class="even">
+<td>Player state</td>
+<td><code>&lt;player&gt;_x</code>, <code>_y</code>, <code>_vx</code>, <code>_vy</code> (numeric)</td>
+<td>Observed players require finite position/velocity. Absent players remain missing; PRESS pads numerical states internally. At most eleven observed players per team.</td>
+</tr>
+<tr class="odd">
+<td>Carrier</td>
+<td><code>player_possession</code> (alias or missing)</td>
+<td>Mandatory to evaluate a frame. Must be annotated or estimated explicitly upstream, since PRESS takes the carrier from this field.</td>
+</tr>
+<tr class="even">
+<td>Direction</td>
+<td><code>attacking_side</code>: <code>left_to_right</code> or <code>right_to_left</code></td>
+<td>Mandatory for the contextual models and field geometry. Reliable recovery requires information beyond a single frame.</td>
+</tr>
+<tr class="odd">
+<td>Ball</td>
+<td><code>ball_x</code>, <code>ball_y</code>; optional <code>ball_z</code></td>
+<td>XY required by the match interface and real-frame plots. Z is needed for observed 3D launch fitting in training; production field predictions use XY only.</td>
+</tr>
+<tr class="even">
+<td>Clock and score</td>
+<td><code>match_clock_min</code>, <code>score_difference_prefix</code></td>
+<td>Required contextual information for a complete observed feature record. Numeric missing values are accepted by the fitted trees, and differ from known values. Score difference is carrier-team minus opposition, using only prior confirmed goals.</td>
+</tr>
+<tr class="odd">
+<td>Player metadata</td>
+<td><code>player_id</code>, optional source IDs, name, goalkeeper flag</td>
+<td>Optional for physical inference; role is needed to reproduce outfield-only evaluation cohorts. Take role from provider metadata or annotations.</td>
+</tr>
+</tbody>
+</table>
+<p>For long data, use <code>convert_long_tracking(players, ball, context, home_team=..., away_team=...)</code>. Player rows require <code>frame, team_id, player_id, x, y, vx, vy</code>; ball rows require <code>frame, x, y</code>; context requires <code>frame, player_possession, attacking_side</code>. <code>team_possession</code> disambiguates carrier IDs reused between teams. The returned roster records the alias mapping.</p>
+<p><code>map_columns(table, {source: canonical})</code> renames fields. <code>to_pitch_coordinates(...)</code> converts declared coordinate bounds and optional velocity components. Both rely on the units and orientation declared by the caller. <code>differentiate(...)</code> is available when velocities must be reconstructed: derivatives are calculated separately on finite contiguous runs within each period. The filtering window must be stated by the caller.</p>
+</section>
+<section id="event-information" class="level2">
+<h2 class="anchored" data-anchor-id="event-information">Event information</h2>
+<p><code>normalize_events</code> accepts a DataFrame with unique <code>event_id</code>, <code>event_type</code>, and either <code>frame</code>, UTC-compatible <code>datetime</code>, or <code>period</code> plus <code>time_seconds</code>. A supplied mapping translates provider event labels to the canonical event vocabulary. Unsupported event types become <code>unknown</code>; their source label is retained in <code>original_event</code>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Event/attribute</th>
+<th>Needed for</th>
+<th>Missing information</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Actor and team: <code>player_id</code>, <code>team_id</code></td>
+<td>Release, recovery and terminal action identification</td>
+<td>Actorless administrative events are retained as administrative entries of the preprocessing audit.</td>
+</tr>
+<tr class="even">
+<td>Time and period; optional event XY</td>
+<td>Event–tracking synchronization</td>
+<td>Time links alone provide nearest-timestamp matching; release/contact refinement uses event XY and type-specific tracking information through an external synchronizer.</td>
+</tr>
+<tr class="odd">
+<td><code>pass</code>, <code>is_successful</code> (nullable boolean), <code>receiver_player_id</code></td>
+<td>Pass release, successful reception and verified pass links</td>
+<td>Missing success stays unknown. A successful pass without an identified, observed receiver has an unverified endpoint.</td>
+</tr>
+<tr class="even">
+<td><code>recovery</code>, <code>interception</code>, <code>tackle</code>; annotated winner where available</td>
+<td>Control origin and direct possession loss</td>
+<td>An annotated control acquisition can establish a start. Contact or a change of estimated controller alone does not establish a verified loss. Provider-specific tackle outcomes must identify what was won and by whom.</td>
+</tr>
+<tr class="odd">
+<td><code>restart_type</code>: <code>open_play</code>, <code>throw_in</code>, <code>corner</code>, <code>free_kick</code>, <code>goal_kick</code>, <code>unknown</code></td>
+<td>Reception/interception context</td>
+<td>Reconstruct from the preceding pass and its restart qualifier. If unavailable, use <code>unknown</code>.</td>
+</tr>
+<tr class="even">
+<td><code>shot</code></td>
+<td>Terminal action and shot-ending cohort exclusion</td>
+<td>Without shot labels, the published no-shot cohort cannot be reproduced.</td>
+</tr>
+<tr class="odd">
+<td><code>foul_suffered</code>, <code>clearance</code></td>
+<td>Separate noncanonical terminal actions</td>
+<td>Both remain terminal actions separate from individual loss. Omission can leave the endpoint unknown.</td>
+</tr>
+<tr class="even">
+<td><code>stoppage</code>, <code>restart</code></td>
+<td>Prevent linking across interrupted play</td>
+<td>Missing interruption information weakens endpoint verification and should be reported.</td>
+</tr>
+<tr class="odd">
+<td>OBE and reliable endpoint annotations</td>
+<td>Reproduce the published outcome-validation filters</td>
+<td>Providers supply these in varying degree, and the outcome labels must come from annotated on-ball engagement or validated loss outcomes.</td>
+</tr>
+</tbody>
+</table>
+<p>The public raw context categories are <code>pass_reception</code>, <code>pass_interception</code>, <code>recovery</code>, <code>keep_possession</code>, and reception/interception variants prefixed with <code>throw_in</code>, <code>corner</code>, <code>free_kick</code>, or <code>goal_kick</code>. <code>ball_drive</code> is additionally a previous-action category. <code>unknown</code> is accepted by the unchanged trained categorical vocabularies. The adapter infers <code>keep_possession</code> only with supporting annotation. Other unseen categories use the fitted unseen bucket.</p>
+</section>
+<section id="synchronization-and-segmentation" class="level2">
+<h2 class="anchored" data-anchor-id="synchronization-and-segmentation">Synchronization and segmentation</h2>
+<p>The separate <code>synchronize_events(...)</code> helper can validate supplied frame links or find nearest timestamps within periods. Event-specific release/contact refinement remains a separate step. Keep provider loading and alignment in the external preprocessing workflow: synchronization and individual-possession boundaries may be prepared outside PRESS, and canonical action segmentation follows the PRESS convention. Tracking and events must share canonical identifiers and synchronized frame links before segmentation; the segmenter verifies the links, and time alignment happens upstream.</p>
+<p>For already prepared data, initialize <code>PRESS(tracking_data, ...)</code> directly. Supplied individual possessions are used as they are: initialize <code>PRESS(tracking, player_possessions_data=individuals, ...)</code> without <code>actions_data</code>, and PRESS constructs the canonical action table and checkpoints internally with <code>canonical_actions(...)</code>. If individual intervals are missing, call <code>segment_possessions(tracking, events, fps=..., match_id=...)</code> first. It returns <code>(tracking, individual_possessions, actions, report)</code>; pass the tracking and individual-possession tables to the constructor.</p>
+<p>The segmenter uses synchronized actor events and the supplied carrier stream. Direct event links establish the eligible starts and terminal actions; clock-interpolated audit links do not establish these boundaries. A reception is located at an observed control frame or, when control is missed, at the fallback candidate described below, and each pass link is cross-checked against estimated control and flagged with <code>outcome_verified</code>. <code>include_unannotated_starts=False</code> restricts starts to successful receptions and annotated recoveries/interceptions, as in the IDSSE example. The default <code>True</code> additionally admits tracking-only starts and opponent control after failed passes; their boundary source is recorded.</p>
+<p>A missed receiver control can use the frame immediately before the receiver’s next synchronized actor event when the observed ball–receiver XY distance is at most <code>reception_fallback_max_distance</code> (default <strong>1.5 m</strong>). The candidate must exist in the same period and strictly follow release; unavailable coordinates or an inconsistent distance cannot support the fallback. Set the parameter to <code>None</code> to disable it. <code>reception_fallback_checks</code> records the tested candidates and reasons.</p>
+<p>A recovery/interception overlapping the outgoing carrier’s tackle loss is reconciled only when winner/loser identities and adjacent relevant events support the same transfer. The outgoing end remains at the synchronized tackle frame and the incoming start moves to the next observed frame in that period. Original frames and event IDs remain recorded in <code>overlap_reconciliations</code> and the interval table. Other overlaps are reported without creating another interval.</p>
+<p>The resulting intervals do not overlap or cross periods and missing tracking ranges. Terminal events preserve their football meaning: a foul suffered or clearance differs from direct loss, and a change of estimated controller without an eligible terminal event leaves the ending unknown. Original estimated control is retained separately from the carrier assigned to each reconstructed interval.</p>
+<p>Provider annotations determine which events can support these labels. The <a href="./vignettes/00_external_data/idsse.html#idsse-segmentation">IDSSE segmentation rules</a> specify the starts, the reception search, the terminal events and tackle-winner rule, foul deduplication, clearance qualifier, pass-link verification and unknown-outcome handling for the Bundesliga example. Other providers need an equivalent semantic mapping, and each event meaning must be supported by the provider’s annotations.</p>
+<p>Actions follow the existing <a href="./vignettes/setup/possession_and_checkpoint_setup.html">canonical segmentation conventions</a>: successful whole one-second carries; a failed final carry even when shorter than one second; and a pass-release checkpoint. Short successful tails are noncanonical exposure snapshots. Foul, clearance and shot endings remain outside the terminal pass/carry choices. <code>previous_action</code> uses the control’s origin before the first whole carry, then <code>ball_drive</code>. <code>time_since_start</code> is computed from actual frame differences and fps.</p>
+<p>Keep the external event audit and segmentation report alongside the input tables. The direct constructor receives prepared tracking, individual intervals and metadata; an action table is optional. The original SkillCorner loader additionally exposes its raw dynamic-event audit through <code>get_preprocessing_events()</code> and its loading report through <code>get_preparation_report()</code>. Export input/audit tables separately from numerical result exports.</p>
+</section>
+<section id="requirements-by-model" class="level2">
+<h2 class="anchored" data-anchor-id="requirements-by-model">Requirements by model</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Calculation</th>
+<th>Minimum information beyond its fitted artifact</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ball-drive risk</td>
+<td>Carrier and defender positions/velocities, native pitch dimensions. Inference needs the state only.</td>
+</tr>
+<tr class="even">
+<td>Pitch control/pass probability</td>
+<td>Team identity, player positions/velocities, carrier and candidate destinations. The production flight model works from the current state.</td>
+</tr>
+<tr class="odd">
+<td>Pass selection</td>
+<td>The physical fields, xT, carrier state and contextual features. Missing categorical information has explicit fitted buckets.</td>
+</tr>
+<tr class="even">
+<td>BCOS</td>
+<td>Carrier and defender positions/velocities; pitch dimensions and chosen destination domain.</td>
+</tr>
+<tr class="odd">
+<td>Action selection and h</td>
+<td>Preceding fields/choices, BCOS model feature, context and completed-carry count. The count needs a control start or an explicit supplied value.</td>
+</tr>
+<tr class="even">
+<td>Residual risk and xLoss</td>
+<td>The same state plus action selection and observed elapsed individual-control time. Only past and current information is used.</td>
+</tr>
+<tr class="odd">
+<td>Published validation/report cohorts</td>
+<td>In addition: matched control endpoints, identified pass links, terminal action/outcome, interruptions, role and OBE where required. Missing annotations prevent reproducing that evaluation cohort.</td>
+</tr>
+</tbody>
+</table>
+<p>Interoperability means that the same mathematical models can evaluate a mapped state; calibration and predictive validity on a new league, provider or segmentation system require separate evidence.</p>
+</section>
+<section id="idsse-preprocessing" class="level2">
+<h2 class="anchored" data-anchor-id="idsse-preprocessing">IDSSE preprocessing</h2>
+<p>The <a href="examples/preprocessing/idsse.py">standalone preprocessing scripts</a> load Sportec metadata and map provider semantics. The <a href="examples/preprocessing/databallpy_bridge.py">DataBallPy bridge</a> runs separately from PRESS and exports portable Parquet tables. It was executed with DataBallPy 0.7.3; the bridge checks that API version explicitly. Other synchronizers can supply the same canonical interface.</p>
+<p>The example uses event-anchored starts (<code>include_unannotated_starts=False</code>), DataBallPy’s event-order-preserving alignment and its tracking-based control estimate. Its control parameters are explicit: 1.5 m possession zone, 5 m/s ball-speed threshold, 10° ball-angle threshold and zero minimum possession-zone frames. Unsupported events may receive a separately labelled clock interpolation only between nearby aligned anchors in one period. A synchronization certainty score is an uncalibrated indicator. The resulting possessions are tracking-based estimates.</p>
+<p>IDSSE is provided by the Deutsche Fußball Liga (DFL) under CC BY 4.0; cite Bassek et al.&nbsp;and credit the DFL <span class="citation" data-cites="bassek2025idsse idsse-repository">(<a href="#ref-bassek2025idsse" role="doc-biblioref">Bassek et al. 2025</a>; <a href="#ref-idsse-repository" role="doc-biblioref">German Sport University Cologne, n.d.</a>)</span>. Obtain original files through the official repository’s data link. This project supplies code and selected derived figures. DataBallPy is a separate MIT-licensed dependency <span class="citation" data-cites="oonk2026databallpy databallpy-repository">(<a href="#ref-oonk2026databallpy" role="doc-biblioref">Oonk, Grob, and Kempe 2026</a>; <a href="#ref-databallpy-repository" role="doc-biblioref">Oonk and Grob, n.d.</a>)</span>.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-bassek2025idsse" class="csl-entry" role="listitem">
+Bassek, Manuel, Robert Rein, Hendrik Weber, and Daniel Memmert. 2025. <span>“An Integrated Dataset of Spatiotemporal and Event Data in Elite Soccer.”</span> <em>Scientific Data</em> 12: 195. <a href="https://doi.org/10.1038/s41597-025-04505-y">https://doi.org/10.1038/s41597-025-04505-y</a>.
+</div>
+<div id="ref-idsse-repository" class="csl-entry" role="listitem">
+German Sport University Cologne. n.d. <span>“IDSSE: Official Dataset Repository.”</span> <a href="https://github.com/spoho-datascience/idsse-data">https://github.com/spoho-datascience/idsse-data</a>.
+</div>
+<div id="ref-databallpy-repository" class="csl-entry" role="listitem">
+Oonk, Gerard Alexander, and Daan Grob. n.d. <span>“DataBallPy.”</span> <a href="https://github.com/Alek050/databallpy">https://github.com/Alek050/databallpy</a>.
+</div>
+<div id="ref-oonk2026databallpy" class="csl-entry" role="listitem">
+Oonk, Gerard Alexander, Daan Grob, and Matthias Kempe. 2026. <span>“DataBallPy: Load, Synchronize, and Analyse Your Soccer Data.”</span> <em>Journal of Open Source Software</em> 11 (120): 10223. <a href="https://doi.org/10.21105/joss.10223">https://doi.org/10.21105/joss.10223</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./vignettes/00_match_workflow/00_match_workflow.html" class="pagination-link" aria-label="3 · Use on a match">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">3 · Use on a match</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./vignettes/00_external_data/idsse.html" class="pagination-link" aria-label="4.2 · Bundesliga example">
+        <span class="nav-page-text">4.2 · Bundesliga example</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="./index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/external-data.qmd" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

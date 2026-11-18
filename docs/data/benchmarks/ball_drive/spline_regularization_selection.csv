@@ -1,0 +1,6 @@
+fold,selected,best_score_candidate,candidate,mean_nll,difference_to_best,paired_match_jackknife_se,within_one_se
+0,main_1_angle_100,main_1_angle_1,main_1_angle_100,0.13981638634750518,9.851477175389846e-05,0.00022220922412256663,True
+1,main_1_angle_100,main_1_angle_100,main_1_angle_100,0.14849948079802486,0.0,0.0,True
+2,main_1_angle_100,main_1_angle_100,main_1_angle_100,0.14363338179733132,0.0,0.0,True
+3,main_1_angle_100,main_1_angle_100,main_1_angle_100,0.13928892538659188,0.0,0.0,True
+4,main_1_angle_100,main_1_angle_1,main_1_angle_100,0.14476098450234998,0.00012386140929229096,0.00021243044312305544,True

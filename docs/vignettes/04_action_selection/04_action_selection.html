@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>PRESS - Action selection</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../vignettes/05_residual_risk/05_residual_risk.html" rel="next">
+<link href="../../vignettes/03_pass_selection/03_pass_selection.html" rel="prev">
+<link href="../../branding/favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/navigation.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../branding/press-logo.svg" alt="PRESS logo" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">PRESS</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../../index.html" aria-current="page"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-user-guide" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">User guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-user-guide">    
+        <li>
+    <a class="dropdown-item" href="../../data.html">
+ <span class="dropdown-text">1 · Datasets, installation and preprocessing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/setup/possession_and_checkpoint_setup.html">
+ <span class="dropdown-text">2 · Possession segmentation and context</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/00_match_workflow/00_match_workflow.html">
+ <span class="dropdown-text">3 · Use on a match</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../external-data.html">
+ <span class="dropdown-text">4.1 · Other providers: data and preparation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/00_external_data/idsse.html">
+ <span class="dropdown-text">4.2 · Bundesliga example</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-models" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Models</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-models">    
+        <li>
+    <a class="dropdown-item" href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">
+ <span class="dropdown-text">1 · Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/02_pass_probability/02_pass_probability.html">
+ <span class="dropdown-text">2 · Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/03_pass_selection/03_pass_selection.html">
+ <span class="dropdown-text">3 · Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/04_action_selection/04_action_selection.html">
+ <span class="dropdown-text">4 · Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/05_residual_risk/05_residual_risk.html">
+ <span class="dropdown-text">5 · Residual risk</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-risk-profiles-and-reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Risk profiles and reports</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-risk-profiles-and-reports">    
+        <li>
+    <a class="dropdown-item" href="../../vignettes/06_composed_risk/06_composed_risk.html">
+ <span class="dropdown-text">h and risk bands</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/07_case_studies/07_case_studies.html">
+ <span class="dropdown-text">Case studies and reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-benchmarks" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Benchmarks</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-benchmarks">    
+        <li>
+    <a class="dropdown-item" href="../../benchmark.html">
+ <span class="dropdown-text">Benchmark index</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/01_ball_drive_risk.html">
+ <span class="dropdown-text">Ball-drive risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/02_pass_probability.html">
+ <span class="dropdown-text">Pass probability</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/03_pass_selection.html">
+ <span class="dropdown-text">Pass selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/04_action_selection.html">
+ <span class="dropdown-text">Action selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/05_residual_risk.html">
+ <span class="dropdown-text">Residual risk</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../benchmarks/06_composed_risk.html">
+ <span class="dropdown-text">Composed h and xLoss</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="../../api.html">
+ <span class="dropdown-text">1 · Initialization and classes</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../solvers.html">
+ <span class="dropdown-text">2 · Solvers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../reference/getters.html">
+ <span class="dropdown-text">3 · Getters and saved results</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../reference/plots.html">
+ <span class="dropdown-text">4 · Plot functions</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/riccardobergamin/PRESS"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">Models</a></li><li class="breadcrumb-item"><a href="../../vignettes/04_action_selection/04_action_selection.html">4 · Action selection</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../../usage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">User guide</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Datasets, installation and preprocessing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/setup/possession_and_checkpoint_setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Possession segmentation and context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/00_match_workflow/00_match_workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Use on a match</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+ <span class="menu-text">4 · Use with other providers</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../external-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.1 · Data requirements and preparation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/00_external_data/idsse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4.2 · Bundesliga example</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/02_pass_probability/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/03_pass_selection/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/04_action_selection/04_action_selection.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">4 · Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/05_residual_risk/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5 · Residual risk</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Risk profiles and reports</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/06_composed_risk/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">h and risk bands</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/07_case_studies/07_case_studies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Case studies and reports</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Benchmarks</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmark.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Benchmark index</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/01_ball_drive_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball-drive risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/02_pass_probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass probability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/03_pass_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pass selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/04_action_selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Action selection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/05_residual_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Residual risk</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../benchmarks/06_composed_risk.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Composed h and xLoss</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Spatial features: accessibility and value</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/spatial_features/bcos/10_bcos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ball Carrier Open Space</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../vignettes/spatial_features/expected_threat/11_expected_threat.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Expected Threat</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../api.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1 · Initialization and classes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2 · Solvers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reference/getters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3 · Getters and saved results</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reference/plots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4 · Plot functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#motivation-and-model-overview" id="toc-motivation-and-model-overview" class="nav-link active" data-scroll-target="#motivation-and-model-overview">1. Motivation and model overview</a></li>
+  <li><a href="#model-features" id="toc-model-features" class="nav-link" data-scroll-target="#model-features">2. Model features</a>
+  <ul class="collapse">
+  <li><a href="#carrier-state-and-ball-retention-6-features" id="toc-carrier-state-and-ball-retention-6-features" class="nav-link" data-scroll-target="#carrier-state-and-ball-retention-6-features">Carrier state and ball retention (6 features)</a></li>
+  <li><a href="#spatial-and-tactical-configuration-8-features" id="toc-spatial-and-tactical-configuration-8-features" class="nav-link" data-scroll-target="#spatial-and-tactical-configuration-8-features">Spatial and tactical configuration (8 features)</a></li>
+  <li><a href="#passing-opportunities-11-features" id="toc-passing-opportunities-11-features" class="nav-link" data-scroll-target="#passing-opportunities-11-features">Passing opportunities (11 features)</a></li>
+  <li><a href="#possession-and-match-context-5-features" id="toc-possession-and-match-context-5-features" class="nav-link" data-scroll-target="#possession-and-match-context-5-features">Possession and match context (5 features)</a></li>
+  </ul></li>
+  <li><a href="#likelihood-and-learning" id="toc-likelihood-and-learning" class="nav-link" data-scroll-target="#likelihood-and-learning">3. Likelihood and learning</a></li>
+  <li><a href="#feature-importance-and-interpretation" id="toc-feature-importance-and-interpretation" class="nav-link" data-scroll-target="#feature-importance-and-interpretation">4. Feature importance and interpretation</a></li>
+  <li><a href="#application-to-a-game-state" id="toc-application-to-a-game-state" class="nav-link" data-scroll-target="#application-to-a-game-state">5. Application to a game state</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/vignettes/04_action_selection/04_action_selection.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">Models</a></li><li class="breadcrumb-item"><a href="../../vignettes/04_action_selection/04_action_selection.html">4 · Action selection</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Action selection</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="motivation-and-model-overview" class="level2">
+<h2 class="anchored" data-anchor-id="motivation-and-model-overview">1. Motivation and model overview</h2>
+<p>At each moment of individual ball control, a player either releases a pass or keeps carrying the ball. Action selection estimates the probability of these two observed decisions from the current tracking state and match context. Stalpaert et al. <span class="citation" data-cites="stalpaert2022">(<a href="#ref-stalpaert2022" role="doc-biblioref">Stalpaert 2022</a>)</span> study the same binary pass–carry choice, while Fernández et al. <span class="citation" data-cites="fernandez2021">(<a href="#ref-fernandez2021" role="doc-biblioref">Fernandez, Bornn, and Cervone 2021</a>)</span> treat a related problem with three actions (shooting, passing, carrying) inside a possession-value framework. PRESS models the pass–carry decision of outfield players.</p>
+<p>Let <span class="math inline">\(s\)</span> denote the current game state and <span class="math inline">\(A\)</span> the chosen action. The target is</p>
+<p><span class="math display">\[
+q(s)=P(A=\mathrm{pass}\mid s),\qquad
+P(A=\mathrm{carry}\mid s)=1-q(s).
+\]</span></p>
+<p>We model action selection as a <strong>binary classification problem</strong> and estimate <span class="math inline">\(q(s)\)</span> with an XGBoost classifier <span class="citation" data-cites="chen2016xgboost">(<a href="#ref-chen2016xgboost" role="doc-biblioref">Chen and Guestrin 2016</a>)</span>. The classifier takes a vector of features that summarizes the game state and returns the probability of passing. The features are described first, followed by the likelihood used to train the model.</p>
+<p>The model describes observed behaviour across the sampled decisions. To characterize the pass–carry choice, PRESS represents both alternatives using features computed from tracking data and separately fitted execution and destination-choice models. The carry option is described by its immediate execution risk, the space available to the carrier and the tactical configuration along the direction of movement. The pass option is described by its probability of completion and the tactical consequences of its possible destinations, accounting for both successful and unsuccessful outcomes.</p>
+</section>
+<section id="model-features" class="level2">
+<h2 class="anchored" data-anchor-id="model-features">2. Model features</h2>
+<p>The model uses 30 features, 28 numerical and two categorical, organized into four groups. Several spatial descriptors are shared with <a href="../../vignettes/03_pass_selection/03_pass_selection.html">Pass selection</a>, where they characterize the current carrier position and individual candidate destinations. Here, these descriptors also characterize the projected carry position and are aggregated over possible passing outcomes. The four groups describe the two action alternatives and the context in which the decision is made.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 30%">
+<col style="width: 40%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Group</th>
+<th>Question</th>
+<th style="text-align: right;">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Carrier state and ball retention</td>
+<td>How well can the player keep carrying?</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr class="even">
+<td>Spatial and tactical configuration</td>
+<td>Where does the carry lead, and how are the teams organized there?</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="odd">
+<td>Passing opportunities</td>
+<td>What would a pass look like, and how would it end?</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="even">
+<td>Possession and match context</td>
+<td>How did control start, and what is the match situation?</td>
+<td style="text-align: right;">5</td>
+</tr>
+</tbody>
+</table>
+<section id="carrier-state-and-ball-retention-6-features" class="level3">
+<h3 class="anchored" data-anchor-id="carrier-state-and-ball-retention-6-features">Carrier state and ball retention (6 features)</h3>
+<p>These features describe the player and the room available to keep moving with the ball.</p>
+<ul>
+<li><strong>x, y position.</strong> Where the carrier is on the pitch, in the team’s attacking orientation: deep in the team’s own half or near the opponent’s goal, central or wide.</li>
+<li><strong>Speed.</strong> How fast the carrier is moving: running with the ball, or almost standing.</li>
+<li><strong>Velocity angle.</strong> The direction of movement relative to the attacking axis: forward, sideways or backward. It is missing when the player is effectively stationary. Velocity comes from the centred seven-frame tracking smoother, whose three-frame future support makes the current implementation suitable for offline analysis.</li>
+<li><strong>Carry-success probability <span class="math inline">\(1-d(s)\)</span>.</strong> The chance that the player still has the ball one second from now if carrying continues. A high value means carrying is safe in the current situation. It comes from the separate <a href="../../vignettes/01_ball_drive_risk/01_ball_drive_risk.html">ball-drive risk model</a> and measures execution risk; <a href="../../vignettes/03_pass_selection/03_pass_selection.html">pass selection</a> uses the carry-loss probability <span class="math inline">\(d(s)\)</span> itself, an alternative encoding of the same information.</li>
+<li><strong>BCOS area.</strong> The probability-weighted area accessible to the carrier before interception by an opponent, in <span class="math inline">\(\mathrm{m}^2\)</span>. A large value means room to run, a small one means the carrier is boxed in. Ball carrier open space (BCOS) is a concept introduced for association football by Bandara et al. <span class="citation" data-cites="bandara2025bcos">(<a href="#ref-bandara2025bcos" role="doc-biblioref">Bandara et al. 2025</a>)</span>. In PRESS, the <a href="../../vignettes/spatial_features/bcos/10_bcos.html">BCOS model</a> gives, for each point around the carrier, the probability that the carrier arrives there before an opponent can intercept; integrating this field over a 40 m surrounding domain gives the probability-weighted area.</li>
+</ul>
+<p>The carry-loss probability is defined as</p>
+<p><span class="math display">\[
+d(s)=P(\mathrm{loss\ within\ 1\,s}\mid A=\mathrm{carry},s),
+\]</span></p>
+<p>The feature <span class="math inline">\(1-d(s)\)</span> measures the probability of retaining control over the next second, while BCOS area measures the space accessible to the carrier. Both characterize the carry option from the same current state.</p>
+</section>
+<section id="spatial-and-tactical-configuration-8-features" class="level3">
+<h3 class="anchored" data-anchor-id="spatial-and-tactical-configuration-8-features">Spatial and tactical configuration (8 features)</h3>
+<p>These features describe where the carry would take the player and how the two teams are arranged around that place.</p>
+<p>Six of them are evaluated at a <strong>projected position</strong>: where the carrier would be one second from now if the carrier kept the current velocity,</p>
+<p><span class="math display">\[
+\widehat x_{\mathrm{bc}}(1)=x_{\mathrm{bc}}(0)+v_{\mathrm{bc}}(0)\,(1\,\mathrm{s}).
+\]</span></p>
+<p>This is a hypothetical evaluation point. The spatial descriptors are evaluated at the projected position using the current player positions, following the conventions introduced in <a href="../../vignettes/03_pass_selection/03_pass_selection.html">Pass selection</a>.</p>
+<ul>
+<li><strong>Own-team xT.</strong> The expected threat of the projected position for the carrier’s team, that is, how much a possession at that spot tends to lead towards a goal. A high value means the carry heads into a dangerous attacking zone. xT was introduced by Singh <span class="citation" data-cites="singh2018xt">(<a href="#ref-singh2018xt" role="doc-biblioref">Singh 2018</a>)</span>; its construction in PRESS is described in the <a href="../../vignettes/spatial_features/expected_threat/11_expected_threat.html">xT vignette</a>.</li>
+<li><strong>Opponent xT.</strong> The same quantity from the opponent’s point of view. It indicates how dangerous that spot would be for the carrier’s team if possession were lost there.</li>
+<li><strong>Nearest own-team line index</strong> and <strong>nearest opposition line index.</strong> These are the pressure lines of Fernández, Bornn and Cervone <span class="citation" data-cites="fernandez2021">(<a href="#ref-fernandez2021" role="doc-biblioref">Fernandez, Bornn, and Cervone 2021</a>)</span>. In PRESS, the current outfield longitudinal positions are clustered into three lines with complete linkage, excluding the original carrier from the own-team roster and the extreme-x goalkeeper proxy. The index says which line is closest to the projected position, for the carrier’s own team and for the opposition. As in <a href="../../vignettes/03_pass_selection/03_pass_selection.html">pass selection</a>, the three lines of each team are numbered from the attacking line (1) to the defensive line (3), with the intermediate line assigned index 2. Own-team lines are thus ordered along the opponent’s attacking direction, and opposition lines along the carrier team’s attacking direction.</li>
+<li><strong>Signed distance to the nearest own-team line</strong> and <strong>to the nearest opposition line.</strong> How far that line is from the projected position along the carrier team’s attacking direction, for both teams. A positive value means the line is ahead of the point and a negative value means it is behind. A small positive distance to the opposition line means the carrier is about to meet it.</li>
+</ul>
+<p>The other two features use the carrier’s <em>current</em> position.</p>
+<ul>
+<li><p><strong>Teammates ahead</strong> and <strong>opponents ahead.</strong> How many players of each team are further up the pitch than the carrier, along the attacking direction. They show how many teammates are in front (potential forward options) and how many opponents are still to be beaten. For a set of players <span class="math inline">\(G\)</span> and a point <span class="math inline">\(r\)</span>,</p>
+<p><span class="math display">\[
+N_G(r)=\sum_{k\in G}\mathbf 1\{\delta\,x_k&gt;\delta\,r_x\},\qquad \delta\in\{-1,+1\},
+\]</span></p>
+<p>where <span class="math inline">\(\delta\)</span> is the carrier team’s attacking direction for both rosters. The carrier is excluded and tracked goalkeepers are kept. The count is taken over the whole pitch width.</p></li>
+</ul>
+</section>
+<section id="passing-opportunities-11-features" class="level3">
+<h3 class="anchored" data-anchor-id="passing-opportunities-11-features">Passing opportunities (11 features)</h3>
+<p>These features characterize the passing alternative by combining the spatial descriptors introduced in <a href="../../vignettes/03_pass_selection/03_pass_selection.html">Pass selection</a> with the probabilities of choosing and completing a pass to each destination. The aim is to summarize both the feasibility of passing and its possible tactical consequences: where the carrier’s team would retain possession after a successful pass, and where the opponent would recover possession after a failed pass. Two separately fitted PRESS components provide the destination-choice and completion probabilities for every candidate destination <span class="math inline">\(j\)</span> on the native one-metre pitch grid:</p>
+<p><span class="math display">\[
+\pi_j(s)=P(J=j\mid A=\mathrm{pass},s),\qquad
+p_j(s)=P(\mathrm{completion}\mid J=j,A=\mathrm{pass},s).
+\]</span></p>
+<p>The first, <span class="math inline">\(\pi_j\)</span>, says how likely a passer in this situation is to target cell <span class="math inline">\(j\)</span> and comes from the <a href="../../vignettes/03_pass_selection/03_pass_selection.html">pass-destination model</a>. The second, <span class="math inline">\(p_j\)</span>, says how likely a pass to that cell is to arrive and comes from the <a href="../../vignettes/02_pass_probability/02_pass_probability.html">pass-probability model</a>. The action model uses the flat destination model with its fitted validation temperature and isotonic-calibrated completion probabilities. Both are evaluated from the current game state.</p>
+<p>Multiplying them splits every possible pass into two branches, a completed pass and a failed pass:</p>
+<p><span class="math display">\[
+w_j^+=\pi_jp_j,\qquad w_j^-=\pi_j(1-p_j).
+\]</span></p>
+<p>The weight <span class="math inline">\(w_j^+\)</span> is the chance that the pass goes to cell <span class="math inline">\(j\)</span> and succeeds, and <span class="math inline">\(w_j^-\)</span> is the chance that it goes there and fails.</p>
+<ul>
+<li><p><strong>Expected pass success.</strong> The overall chance that a pass would succeed, averaged over the likely destinations. A high value means passing is easy right now.</p>
+<p><span class="math display">\[
+P(\mathrm{completion}\mid A=\mathrm{pass},s)=\sum_j\pi_jp_j=\sum_jw_j^+.
+\]</span></p></li>
+</ul>
+<p>The other ten features aggregate the destination-specific spatial descriptors from <a href="../../vignettes/03_pass_selection/03_pass_selection.html">Pass selection</a>: expected threat, nearest team-line indices and players ahead. For a spatial property <span class="math inline">\(\Phi(j)\)</span>, the two outcome-weighted sums are:</p>
+<p><span class="math display">\[
+\Phi^+(s)=\sum_jw_j^+\Phi(j),\qquad
+\Phi^-(s)=\sum_jw_j^-\Phi(j).
+\]</span></p>
+<p><strong>Branch +</strong> describes a completed pass, after which the carrier’s team retains possession at the destination. <strong>Branch −</strong> describes a failed pass, after which the opponent is assumed to recover possession near the destination assigned by the destination-choice model. The two branches describe the tactical consequences of the passing option.</p>
+<p>The sums <span class="math inline">\(\Phi^+\)</span> and <span class="math inline">\(\Phi^-\)</span> are weighted by the joint probabilities of destination and outcome, conditional on attempting a pass, so each sum carries the probability of the corresponding outcome together with the spatial properties of its destinations. An unlikely branch therefore contributes little even when its destinations have large descriptor values.</p>
+<p>The change in possession determines how the spatial descriptors are interpreted. Expected threat measures the offensive value of possession in a team’s attacking orientation, so each team has its own xT surface. We therefore use the carrier team’s expected threat <span class="math inline">\(X_{own}\)</span> in the success branch and the opponent’s expected threat <span class="math inline">\(X_{opp}\)</span> in the failure branch, evaluated in the opponent’s attacking direction.</p>
+<p>For line indices and player counts, the spatial representation introduced in Pass selection is retained in both branches. The labels <code>own</code> and <code>opp</code> always refer to the original carrier’s team and its opponent, respectively. Each team’s lines retain their own numbering, from the attacking line (1) to the defensive line (3), and the ahead counts use the original carrier team’s attacking direction for both rosters. A player ahead in the carrier team’s direction is behind in the recovering team’s direction, so when possession changes the same descriptors are read from the recovering team’s point of view, as summarized below.</p>
+<p>The table below summarizes the tactical interpretation of the spatial descriptors introduced in <a href="../../vignettes/03_pass_selection/03_pass_selection.html">Pass selection</a> in the two outcome branches.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Spatial descriptor</th>
+<th>Success branch (+)</th>
+<th>Failure branch (−)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Expected threat</td>
+<td><span class="math inline">\(X_{own}\)</span>: receiving team’s xT</td>
+<td><span class="math inline">\(X_{opp}\)</span>: recovering team’s xT</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(L_{own}\)</span></td>
+<td>Receiving team’s own line</td>
+<td>Recovering team’s opposition line</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(L_{opp}\)</span></td>
+<td>Receiving team’s opposition line</td>
+<td>Recovering team’s own line</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(N_{own}\)</span></td>
+<td>Teammates ahead of reception</td>
+<td>Opponents behind recovery</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(N_{opp}\)</span></td>
+<td>Opponents ahead of reception</td>
+<td>Teammates behind recovery</td>
+</tr>
+</tbody>
+</table>
+<p><em>Table. Tactical interpretation of destination-specific spatial descriptors under successful and unsuccessful passing outcomes. The labels <code>own</code> and <code>opp</code> refer to the original ball carrier’s team and its opponent, respectively. Ahead and behind are interpreted relative to the attacking direction of the team holding possession in each branch.</em></p>
+<ul>
+<li><p><strong>Expected threat (2 features).</strong> Expected threat is taken for the team that would hold the ball in each branch. <span class="math inline">\(\sum_jw_j^+X_{own}(j)\)</span> measures the success-weighted offensive value of retaining possession at the possible destinations. <span class="math inline">\(\sum_jw_j^-X_{opp}(j)\)</span> measures the failure-weighted offensive value of the opponent recovering possession there. Together, they describe the offensive opportunity of passing and the potential danger of losing the ball.</p></li>
+<li><p><strong>Pressure-line structure (4 features).</strong> The nearest own-team and opponent line indices, as defined in the previous group but evaluated at each destination from the current player positions, are aggregated once with <span class="math inline">\(w_j^+\)</span> and once with <span class="math inline">\(w_j^-\)</span>. The line numbering of the previous group applies.</p>
+<p><span class="math display">\[
+\sum_jw_j^+L_{own}(j),\quad \sum_jw_j^-L_{own}(j),\quad
+\sum_jw_j^+L_{opp}(j),\quad \sum_jw_j^-L_{opp}(j).
+\]</span></p>
+<p>For example, consider a pass directed towards the opponent’s third pressure line. If the pass succeeds, the receiver obtains the ball close to the opposition’s defensive line (line 3). If the pass fails, the opponent recovers the ball close to its own defensive line (the same line 3). Thus, weighting <span class="math inline">\(L_{opp}(j)\)</span> by <span class="math inline">\(w_j^+\)</span> summarizes the opposition line indices near possible successful receptions, while weighting it by <span class="math inline">\(w_j^-\)</span> summarizes the recovering team’s own line indices near possible recoveries. The same interpretation applies to <span class="math inline">\(L_{own}(j)\)</span>. In the feature names, <code>team_line_pass_success</code> is the own-team index with <span class="math inline">\(w_j^+\)</span> and <code>opp_line_pass_failure</code> the opposition index with <span class="math inline">\(w_j^-\)</span>.</p></li>
+<li><p><strong>Player positioning (4 features).</strong> The numbers of teammates and opponents ahead of the possible destinations, using the ahead-count convention defined in <a href="../../vignettes/03_pass_selection/03_pass_selection.html">Pass selection</a>. A backward destination can have more players ahead of it than a forward one. The ahead-count function <span class="math inline">\(N_G\)</span> is evaluated at every candidate destination for teammates and opponents, with the carrier team’s attacking direction for both rosters, and aggregated the same way:</p>
+<p><span class="math display">\[
+\sum_jw_j^+N_{own}(j),\quad \sum_jw_j^-N_{own}(j),\quad
+\sum_jw_j^+N_{opp}(j),\quad \sum_jw_j^-N_{opp}(j).
+\]</span></p>
+<p>In the success branch, <span class="math inline">\(N_{own}\)</span> describes teammates ahead of the reception point (forward options), and <span class="math inline">\(N_{opp}\)</span> describes opponents still to be beaten. In the failure branch, the same counts describe the configuration from the recovering team’s perspective: <span class="math inline">\(N_{opp}\)</span> counts its own players behind the recovery point, and <span class="math inline">\(N_{own}\)</span> counts opposing players behind that point, relative to the recovering team’s attacking direction.</p></li>
+</ul>
+<p>Together, the eleven features give the classifier the likelihood, location and consequences of passing.</p>
+</section>
+<section id="possession-and-match-context-5-features" class="level3">
+<h3 class="anchored" data-anchor-id="possession-and-match-context-5-features">Possession and match context (5 features)</h3>
+<p>These features describe how the current individual control began and the match situation. The first four features follow the conventions of <a href="../../vignettes/03_pass_selection/03_pass_selection.html">Pass selection</a>; the number of completed carries is an additional feature specific to action selection.</p>
+<ul>
+<li><strong>Start type</strong> (categorical). The event that gave the player the ball: a reception, interception, recovery or restart.</li>
+<li><strong>Previous action</strong> (categorical). What the player did immediately before. It keeps the start context until the player completes a full one-second carry, and from then on it records <code>ball_drive</code>.</li>
+<li><strong>Match minute.</strong> Time elapsed in the match.</li>
+<li><strong>Score difference.</strong> Carrier-team goals minus opponent goals at that frame.</li>
+<li><strong>Completed carries.</strong> The number of complete one-second carry intervals already performed during the current individual possession, in other words how long the player has already been on the ball. It is a history summary available at decision time. A pass released after 0.4 s has zero completed carries and keeps its start context; a pass released after 2.4 s has two completed carries and <code>ball_drive</code> as previous action.</li>
+</ul>
+<p>The two categorical variables keep their original labels, including <code>unknown</code>, and the encoded vocabulary is fitted on training data. The <a href="../../vignettes/setup/possession_and_checkpoint_setup.html">possession and checkpoint vignette</a> describes the underlying segmentation.</p>
+</section>
+</section>
+<section id="likelihood-and-learning" class="level2">
+<h2 class="anchored" data-anchor-id="likelihood-and-learning">3. Likelihood and learning</h2>
+<p>The model is trained on observed decisions. Each decision <span class="math inline">\(i\)</span> has two ingredients: the feature vector <span class="math inline">\(z_i\)</span> described above, which summarizes the game state at that moment, and its outcome <span class="math inline">\(y_i\)</span>, equal to 1 if the player passed and 0 if the player carried.</p>
+<p>XGBoost learns the probability of passing from these pairs. It builds an additive ensemble of regression trees <span class="math inline">\(f_\psi\)</span>, in which each new tree corrects the errors left by the previous ones. The ensemble returns a score for every decision, and a logistic function turns that score into the probability of passing:</p>
+<p><span class="math display">\[
+q_i=P(y_i=1\mid z_i)=\frac{1}{1+\exp[-f_\psi(z_i)]}.
+\]</span></p>
+<p>Training chooses the parameters <span class="math inline">\(\psi\)</span> that minimize the regularized Bernoulli negative log-likelihood, which penalizes confident predictions that disagree with the observed action:</p>
+<p><span class="math display">\[
+\mathcal L(\psi)=-\sum_{i=1}^{n}\left[y_i\log q_i+(1-y_i)\log(1-q_i)\right]+\Omega(\psi),
+\]</span></p>
+<p>where <span class="math inline">\(\Omega(\psi)\)</span> penalizes tree complexity and leaf weights to limit overfitting. The <a href="../../benchmarks/04_action_selection.html">action-selection benchmark</a> reports the hyperparameter search, match-wise validation and predictive performance.</p>
+</section>
+<section id="feature-importance-and-interpretation" class="level2">
+<h2 class="anchored" data-anchor-id="feature-importance-and-interpretation">4. Feature importance and interpretation</h2>
+<p>The contribution of each feature to the fitted model is measured with XGBoost split gain. The figure reports the total gain attributed to each conceptual feature, with one-hot encoded levels grouped under their original categorical input. These values describe how the trained ensemble uses its inputs.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../figures/feature_importance_action_selection.png" class="img-fluid figure-img"></p>
+<figcaption>Feature importance for the fitted action-selection model.</figcaption>
+</figure>
+</div>
+<p>The carry-success probability <span class="math inline">\(1-d(s)\)</span> (<code>drive_success_1s</code>) is the most influential feature: it accounts for <strong>22.09%</strong> of total gain in the production model and ranks first in all five evaluation folds. Carrier speed follows at <strong>8.00%</strong>, so the player’s immediate capacity to advance with the ball is central to the pass–carry decision. The passing-option summaries also contribute substantially: the own-team line index weighted by successful passing outcomes (<code>team_line_pass_success</code>) accounts for <strong>6.85%</strong>, and the opposition line index weighted by failed outcomes (<code>opp_line_pass_failure</code>) for <strong>5.32%</strong>. BCOS contributes <strong>4.10%</strong> and the previous-action context <strong>4.04%</strong>.</p>
+<p>Together, these results are consistent with a classifier that combines the feasibility of continuing the carry with the spatial consequences of the available passing opportunities. Correlated features can share gain among themselves, and split gain depends on the opportunities a feature offers for tree partitioning. The full fold-wise analysis is documented in the <a href="../../data/benchmarks/feature_importance/README.md">feature-importance analysis</a>.</p>
+</section>
+<section id="application-to-a-game-state" class="level2">
+<h2 class="anchored" data-anchor-id="application-to-a-game-state">5. Application to a game state</h2>
+<p>Brisbane Roar FC–Perth Glory: N. Acosta chooses a pass at checkpoint 54295, and J. Hingert receives it at frame 54309. The first plot reports the model’s probability of choosing a pass at that checkpoint. Set <code>SKILLCORNER_OPENDATA</code> to your local open-data repository (<a href="../../data.html">Data setup</a>).</p>
+<p>Context-label meanings and the <code>previous_action</code> convention are defined in the <a href="../../vignettes/setup/possession_and_checkpoint_setup.html#context-labels">User guide</a>.</p>
+<div id="c4bbf189" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>jax.config.update(<span class="st">"jax_enable_x64"</span>, <span class="va">True</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS <span class="im">import</span> PRESS</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>opendata <span class="op">=</span> Path(os.environ.get(<span class="st">"SKILLCORNER_OPENDATA"</span>, Path.cwd().parent <span class="op">/</span> <span class="st">"opendata"</span>))</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>match_dir <span class="op">=</span> opendata <span class="op">/</span> <span class="st">"data/matches/1925299"</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>press <span class="op">=</span> PRESS.from_skillcorner(match_dir)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>frame_id <span class="op">=</span> <span class="dv">54295</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Observed context: getters resolve the frame and possession annotations.</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>frame <span class="op">=</span> press.get_frame(frame_id).iloc[<span class="dv">0</span>]</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>context <span class="op">=</span> press.get_frame_context(frame_id)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>match_clock_min <span class="op">=</span> pd.to_timedelta(frame.timestamp).total_seconds() <span class="op">/</span> <span class="dv">60</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Score is absent from these tracking rows: read the current possession's</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># dynamical event rather than inserting a constant in the model call.</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>possessions <span class="op">=</span> press.get_player_possessions()</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>current_possession <span class="op">=</span> possessions.loc[</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    possessions.frame_start.le(frame_id) <span class="op">&amp;</span> possessions.frame_end.ge(frame_id)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>].iloc[<span class="dv">0</span>]</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>events <span class="op">=</span> pd.read_csv(</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    opendata <span class="op">/</span> <span class="st">"data/matches"</span> <span class="op">/</span> match_dir.name <span class="op">/</span> <span class="ss">f"</span><span class="sc">{</span>match_dir<span class="sc">.</span>name<span class="sc">}</span><span class="ss">_dynamic_events.csv"</span>,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    low_memory<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>origin <span class="op">=</span> events.loc[</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    events.event_type.eq(<span class="st">"player_possession"</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">&amp;</span> events.event_id.eq(current_possession.possession_id)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>].iloc[<span class="dv">0</span>]</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>score_difference <span class="op">=</span> <span class="bu">float</span>(origin.team_score <span class="op">-</span> origin.opponent_team_score)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS.model <span class="im">import</span> PassSelectionModel</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>xT_grid <span class="op">=</span> PassSelectionModel.pretrained().xt_grid</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> press.compute_risk_frame(</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    frame_id, xT_grid,</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    start_type<span class="op">=</span>context[<span class="st">"start_type"</span>], previous_action<span class="op">=</span>context[<span class="st">"previous_action"</span>],</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    completed_canonical_drives<span class="op">=</span>context[<span class="st">"completed_canonical_drives"</span>],</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    match_clock_min<span class="op">=</span>match_clock_min, score_difference_prefix<span class="op">=</span>score_difference,</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS.visualization <span class="im">import</span> plot_action_selection</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plot_action_selection(press, frame_id, show<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>fig.savefig(<span class="st">"figures/vignette_04_action_pitch.png"</span>, dpi<span class="op">=</span><span class="dv">170</span>)</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>fig.savefig(<span class="st">"figures/vignette_04_action_pitch.svg"</span>)</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>plt.close(fig)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../figures/vignette_04_action_pitch.png" class="img-fluid figure-img"></p>
+<figcaption>The real decision checkpoint, with predicted P(pass) above the pitch.</figcaption>
+</figure>
+</div>
+<div id="76f2fc41" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PRESS.visualization <span class="im">import</span> plot_frame</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>reception_frame <span class="op">=</span> <span class="dv">54309</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plot_frame(press, reception_frame, title<span class="op">=</span><span class="st">"Matched reception: J. Hingert · frame 54309"</span>, show<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>fig.savefig(<span class="st">"figures/vignette_04_action_reception.png"</span>, dpi<span class="op">=</span><span class="dv">170</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>fig.savefig(<span class="st">"figures/vignette_04_action_reception.svg"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>plt.close(fig)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../figures/vignette_04_action_reception.png" class="img-fluid figure-img"></p>
+<figcaption>The matched reception of the same pass.</figcaption>
+</figure>
+</div>
+<p>The <a href="../../benchmarks/04_action_selection.html">benchmark</a> contains the cohort definition, match-disjoint validation, XGBoost tuning, held-out metrics and published comparison. The observed example illustrates the fitted model.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-bandara2025bcos" class="csl-entry" role="listitem">
+Bandara, Ishara, Sergiy Shelyag, Sutharshan Rajasegarar, Daniel B. Dwyer, Eun-jin Kim, and Maia Angelova. 2025. <span>“Time-Series Analysis of Ball Carrier Open-Space (BCOS) in Association Football.”</span> <em>SN Computer Science</em> 6 (4): 302. <a href="https://doi.org/10.1007/s42979-025-03815-7">https://doi.org/10.1007/s42979-025-03815-7</a>.
+</div>
+<div id="ref-chen2016xgboost" class="csl-entry" role="listitem">
+Chen, Tianqi, and Carlos Guestrin. 2016. <span>“<span>XGBoost</span>: A Scalable Tree Boosting System.”</span> In <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>. <a href="https://doi.org/10.1145/2939672.2939785">https://doi.org/10.1145/2939672.2939785</a>.
+</div>
+<div id="ref-fernandez2021" class="csl-entry" role="listitem">
+Fernandez, Javier, Luke Bornn, and Daniel Cervone. 2021. <span>“A Framework for the Fine-Grained Evaluation of the Instantaneous Expected Value of Soccer Possessions.”</span> <em>Machine Learning</em> 110: 1389–1427. <a href="https://doi.org/10.1007/s10994-021-05989-6">https://doi.org/10.1007/s10994-021-05989-6</a>.
+</div>
+<div id="ref-singh2018xt" class="csl-entry" role="listitem">
+Singh, Karun. 2018. <span>“Introducing Expected Threat (xT).”</span> <a href="https://karun.in/blog/expected-threat.html">https://karun.in/blog/expected-threat.html</a>.
+</div>
+<div id="ref-stalpaert2022" class="csl-entry" role="listitem">
+Stalpaert, Louis. 2022. <span>“CounterRisk: Predicting Counter-Attacks, Even If They Don’t Occur.”</span> Master’s thesis, KU Leuven. <a href="https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf">https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/riccardobergamin\.github\.io\/PRESS\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../vignettes/03_pass_selection/03_pass_selection.html" class="pagination-link" aria-label="3 · Pass selection">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">3 · Pass selection</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../vignettes/05_residual_risk/05_residual_risk.html" class="pagination-link" aria-label="5 · Residual risk">
+        <span class="nav-page-text">5 · Residual risk</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="../../index.html">
+<p>All pages</p>
+</a>
+  </li>  
+</ul>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/riccardobergamin/PRESS/blob/main/vignettes/04_action_selection/04_action_selection.ipynb" class="toc-action"><i class="bi bi-github"></i>View source</a></li><li><a href="https://github.com/riccardobergamin/PRESS/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

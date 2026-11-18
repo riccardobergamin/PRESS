@@ -1,0 +1,68 @@
+/* Navigation only: scientific content and figures keep their existing styles. */
+:root {
+  --press-sidebar-bg: #eaf0f6;
+  --press-sidebar-ink: #213b52;
+  --press-sidebar-active: #d4e2ef;
+  --press-link: #185675;
+}
+#quarto-sidebar {
+  background-color: var(--press-sidebar-bg);
+  border-right: 1px solid #cedae5;
+  padding: 1.25rem 0.9rem;
+}
+#quarto-sidebar .sidebar-item-text {
+  color: var(--press-sidebar-ink);
+  border-radius: 0.3rem;
+  padding: 0.25rem 0.45rem;
+}
+#quarto-sidebar .sidebar-item-container .active,
+#quarto-sidebar .sidebar-item-text:hover {
+  background-color: var(--press-sidebar-active);
+  color: #133b5b;
+}
+#quarto-sidebar .sidebar-section > .sidebar-item-container {
+  margin-top: 0.65rem;
+  font-weight: 650;
+}
+.page-directory {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 2.5rem;
+}
+.directory-section {
+  border: 1px solid #d5dfe8;
+  border-radius: 0.5rem;
+  padding: 1.15rem 1.25rem 0.9rem;
+  background: #fff;
+}
+.directory-section h3 {
+  margin: 0 0 0.7rem;
+  font-size: 1.12rem;
+  color: #213b52;
+}
+.directory-section ul, .directory-section ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0;
+}
+.directory-section li { margin: 0.35rem 0; }
+.directory-section a { color: var(--press-link); text-underline-offset: 0.16em; }
+.directory-section a:hover { color: #0c354e; }
+.directory-section a:focus-visible,
+#quarto-sidebar a:focus-visible {
+  outline: 3px solid #b16c18;
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .page-directory { grid-template-columns: 1fr; }
+}
+@media print {
+  .page-directory { display: block; }
+  .directory-section { break-inside: avoid; margin-bottom: 1rem; }
+}
+
+/* Approved package badge in the shared website header. */
+#quarto-header .navbar-logo {
+  max-height: 60px;
+  width: auto;
+}

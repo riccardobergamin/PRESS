@@ -1,0 +1,9 @@
+population,variable,match_id,condition,quantile,value,n_finite,n_selected,fraction_speed_above_7
+matched_obe_engager_event_frames,speed,pooled,speed>1.0,0.95,6.953648699007634,99023,95236,0.0455651717277804
+matched_obe_engager_event_frames,speed,pooled,speed>1.0,0.99,8.002205370922365,99023,95236,0.0455651717277804
+matched_obe_engager_event_frames,acceleration,pooled,acceleration>3.0,0.95,5.663053004386207,99023,28441,
+matched_obe_engager_event_frames,acceleration,pooled,acceleration>3.0,0.99,6.560842188962867,99023,28441,
+matched_obe_peaks_engager_both_speed_peaks_above_1,speed,pooled,speed>1.0,0.95,7.247920792564863,6197,6197,0.0695497821526545
+matched_obe_peaks_engager_both_speed_peaks_above_1,speed,pooled,speed>1.0,0.99,8.236223529783024,6197,6197,0.0695497821526545
+matched_obe_peaks_engager_all_acceleration_peaks,acceleration,pooled,acceleration>3.0,0.95,6.000042001656326,6677,3877,
+matched_obe_peaks_engager_all_acceleration_peaks,acceleration,pooled,acceleration>3.0,0.99,6.965608326872089,6677,3877,
