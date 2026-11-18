@@ -16,7 +16,7 @@ This is a portfolio research project exploring EPV, tracking data and alternativ
 
 PRESS distinguishes two outcomes:
 
-- **Hazard (h):** probability of losing *team possession* during the ball carrier's next on-ball action. A completed pass continues team possession with the receiver.
+- **Hazard (h):** probability of losing *team possession* during the ball carrier's next on-ball action.
 - **xLoss:** probability that the *current carrier's individual possession* eventually ends in a loss, accounting for the continuation after a successful carry.
 
 The hazard is evaluated at usable tracking frames and is interpreted as a discrete-time survival process across successive carriers. Canonical action starts define benchmark checkpoints; additional snapshots can describe within-possession trajectories. See the [hazard and bands vignette](vignettes/06_composed_risk/06_composed_risk.ipynb) and [segmentation guide](vignettes/setup/possession_and_checkpoint_setup.ipynb).
@@ -54,13 +54,15 @@ Operational hazard bands use possession half-life under a constant hazard, with 
 | Residual risk | XGBoost conditional loss model | 118 trees with native probabilities |
 
 The package checks the integrity and feature contract of each tree model when it is loaded. The distributed models are refitted on all ten matches, and the benchmark metrics come from separate held-out predictions.
+
 ## Quick start
 
 PRESS represents one match. `PRESS.from_skillcorner(...)` loads SkillCorner files and prepares velocities, possessions and actions; prepared data from other providers can be passed directly to `PRESS(tracking_data, ...)`. Initialization validates and copies inputs without running inference.
 
 The workflow is **load → navigate → compute → retrieve → plot or save**. For example:
 
-```pythonimport os
+```python
+import os
 from pathlib import Path
 from PRESS import PRESS
 from PRESS.visualization import plot_ball_drive_risk
@@ -73,25 +75,11 @@ press.compute_ball_drive_risk(frame_id)
 result = press.get_ball_drive_risk_result(frame_id)
 fig, ax = plot_ball_drive_risk(press, frame_id, show=False)
 fig.savefig("drive_risk.png", dpi=160)
-press.save_results("outputs/match_results")```
+press.save_results("outputs/match_results")
+```
 
 `compute_risk_frame(frame_id)` estimates h; setting `include_residual=True` also computes conditional residual risk and xLoss. Plot functions return figure and axes. Results are saved as JSON metadata and compressed NPZ arrays, with fingerprints for inputs and models. See [Using the package](usage.qmd) and the [match workflow](vignettes/00_match_workflow/00_match_workflow.ipynb).
 
-## Performance
-
-Held-out results pool the five outer match folds. The deployment refits are separate from these predictions, and the [scope of the development benchmark](benchmark.qmd#scope-of-the-development-benchmark) is described in the benchmark overview.
-
-| Task | Cohort | Cross-entropy | Gain over null | ECE |
-|---|---|---:|---:|---:|
-| Ball-drive risk | 9,114 carries, 456 losses | 0.143483 | 27.80% | 0.475% |
-| Pass probability | 6,706 passes, 964 losses | 0.131121 | 68.19% | 0.183% |
-| Pass selection | 6,810 decisions | 5.827787 | McFadden R² 34.322% | not reported |
-| Action selection | 16,918 decisions | 0.568592 | 17.602% | 1.026% |
-| Residual risk | 7,820 checkpoints | 0.419506 | 11.793% | 1.053% |
-| Hazard h | 15,085 checkpoints, 1,465 losses | 0.272014 | 14.765% | 0.749% |
-| xLoss | 15,085 checkpoints, 2,888 losses | 0.421925 | 13.769% | 0.930% |
-
-Pass probability uses isotonic calibration and pass selection uses the flat model with temperature scaling. The task benchmarks give the cohorts, null models, comparisons with published results and calibration plots.
 ## Installation and reproducibility
 
 Python 3.11 (the verification interpreter) or 3.12 is supported for the documented reproduction workflow. To install the package with data-loading and vignette dependencies and run the checks:
