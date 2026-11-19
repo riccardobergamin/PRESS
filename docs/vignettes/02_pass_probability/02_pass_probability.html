@@ -678,11 +678,10 @@ t_{a,j}+\dfrac{d_j(\mathbf r)-d_{a,j}}{v_{\max}},
 <p><span class="math display">\[
 t_{\mathrm{turn},j}(\mathbf r)=\frac{u_j\theta_j(\mathbf r)}{a_{\mathrm{turn}}}.
 \]</span></p>
-<p>This follows from the geometric turning radius <span class="math inline">\(R=u_j^2/a_{\mathrm{turn}}\)</span> and arc traversal time <span class="math inline">\(R\theta_j/u_j\)</span>. It is a delay approximation of the turning manoeuvre. The total arrival time is</p>
+<p>This follows from the geometric turning radius <span class="math inline">\(R=u_j^2/a_{\mathrm{turn}}\)</span> and arc traversal time <span class="math inline">\(R\theta_j/u_j\)</span>. It is a delay approximation of the turning manoeuvre. At rest, the turning term vanishes. The total arrival time is</p>
 <p><span class="math display">\[
 \boxed{\tau_j(\mathbf r)=t_{\mathrm{move},j}(\mathbf r)+t_{\mathrm{turn},j}(\mathbf r).}
 \]</span></p>
-<p>At rest, the turning term vanishes. When <span class="math inline">\(d_j(\mathbf r)\le0.1\)</span> m, the implementation sets <span class="math inline">\(\tau_j(\mathbf r)=0\)</span>.</p>
 </section>
 </section>
 <section id="probabilistic-player-reachability" class="level2">
