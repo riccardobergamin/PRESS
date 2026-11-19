@@ -27,7 +27,7 @@ The cohort contains 7,820 successful one-second carry states, of which 1,423 end
 
 The conditional target starts from 8,672 successful canonical one-second carry states in the broad action cohort. Terminal-outcome verification removes 14 states from 10 loss-ending parents without a valid associated OBE, and 838 states from 452 parents whose terminal pass is absent from the verified continuous direct-receipt cohort. All eligible states belonging to an affected parent are removed together. The two groups are disjoint, leaving 7,820 states from 3,975 individual possessions.
 
-This target requires an observed successful full second, so the conditional training set consists of successful canonical carries. Completed passes, failed passes, clearances and fouls retain the labels shown above, with terminal passes of any flight duration or curvature. Effective exclusion counts.
+This target requires an observed successful full second, so the conditional training set consists of successful canonical carries. Completed passes, failed passes, clearances and fouls retain the labels shown above, with terminal passes of any flight duration or curvature.
 
 ## 2. Model specification and features {#features}
 

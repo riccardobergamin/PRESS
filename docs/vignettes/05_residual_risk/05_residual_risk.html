@@ -620,14 +620,15 @@ window.Quarto = {
 r(s)=P(Y=1\mid s,\,A=\mathrm{carry},\,\text{successful one-second carry}).
 \]</span></p>
 <p>Consequently, the probability of a terminal outcome without loss, under the same condition, is <span class="math inline">\(1-r(s)\)</span>.</p>
+<p>Related work addresses pressure-based possession outcomes, action-rate prediction and temporal possession modelling <span class="citation" data-cites="gu2024pressure dick2023actionrate lecoz2026semimarkov">(<a href="#ref-gu2024pressure" role="doc-biblioref">Gu et al. 2024</a>; <a href="#ref-dick2023actionrate" role="doc-biblioref">Dick and Brefeld 2023</a>; <a href="#ref-lecoz2026semimarkov" role="doc-biblioref">Le Coz, Boustila, and Imbach 2026</a>)</span>. The <a href="../../benchmarks/05_residual_risk.html#related-published-work">benchmark</a> discusses their relationship to this conditional terminal-loss task.</p>
 <p>We estimate <span class="math inline">\(r(s)\)</span> with a regularized XGBoost classifier <span class="citation" data-cites="chen2016xgboost">(<a href="#ref-chen2016xgboost" role="doc-biblioref">Chen and Guestrin 2016</a>)</span>, which takes a vector of features summarizing the game state and returns the probability of terminal loss. The features are described first, followed by the likelihood used to train the model.</p>
 </section>
 <section id="model-inputs" class="level2">
 <h2 class="anchored" data-anchor-id="model-inputs">2. Model inputs</h2>
 <p>Residual risk uses the same state-based features and construction procedures as the <a href="../../vignettes/04_action_selection/04_action_selection.html">action-selection vignette</a>, with two changes.</p>
 <ul>
-<li><strong>Carry probability <span class="math inline">\(P(\mathrm{carry})=1-q(s)\)</span>.</strong> The chance that the player chooses to carry in state <span class="math inline">\(s\)</span>, where <span class="math inline">\(q(s)=P(A=\mathrm{pass}\mid s)\)</span> is the pass-choice probability defined in action selection. It is computed by the action-selection model from its own inputs, including the number of completed one-second carries, and is taken from that model without refitting. In training, it is cross-fitted so that every state is scored by an action-selection model that did not see its match, as described in the <a href="../../benchmarks/05_residual_risk.html">benchmark</a>. Together with the carry-execution success probability <span class="math inline">\(1-d(s)\)</span>, already among the shared features, which gives the chance that the carry succeeds, it describes both the choice and the execution of carrying.</li>
-<li><strong>Elapsed time.</strong> The time elapsed since the beginning of the individual possession, measured at the prediction frame, how long the player has already been on the ball. It replaces the count of completed one-second carries, enters residual risk only, and uses no information after the prediction frame.</li>
+<li><strong>Carry probability <span class="math inline">\(P(\mathrm{carry})=1-q(s)\)</span>.</strong> The chance that the player chooses to carry in state <span class="math inline">\(s\)</span>, where <span class="math inline">\(q(s)=P(A=\mathrm{pass}\mid s)\)</span> is the pass-choice probability defined in action selection. It is computed by the action-selection model from its own inputs, including the number of completed one-second carries, and is taken from that model without refitting. In training, it is cross-fitted so that every state is scored by an action-selection model that did not see its match, as described in the <a href="../../benchmarks/05_residual_risk.html">benchmark</a>. Together with the carry-execution success probability <span class="math inline">\(1-d(s)\)</span> (already among the shared features, the chance that the carry succeeds), it describes both the choice and the execution of carrying.</li>
+<li><strong>Elapsed time.</strong> The time elapsed since the beginning of the individual possession, measured at the prediction frame, that is, how long the player has already been on the ball. It replaces the count of completed one-second carries, enters residual risk only, and uses no information after the prediction frame.</li>
 </ul>
 <p>These changes yield 31 conceptual inputs, including the two categorical context variables. The classifier returns its native logistic probabilities.</p>
 <p>Context-label meanings and the <code>previous_action</code> convention are defined in the <a href="../../vignettes/setup/possession_and_checkpoint_setup.html#context-labels">User guide</a>.</p>
@@ -768,6 +769,15 @@ r(s)=P(Y=1\mid s,\,A=\mathrm{carry},\,\text{successful one-second carry}).
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-chen2016xgboost" class="csl-entry" role="listitem">
 Chen, Tianqi, and Carlos Guestrin. 2016. <span>“<span>XGBoost</span>: A Scalable Tree Boosting System.”</span> In <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>. <a href="https://doi.org/10.1145/2939672.2939785">https://doi.org/10.1145/2939672.2939785</a>.
+</div>
+<div id="ref-dick2023actionrate" class="csl-entry" role="listitem">
+Dick, Uwe, and Ulf Brefeld. 2023. <span>“Action Rate Models for Predicting Actions in Soccer.”</span> <em>AStA Advances in Statistical Analysis</em> 107: 29–49. <a href="https://doi.org/10.1007/s10182-022-00435-x">https://doi.org/10.1007/s10182-022-00435-x</a>.
+</div>
+<div id="ref-gu2024pressure" class="csl-entry" role="listitem">
+Gu, Chaoyi, Jiaming Na, Yisheng Pei, and Varuna De Silva. 2024. <span>“Player Pressure Map – a Novel Representation of Pressure in Soccer for Evaluating Player Performance in Different Game Contexts.”</span> <a href="https://arxiv.org/abs/2401.16235">https://arxiv.org/abs/2401.16235</a>.
+</div>
+<div id="ref-lecoz2026semimarkov" class="csl-entry" role="listitem">
+Le Coz, Sebastian, Firas Boustila, and Frank Imbach. 2026. <span>“A Semi-Markov Framework for Modeling Football Possessions and Temporal Expected Threat.”</span> <em>Scientific Reports</em> 16: 22590. <a href="https://doi.org/10.1038/s41598-026-52938-1">https://doi.org/10.1038/s41598-026-52938-1</a>.
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

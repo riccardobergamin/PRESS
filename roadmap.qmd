@@ -2,7 +2,7 @@
 title: "Project roadmap"
 ---
 
-PRESS combines a reusable inference package with a portfolio documenting its five fitted components, their evaluation and descriptive pressure reports. This page summarizes the completed work and possible research extensions.
+PRESS is a research project that combines a reusable inference package with documentation of its five fitted components, their evaluation and descriptive pressure reports. This page summarizes the completed work and possible research extensions.
 
 ## Current state
 

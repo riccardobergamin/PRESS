@@ -29,7 +29,7 @@ Flat and cross-nested pass selection share their feature calculation. Action sel
 
 ## Modelling choices
 
-Two considerations guide the choice of models. The analysis rests on ten matches, which favours simple models with few parameters. The project also has a portfolio character, and in several components an exploratory choice was preferred to the search for the best predictive performance.
+Two considerations guide the choice of models. The analysis rests on ten matches, which favours simple models with few parameters. The project is also a research project, and in several components an exploratory choice was preferred to the search for the best predictive performance.
 
 More complex architectures, such as the graph neural networks that SkillCorner uses for xLoss, would probably require a dataset of a different scale. This is a hypothesis based on the scale of the datasets typically used for such models; no feasibility study has been carried out.
 

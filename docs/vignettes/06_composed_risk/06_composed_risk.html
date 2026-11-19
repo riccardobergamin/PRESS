@@ -612,18 +612,17 @@ window.Quarto = {
 </header>
 
 
-<p>PRESS describes the decisions and actions of the ball carrier through separately fitted components: the probability of passing or carrying, the risk of losing the ball in a one-second carry, the destination of a pass and its probability of completion. This page composes them into a single quantity, <span class="math inline">\(h\)</span>, that answers one question: given the current state, how likely is the team to lose the ball during the carrier’s next action? Because <span class="math inline">\(h\)</span> is a probability, it has an absolute scale, which we divide into four bands. The bands are used in the <a href="../../vignettes/07_case_studies/07_case_studies.html">pressure case studies and player report</a>.</p>
+<p>PRESS describes the decisions and actions of the ball carrier through separately fitted components: the probability of passing or carrying, the risk of losing the ball in a one-second carry, the destination of a pass and its probability of completion. This page composes them into a single quantity, <span class="math inline">\(h\)</span>, that answers one question: given the current state, how likely is the team to lose the ball during the carrier’s next action? Because <span class="math inline">\(h\)</span> is a probability, it has an absolute scale, which PRESS divides into four bands. The bands are used in the <a href="../../vignettes/07_case_studies/07_case_studies.html">pressure case studies and player report</a>.</p>
 <section id="possession-as-a-discrete-sequence-of-actions" class="level2">
 <h2 class="anchored" data-anchor-id="possession-as-a-discrete-sequence-of-actions">1. Possession as a discrete sequence of actions</h2>
 <p>PRESS segments a possession into a canonical set of on-ball actions, the segmentation described in <a href="../../vignettes/setup/possession_and_checkpoint_setup.html">Possessions and checkpoints</a>. A player in possession either carries the ball for one second or passes it to a destination <span class="math inline">\(j\)</span>, so the set of actions is</p>
 <p><span class="math display">\[\mathcal A_0=\{\mathrm{carry}_{1s},\ \mathrm{pass}(j)\},\]</span></p>
-<p>where a pass runs until its completion. The one-second carry unit is inspired by action-based EPV models <span class="citation" data-cites="fernandez2019 fernandez2021 stalpaert2022">(<a href="#ref-fernandez2019" role="doc-biblioref">Fernandez, Bornn, and Cervone 2019</a>; <a href="#ref-fernandez2021" role="doc-biblioref">Fernandez, Bornn, and Cervone 2021</a>; <a href="#ref-stalpaert2022" role="doc-biblioref">Stalpaert 2022</a>)</span>. Shots are outside the action set.</p>
+<p>where a pass runs until its completion. Shots are outside the action set.</p>
 <p>Along a possession these actions form a sequence in which the team keeps the ball until, at some action, it loses it. A completed pass moves the ball to a teammate, and the sequence continues across successive carriers. Let <span class="math inline">\(T\)</span> be the number of canonical actions until team possession is lost, and <span class="math inline">\(s_n\)</span> the game state at the <span class="math inline">\(n\)</span>-th decision. The probability that the loss occurs at the next action, given that possession has been retained so far, is the discrete hazard</p>
 <p><span class="math display">\[h(s_n)=P(T=n+1\mid T&gt;n,\ s_n).\]</span></p>
 <p>This is the quantity that answers the question: how fragile is the possession here? A carrier with free space and safe passing options has a small <span class="math inline">\(h\)</span>, while a carrier whose carry is contested and whose passes are likely to fail has a large one. Defensive pressure acts on both branches at once, since it raises the risk of the carry and of the passes and it changes which action the player is likely to choose, and <span class="math inline">\(h\)</span> summarizes these effects in a single probability. It is a <strong>probability per decision</strong>, indexed by actions, and its scale depends on the one-second horizon of the carry.</p>
 <p>PRESS builds <span class="math inline">\(h\)</span> from its components and marginalizes over the average decision-making policy learned from observed play, independently of the action the player actually chose, so <span class="math inline">\(h\)</span> describes the difficulty of the situation. Local geometry and kinematics enter execution, and passing options and context enter choice. A high value indicates difficult modeled alternatives for an average player in the observed context.</p>
 <p><span class="math inline">\(h\)</span> is evaluated at the conventional checkpoints of the segmentation, one for each canonical action, and these define the process and all the results of this page. Since the components depend on the current state, <span class="math inline">\(h\)</span> can also be computed at intermediate tracking frames, which provides descriptive observations of how difficulty evolves within a possession without adding actions.</p>
-<p>Context-label meanings and the <code>previous_action</code> convention are defined in the <a href="../../vignettes/setup/possession_and_checkpoint_setup.html#context-labels">User guide</a>.</p>
 </section>
 <section id="mathematical-definition" class="level2">
 <h2 class="anchored" data-anchor-id="mathematical-definition">2. Mathematical definition</h2>
@@ -646,9 +645,10 @@ window.Quarto = {
 <p>The survival interpretation gives <span class="math inline">\(h\)</span> an intuitive scale. If the current hazard stayed constant over the following actions, the probability of retaining possession for <span class="math inline">\(n\)</span> more actions would be <span class="math inline">\((1-h)^n\)</span>. The <strong>half-life</strong> is the number of actions after which this probability falls to 50%,</p>
 <p><span class="math display">\[n_{1/2}=\frac{\log(1/2)}{\log(1-h)},\]</span></p>
 <p>so the higher the hazard, the shorter the half-life. It is a reference scale expressed in decisions; since difficulty changes throughout play, it summarizes the current situation as a constant-risk reference.</p>
-<p>Inspired by the classification of defensive pressure of SkillCorner <span class="citation" data-cites="skillcorner2026">(<a href="#ref-skillcorner2026" role="doc-biblioref">SkillCorner 2026</a>)</span>, we define the <strong>difficulty bands</strong> from this scale. The cutoffs are the values of <span class="math inline">\(h\)</span> whose half-life is exactly 8, 4 and 2 actions, a geometric sequence in which each half-life is half of the previous one,</p>
+<p>Along the canonical sequence, the corresponding model-implied survival profile is <span class="math inline">\(\widehat S_n=\prod_{k=0}^{n-1}[1-h(s_k)]\)</span>. Intermediate tracking snapshots add no actions or survival factors, while <span class="math inline">\(h\)</span> remains computable from any usable current state.</p>
+<p>Following SkillCorner’s approach of classifying defensive pressure into bands <span class="citation" data-cites="skillcorner2026">(<a href="#ref-skillcorner2026" role="doc-biblioref">SkillCorner 2026</a>)</span>, PRESS defines the <strong>difficulty bands</strong> from the hazard, through this half-life scale. The cutoffs are the values of <span class="math inline">\(h\)</span> whose half-life is exactly 8, 4 and 2 actions, a geometric sequence in which each half-life is half of the previous one,</p>
 <p><span class="math display">\[b_n=1-2^{-1/n},\qquad n=8,4,2.\]</span></p>
-<p>Since <span class="math inline">\(b_n\approx \ln 2/n\)</span> for small <span class="math inline">\(b_n\)</span>, halving the half-life approximately doubles the hazard, so the cutoffs are approximately equally spaced on a logarithmic scale of risk. This is a project design choice, with thresholds fixed by the half-life construction. The bands are defined on <span class="math inline">\(h\)</span>: they rest on a constant-hazard half-life construction, which requires a per-action risk over a fixed window, whereas xLoss is the probability of reaching an absorbing state, the terminal loss of the individual possession, and accumulates over a variable horizon, so these thresholds are specific to <span class="math inline">\(h\)</span>. The API keeps the labels below.</p>
+<p>Since <span class="math inline">\(b_n\approx \ln 2/n\)</span> for small <span class="math inline">\(b_n\)</span>, halving the half-life approximately doubles the hazard, so the cutoffs are approximately equally spaced on a logarithmic scale of risk. This is a project design choice, with thresholds fixed by the half-life construction. The API keeps the labels below.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -680,7 +680,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>The code uses the exact cutoffs, and a value on a cutoff enters the higher band. The same construction at <span class="math inline">\(n=1\)</span> gives a cutoff at <span class="math inline">\(h=0.5\)</span>, which would define a fifth band. Only 36 of the 14,919 held-out states (0.24%) have <span class="math inline">\(h\ge 0.5\)</span>, too few to evaluate a separate band reliably, so High is kept as the highest band.</p>
+<p>The code uses the exact cutoffs, and a value on a cutoff enters the higher band. The same construction at <span class="math inline">\(n=1\)</span> gives a cutoff at <span class="math inline">\(h=0.5\)</span>, which would define a fifth band. Only 36 of the 14,919 held-out states (0.24%) have <span class="math inline">\(h\ge 0.5\)</span>, too few to evaluate a separate band reliably, so High is kept as the highest band. The bands are defined on <span class="math inline">\(h\)</span>, whose per-action risk over a fixed window suits the constant-hazard half-life construction. xLoss is the probability of reaching an absorbing state, the terminal loss of the individual possession, and accumulates over a variable horizon, so these thresholds are specific to <span class="math inline">\(h\)</span>.</p>
 </section>
 <section id="example" class="level2">
 <h2 class="anchored" data-anchor-id="example">4. Example</h2>
@@ -752,7 +752,6 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="validation-of-the-bands">5. Validation of the bands</h2>
 <p>The table pools <strong>14,919 canonical held-out action states</strong> from the five outer test pairs. The observed target is the <strong>failure of the current canonical action</strong>.</p>
 <p>The band validation retains verified outfield, non-shot individual possessions whose terminal action belongs to the canonical action set. A pass supplies a checkpoint at its release, and a possession ending in a failed carry supplies the checkpoint at the start of the final failed action. Possessions ending in a foul suffered or a clearance have no terminal canonical action and are excluded from this table, which leaves 14,919 states from 7,265 possessions. The pooled metrics of <span class="math inline">\(h\)</span> and xLoss in the <a href="../../benchmarks/06_composed_risk.html">composed-risk benchmark</a> use all 15,085 verified-outcome checkpoints, including the earlier carry checkpoints of these possessions.</p>
-<p>Along the canonical sequence, the corresponding model-implied survival profile is <span class="math inline">\(\widehat S_n=\prod_{k=0}^{n-1}[1-h(s_k)]\)</span>. Intermediate tracking snapshots add no actions or survival factors, while <span class="math inline">\(h\)</span> remains computable from any usable current state.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 20%">
@@ -806,8 +805,8 @@ window.Quarto = {
 </section>
 <section id="extension-to-xloss" class="level2">
 <h2 class="anchored" data-anchor-id="extension-to-xloss">6. Extension to xLoss</h2>
-<p>The same Auckland FC–Newcastle Jets FC possession ends with L. Gillion losing the ball and K. Grozos starting the next individual possession.</p>
-<p><span class="math inline">\(h\)</span> concerns the next action. A complementary question concerns the eventual outcome of the current ball carrier’s individual possession, which can extend beyond the next action. The distinction arises from the carry: a successful one-second carry preserves the individual possession but does not determine its outcome, since the player may keep carrying, pass or lose the ball later, while a successful pass ends the individual possession without a loss of team possession.</p>
+<p><span class="math inline">\(h\)</span> concerns the next action. A complementary question concerns the eventual outcome of the current ball carrier’s individual possession, which can extend beyond the next action <span class="citation" data-cites="skillcorner2025spec">(<a href="#ref-skillcorner2025spec" role="doc-biblioref">SkillCorner 2025, 52</a>)</span>. The distinction arises from the carry: a successful one-second carry preserves the individual possession but does not determine its outcome, since the player may keep carrying, pass or lose the ball later, while a successful pass ends the individual possession without a loss of team possession.</p>
+<p>Related work predicts possession outcomes over a time horizon: the loss of possession within four seconds <span class="citation" data-cites="gu2024pressure">(<a href="#ref-gu2024pressure" role="doc-biblioref">Gu et al. 2024</a>)</span>, the rate of the next action and of possession loss <span class="citation" data-cites="dick2023actionrate">(<a href="#ref-dick2023actionrate" role="doc-biblioref">Dick and Brefeld 2023</a>)</span>, and the goal probability of a possession over time <span class="citation" data-cites="lecoz2026semimarkov">(<a href="#ref-lecoz2026semimarkov" role="doc-biblioref">Le Coz, Boustila, and Imbach 2026</a>)</span>.</p>
 <p>The <a href="../../vignettes/05_residual_risk/05_residual_risk.html">residual-risk model</a> accounts for this longer horizon with the residual risk</p>
 <p><span class="math display">\[r(s)=P(\text{eventual individual possession loss}\mid s,\ \text{successful carry}).\]</span></p>
 <p>Along the carry branch, the probability of an eventual loss combines the loss during the carry with the residual risk after its success, <span class="math inline">\(d(s)+(1-d(s))\,r(s)\)</span>. Marginalizing over the same average decision-making policy as <span class="math inline">\(h\)</span> gives the expected loss</p>
@@ -816,6 +815,7 @@ window.Quarto = {
 <p><span class="math display">\[\mathrm{xLoss}(s)=h(s)+\big(1-q(s)\big)\big(1-d(s)\big)\,r(s).\]</span></p>
 <p>The additional term is the probability of a successful carry followed by an eventual loss of the individual possession. xLoss incorporates this longer horizon through <span class="math inline">\(r(s)\)</span>, which absorbs the subsequent decisions into a single probability.</p>
 <p>The two quantities are complementary. <span class="math inline">\(h\)</span> characterizes the immediate difficulty of the situation and supports the difficulty bands, and xLoss estimates the probability that the current individual possession ends in a loss. Both are evaluated under the average decision-making policy, independently of the action actually performed.</p>
+<p>The same Auckland FC–Newcastle Jets FC possession ends with L. Gillion losing the ball and K. Grozos starting the next individual possession.</p>
 <div id="2fa2e5f8" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>area <span class="op">=</span> press.get_bcos_result(frame_id)[<span class="st">"BCOS area"</span>]</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -879,23 +879,26 @@ window.Quarto = {
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-dick2023actionrate" class="csl-entry" role="listitem">
+Dick, Uwe, and Ulf Brefeld. 2023. <span>“Action Rate Models for Predicting Actions in Soccer.”</span> <em>AStA Advances in Statistical Analysis</em> 107: 29–49. <a href="https://doi.org/10.1007/s10182-022-00435-x">https://doi.org/10.1007/s10182-022-00435-x</a>.
+</div>
 <div id="ref-efron1993bootstrap" class="csl-entry" role="listitem">
 Efron, Bradley, and Robert J. Tibshirani. 1993. <em>An Introduction to the Bootstrap</em>. Chapman; Hall. <a href="https://doi.org/10.1007/978-1-4899-4541-9">https://doi.org/10.1007/978-1-4899-4541-9</a>.
 </div>
-<div id="ref-fernandez2019" class="csl-entry" role="listitem">
-Fernandez, Javier, Luke Bornn, and Dan Cervone. 2019. <span>“Decomposing the Immeasurable Sport: A Deep Learning Expected Possession Value Framework for Soccer.”</span> In <em>MIT Sloan Sports Analytics Conference</em>. <a href="https://www.sloansportsconference.com/research-papers/decomposing-the-immeasurable-sport-a-deep-learning-expected-possession-value-framework-for-soccer">https://www.sloansportsconference.com/research-papers/decomposing-the-immeasurable-sport-a-deep-learning-expected-possession-value-framework-for-soccer</a>.
+<div id="ref-gu2024pressure" class="csl-entry" role="listitem">
+Gu, Chaoyi, Jiaming Na, Yisheng Pei, and Varuna De Silva. 2024. <span>“Player Pressure Map – a Novel Representation of Pressure in Soccer for Evaluating Player Performance in Different Game Contexts.”</span> <a href="https://arxiv.org/abs/2401.16235">https://arxiv.org/abs/2401.16235</a>.
 </div>
-<div id="ref-fernandez2021" class="csl-entry" role="listitem">
-Fernandez, Javier, Luke Bornn, and Daniel Cervone. 2021. <span>“A Framework for the Fine-Grained Evaluation of the Instantaneous Expected Value of Soccer Possessions.”</span> <em>Machine Learning</em> 110: 1389–1427. <a href="https://doi.org/10.1007/s10994-021-05989-6">https://doi.org/10.1007/s10994-021-05989-6</a>.
+<div id="ref-lecoz2026semimarkov" class="csl-entry" role="listitem">
+Le Coz, Sebastian, Firas Boustila, and Frank Imbach. 2026. <span>“A Semi-Markov Framework for Modeling Football Possessions and Temporal Expected Threat.”</span> <em>Scientific Reports</em> 16: 22590. <a href="https://doi.org/10.1038/s41598-026-52938-1">https://doi.org/10.1038/s41598-026-52938-1</a>.
 </div>
 <div id="ref-singer2003" class="csl-entry" role="listitem">
 Singer, Judith D., and John B. Willett. 2003. <em>Applied Longitudinal Data Analysis: Modeling Change and Event Occurrence</em>. Oxford University Press.
 </div>
-<div id="ref-skillcorner2026" class="csl-entry" role="listitem">
-SkillCorner. 2026. <span>“Introducing SkillCorner’s New Pressure Metrics.”</span> <a href="https://skillcorner.com/us/articles/introducing-skillcorners-new-pressure-metrics">https://skillcorner.com/us/articles/introducing-skillcorners-new-pressure-metrics</a>.
+<div id="ref-skillcorner2025spec" class="csl-entry" role="listitem">
+SkillCorner. 2025. <em>Dynamic Events: CSV Specifications</em>. SkillCorner. <a href="https://26560301.fs1.hubspotusercontent-eu1.net/hubfs/26560301/Guides/Dynamic%20Events/20250216%20-%20Dynamic%20Events%20CSV%20Specifications.pdf">https://26560301.fs1.hubspotusercontent-eu1.net/hubfs/26560301/Guides/Dynamic%20Events/20250216%20-%20Dynamic%20Events%20CSV%20Specifications.pdf</a>.
 </div>
-<div id="ref-stalpaert2022" class="csl-entry" role="listitem">
-Stalpaert, Louis. 2022. <span>“CounterRisk: Predicting Counter-Attacks, Even If They Don’t Occur.”</span> Master’s thesis, KU Leuven. <a href="https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf">https://belgianfootball.s3.eu-central-1.amazonaws.com/s3fs-public/rbfa/docs/pdf/rbfa_knowledge_centre/studies/RBFA_Study_30_Counter_Risk.pdf</a>.
+<div id="ref-skillcorner2026" class="csl-entry" role="listitem">
+———. 2026. <span>“Introducing SkillCorner’s New Pressure Metrics.”</span> <a href="https://skillcorner.com/us/articles/introducing-skillcorners-new-pressure-metrics">https://skillcorner.com/us/articles/introducing-skillcorners-new-pressure-metrics</a>.
 </div>
 <div id="ref-suresh2022discrete" class="csl-entry" role="listitem">
 Suresh, Krithika, Cameron Severn, and Debashis Ghosh. 2022. <span>“Survival Prediction Models: An Introduction to Discrete-Time Modeling.”</span> <em>BMC Medical Research Methodology</em> 22: 207. <a href="https://doi.org/10.1186/s12874-022-01679-6">https://doi.org/10.1186/s12874-022-01679-6</a>.
