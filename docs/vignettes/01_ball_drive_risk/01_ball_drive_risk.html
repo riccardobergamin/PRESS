@@ -647,21 +647,25 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="motion-and-defender-interception-time">2. Motion and defender interception time</h2>
 <section id="projected-ball-carrier-trajectory" class="level3">
 <h3 class="anchored" data-anchor-id="projected-ball-carrier-trajectory">Projected ball-carrier trajectory</h3>
-<p>Let <span class="math inline">\(x_{\mathrm{bc}}(0)\)</span> and <span class="math inline">\(v_{\mathrm{bc}}(0)\)</span> denote the carrier’s observed position and velocity at the evaluation frame. During the hypothetical drive, the carrier follows a constant-velocity projection:</p>
+<p>Let <span class="math inline">\(x_{\mathrm{bc}}(0)\)</span> and <span class="math inline">\(v_{\mathrm{bc}}(0)\)</span> denote the observed position and velocity of the ball carrier at the evaluation frame. Over the one-second drive, the carrier’s trajectory is approximated by constant-velocity motion:</p>
 <p><span class="math display">\[
 x_{\mathrm{bc}}(t)=x_{\mathrm{bc}}(0)+v_{\mathrm{bc}}(0)t,\qquad 0\le t\le 1.
 \]</span></p>
-<p>Let <span class="math inline">\(x_i(0)\)</span> and <span class="math inline">\(v_i(0)\)</span> denote the observed position and velocity of defender <span class="math inline">\(i\)</span> at the evaluation frame. At each integration time, defender <span class="math inline">\(i\)</span> targets the projected carrier position <span class="math inline">\(x_{\mathrm{bc}}(t)\)</span>. The carrier is represented as a 2D point. Let <span class="math inline">\(r_i(t)=\lVert x_{\mathrm{bc}}(t)-x_i(0)\rVert\)</span> denote the defender’s distance to that target, and let <span class="math inline">\(u_i=\lVert v_i(0)\rVert\)</span> be the defender’s observed initial speed.</p>
+<p>This projection depends only on the initial observed state and provides a common reference for evaluating defender interception times, reachability, boundary proximity and approach angles throughout the drive.</p>
 </section>
 <section id="travel-and-turning-time" class="level3">
 <h3 class="anchored" data-anchor-id="travel-and-turning-time">Travel and turning time</h3>
-<p>For initial speed <span class="math inline">\(u_i\le v_{\max}\)</span>, the motion approximation uses linear acceleration <span class="math inline">\(a=a_{\mathrm{linear}}\)</span> up to an effective speed <span class="math inline">\(v_{\max}\)</span>. Define</p>
+<p>For each defender <span class="math inline">\(i\)</span>, let <span class="math inline">\(x_i(0)\)</span> and <span class="math inline">\(v_i(0)\)</span> denote the observed position and velocity at the evaluation frame. The defender’s target is the projected carrier position <span class="math inline">\(x_{\mathrm{bc}}(t)\)</span>, at distance</p>
+<p><span class="math display">\[
+r_i(t)=\lVert x_{\mathrm{bc}}(t)-x_i(0)\rVert.
+\]</span></p>
+<p>The travel-time approximation assumes linear acceleration <span class="math inline">\(a=a_{\mathrm{linear}}\)</span> from the initial speed <span class="math inline">\(u_i=\lVert v_i(0)\rVert\)</span> up to an effective speed <span class="math inline">\(v_{\max}\)</span>. For <span class="math inline">\(u_i\le v_{\max}\)</span>, the time and distance required to reach this speed are</p>
 <p><span class="math display">\[
 t_a=\max\left\{\frac{v_{\max}-u_i}{a},0\right\},
 \qquad
 d_a=u_it_a+\frac12 at_a^2.
 \]</span></p>
-<p>The estimated travel time to the projected target is</p>
+<p>The estimated travel time to the projected target is therefore</p>
 <p><span class="math display">\[
 t_{\mathrm{move},i}(t)=
 \begin{cases}
@@ -669,16 +673,17 @@ t_{\mathrm{move},i}(t)=
 t_a+\dfrac{r_i(t)-d_a}{v_{\max}}, &amp; r_i(t)&gt;d_a.
 \end{cases}
 \]</span></p>
-<p>If the observed initial speed exceeds <span class="math inline">\(v_{\max}\)</span>, the model retains that initial speed without additional acceleration and uses <span class="math inline">\(t_{\mathrm{move},i}(t)=r_i(t)/u_i\)</span>. Thus <span class="math inline">\(v_{\max}\)</span> is not a hard cap on observed initial speeds.</p>
-<p>Following Pleuler’s use of a heading-dependent turning penalty <span class="citation" data-cites="pleuler2020handbook">(<a href="#ref-pleuler2020handbook" role="doc-biblioref">Pleuler 2020</a>)</span>, PRESS parameterizes the defender’s reorientation with a simplified turning delay. With turning angle <span class="math inline">\(\theta_i(t)\)</span> in radians and turning-acceleration parameter <span class="math inline">\(a_{\mathrm{turn}}\)</span>,</p>
+<p>When the observed initial speed exceeds <span class="math inline">\(v_{\max}\)</span>, the defender retains that speed without further acceleration, giving <span class="math inline">\(t_{\mathrm{move},i}(t)=r_i(t)/u_i\)</span>. Thus, <span class="math inline">\(v_{\max}\)</span> limits the acceleration phase but does not cap observed initial speeds.</p>
+<p>Travel time is supplemented by a heading-dependent turning delay, following the approach of Pleuler <span class="citation" data-cites="pleuler2020handbook">(<a href="#ref-pleuler2020handbook" role="doc-biblioref">Pleuler 2020</a>)</span>. Let <span class="math inline">\(\theta_i(t)\)</span> denote the angle between the defender’s initial velocity and the direction of the projected target. With turning-acceleration parameter <span class="math inline">\(a_{\mathrm{turn}}\)</span>, the delay is</p>
 <p><span class="math display">\[
 t_{\mathrm{turn},i}(t)=\frac{u_i\theta_i(t)}{a_{\mathrm{turn}}}.
 \]</span></p>
-<p>This expression follows from a turning radius <span class="math inline">\(R=u_i^2/a_{\mathrm{turn}}\)</span> and arc time <span class="math inline">\(R\theta_i/u_i\)</span>. The implementation adds a delay but does not propagate the defender along a turning arc. The arrival-time estimate is</p>
+<p>This approximation follows from a turning radius <span class="math inline">\(R=u_i^2/a_{\mathrm{turn}}\)</span> and the corresponding arc time <span class="math inline">\(R\theta_i/u_i\)</span>. Turning is represented as an additional delay, without explicitly simulating the curved trajectory.</p>
+<p>Combining travel and turning gives the estimated interception time:</p>
 <p><span class="math display">\[
 \tau_i(t)=t_{\mathrm{move},i}(t)+t_{\mathrm{turn},i}(t).
 \]</span></p>
-<p>For the existing near-target convention, <span class="math inline">\(\tau_i(t)=0\)</span> whenever <span class="math inline">\(r_i(t)\le0.1\)</span> m. This does not imply certain reachability.</p>
+<p>For targets within <span class="math inline">\(0.1\)</span> m of the defender, the implementation sets <span class="math inline">\(\tau_i(t)=0\)</span>. The resulting interception time determines the defender’s probabilistic reachability, introduced in the next section.</p>
 </section>
 </section>
 <section id="probabilistic-defender-reachability" class="level2">
