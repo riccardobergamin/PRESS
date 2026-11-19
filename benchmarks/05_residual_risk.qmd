@@ -77,7 +77,7 @@ Accessible space and the spatial configuration of the passing options lead the r
 
 ## 5. Comparison with published results {#related-published-work}
 
-A targeted literature search on 29 October 2026 found no published cross-entropy, null-gain or ECE result for this conditional terminal individual-possession target.
+We could not find published cross-entropy, null-gain or ECE result for this conditional terminal individual-possession target.
 
 | Work | Published target and result | Difference from this task |
 |---|---|---|
