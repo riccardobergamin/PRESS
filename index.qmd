@@ -79,7 +79,7 @@ For action and pass destination selection, PRESS experiments with tree-based dis
 
 The components yield two complementary measures. Evaluated along observed possessions, the possession-loss hazard supports retrospective risk profiles, survival-based descriptions of possession difficulty, and player-performance reports. xLoss provides a prospective measure, with potential applications in tactical analysis, and PRESS computes it modularly as the hazard plus a residual-risk term. Both measures are defined from the current game state.
 
-The framework is developed on a publicly available ten-match sample, which supports end-to-end modelling and reproducible evaluation on real game situations while limiting the generalizability of fitted models and empirical findings. The relatively simple modelling choices reflect the available data and the project's exploratory scope; their assumptions and implications are discussed in [Modelling choices](pipeline.qmd#modelling-choices).
+The framework is developed on a publicly available ten-match sample, which supports end-to-end modelling and reproducible evaluation on real game situations while limiting the generalizability of fitted models and empirical findings. The modelling choices favour parsimonious models, in line with this sample and the project’s exploratory scope; their assumptions and implications are discussed in [Modelling choices](pipeline.qmd#modelling-choices).
 
 ## Framework overview
 
