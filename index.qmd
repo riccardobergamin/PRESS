@@ -24,9 +24,7 @@ PRESS is an independent, work-in-progress research and software framework for es
 ### Risk profiles and reports {#risk-and-reports}
 
 - [Hazard and risk bands](vignettes/06_composed_risk/06_composed_risk.ipynb)
-- [Possession difficulty](vignettes/07_case_studies/07_case_studies.ipynb)
-- [Pressure patterns and cases](vignettes/07_case_studies/07_case_studies.ipynb)
-- [Team and player report](vignettes/07_case_studies/07_case_studies.ipynb)
+- [Pressure patterns and league reports](vignettes/07_case_studies/07_case_studies.ipynb)
 :::
 
 ::: {.directory-section}

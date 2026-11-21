@@ -1193,7 +1193,7 @@
     "href": "index.html#browse-the-project",
     "title": "PRESS",
     "section": "Browse the project",
-    "text": "Browse the project\n\n\nModels\n\nBall-drive risk\nPass probability\nPass selection\nAction selection\nResidual risk\n\n\n\nRisk profiles and reports\n\nHazard and risk bands\nPossession difficulty\nPressure patterns and cases\nTeam and player report\n\n\n\nGuides\n\nDatasets, installation and preprocessing\nPossession segmentation and context\nUse on a match\nUse with other providers: data requirements and preparation, then the Bundesliga example\n\n\n\nBenchmarks\n\nBall-drive risk\nPass probability\nPass selection\nAction selection\nResidual risk\nComposed risk (h and xLoss)\n\n\n\nSpatial features: accessibility and value\n\nBall Carrier Open Space\nExpected Threat\n\n\n\nReference\n\nPython API\nSolver reference\nResearch pipeline\nProject plan",
+    "text": "Browse the project\n\n\nModels\n\nBall-drive risk\nPass probability\nPass selection\nAction selection\nResidual risk\n\n\n\nRisk profiles and reports\n\nHazard and risk bands\nPressure patterns and league reports\n\n\n\nGuides\n\nDatasets, installation and preprocessing\nPossession segmentation and context\nUse on a match\nUse with other providers: data requirements and preparation, then the Bundesliga example\n\n\n\nBenchmarks\n\nBall-drive risk\nPass probability\nPass selection\nAction selection\nResidual risk\nComposed risk (h and xLoss)\n\n\n\nSpatial features: accessibility and value\n\nBall Carrier Open Space\nExpected Threat\n\n\n\nReference\n\nPython API\nSolver reference\nResearch pipeline\nProject plan",
     "crumbs": [
       "Overview"
     ]
