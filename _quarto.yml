@@ -83,9 +83,9 @@ website:
         href: vignettes/05_residual_risk/05_residual_risk.ipynb
     - text: Risk profiles and reports
       menu:
-      - text: h and risk bands
+      - text: Hazard and risk bands
         href: vignettes/06_composed_risk/06_composed_risk.ipynb
-      - text: Case studies and reports
+      - text: Pressure patterns and league reports
         href: vignettes/07_case_studies/07_case_studies.ipynb
     - text: Benchmarks
       menu:
@@ -156,9 +156,9 @@ website:
         href: vignettes/05_residual_risk/05_residual_risk.ipynb
     - section: Risk profiles and reports
       contents:
-      - text: h and risk bands
+      - text: Hazard and risk bands
         href: vignettes/06_composed_risk/06_composed_risk.ipynb
-      - text: Case studies and reports
+      - text: Pressure patterns and league reports
         href: vignettes/07_case_studies/07_case_studies.ipynb
     - section: Benchmarks
       contents:
